@@ -1,6 +1,6 @@
 # MFL Microcontoller Firmware Library
 
-This is a C++ microcontroller firmware library for the GD32F303RE chip.
+This is a C++ microcontroller firmware library for the GD32F303RE ARM Cortex-M4 microcontroller.
 Written from scratch by yours truly using the vendor manuals and datasheets.
 
 I DO NOT RECOMMEND USE!
