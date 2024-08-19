@@ -20,5 +20,5 @@ To compile the examples, simply move their main.cpp file to the base project fol
 check CONFIG.hpp for your specific needs, then build the stardard way using make.
 
 You will need an Arm embeded toolchain. Only tested with v13.2.1-1.1 of
-the xPack GNU Arm Enbedded GCC which can be found below:
+the xPack GNU Arm Enbedded GCC which can be found here:
 https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/releases/
