@@ -22,9 +22,6 @@ enum class GPIO_Base {
     GPIOB_BASE,
     GPIOC_BASE,
     GPIOD_BASE,
-    GPIOE_BASE,
-    GPIOF_BASE,
-    GPIOG_BASE,
     GPIO_LAST,
 };
 
@@ -33,9 +30,6 @@ static constexpr unsigned int GPIO_baseAddress[] = {
     0x40010C00, // GPIOB
     0x40011000, // GPIOC
     0x40011400, // GPIOD
-    0x40011800, // GPIOE
-    0x40011C00, // GPIOF
-    0x40012000, // GPIOG
 };
 
 
@@ -350,9 +344,6 @@ enum class Event_Port {
     EVENT_AT_GPIOB,
     EVENT_AT_GPIOC,
     EVENT_AT_GPIOD,
-#ifdef HAVE_GPIOE
-    EVENT_AT_GPIOE,
-#endif
 };
 
 enum class Source_Port {
@@ -360,15 +351,6 @@ enum class Source_Port {
     SOURCE_IS_GPIOB,
     SOURCE_IS_GPIOC,
     SOURCE_IS_GPIOD,
-#ifdef HAVE_GPIOE
-    SOURCE_IS_GPIOE,
-#endif
-#ifdef HAVE_GPIOF
-    SOURCE_IS_GPIOF,
-#endif
-#ifdef HAVE_GPIOG
-    SOURCE_IS_GPIOG,
-#endif
 };
 
 enum class Pin_Number {
@@ -483,9 +465,6 @@ static const GPIO_Clock_Config GPIO_pclk_index[] = {
     {rcu::RCU_PCLK::PCLK_GPIOB, rcu::RCU_PCLK_Reset::PCLK_GPIOBRST},
     {rcu::RCU_PCLK::PCLK_GPIOC, rcu::RCU_PCLK_Reset::PCLK_GPIOCRST},
     {rcu::RCU_PCLK::PCLK_GPIOD, rcu::RCU_PCLK_Reset::PCLK_GPIODRST},
-    {rcu::RCU_PCLK::PCLK_GPIOE, rcu::RCU_PCLK_Reset::PCLK_GPIOERST},
-    {rcu::RCU_PCLK::PCLK_GPIOF, rcu::RCU_PCLK_Reset::PCLK_GPIOFRST},
-    {rcu::RCU_PCLK::PCLK_GPIOG, rcu::RCU_PCLK_Reset::PCLK_GPIOGRST},
 };
 
 struct Remap_Info {

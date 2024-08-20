@@ -9,7 +9,7 @@
 #include "RCU.hpp"
 #include "gpio_config.hpp"
 
-#define MAX_GPIOS   7
+#define MAX_GPIOS   4
 
 namespace gpio {
 
@@ -21,9 +21,6 @@ public:
             GPIO(GPIO_Base::GPIOB_BASE),
             GPIO(GPIO_Base::GPIOC_BASE),
             GPIO(GPIO_Base::GPIOD_BASE),
-            GPIO(GPIO_Base::GPIOE_BASE),
-            GPIO(GPIO_Base::GPIOF_BASE),
-            GPIO(GPIO_Base::GPIOG_BASE),
         };
         return instances[static_cast<int>(Base)];
     }
