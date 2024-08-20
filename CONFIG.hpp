@@ -9,6 +9,8 @@
 
 #define REG_BIT_DEF(start, end)  ((start << 16) | (end - start + 1))
 
+#define	DISABLE_CEE_ENHANCE
+
 // Set the oppropriate offset here.
 // This should match the offset expected by the bootloader.
 // If no bootloader exists, use 0x00000000

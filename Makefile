@@ -11,9 +11,9 @@ OUTDIR = build
 LINKER_SCRIPT = Linker/gd32f303re.ld
 
 # Source Sirectories
-SRC_DIRS = Source/ADC Source/AFIO Source/CEE Source/COMMON Source/CORTEX Source/DMA Source/EXTI Source/FMC
-SRC_DIRS +=	Source/FWDGT Source/GPIO Source/OB Source/PMU Source/RCU Source/RTC Source/SPI Source/STARTUP
-SRC_DIRS +=	Source/USART Source/WWDGT
+SRC_DIRS = Source/ADC Source/AFIO Source/CEE Source/COMMON Source/CORTEX Source/DBG Source/DMA Source/EXTI
+SRC_DIRS +=	Source/FMC Source/FWDGT Source/GPIO Source/OB Source/PMU Source/RCU Source/RTC Source/SPI
+SRC_DIRS +=	Source/STARTUP Source/USART Source/WWDGT
 SRC_DIRS +=	CMSIS
 
 # Include directories and files
@@ -28,11 +28,11 @@ SRCS += main.cpp
 OBJS = $(SRCS:%.cpp=$(OUTDIR)/%.o)
 
 # C++ compiler flags
-CXXFLAGS = -std=gnu++20 -mcpu=cortex-m4 -Os -mthumb -g3 $(INCLUDES)
+CXXFLAGS = -std=gnu++20 -mcpu=cortex-m4 -mthumb -Os -g $(INCLUDES)
 CXXFLAGS += --specs=nosys.specs -Wall -Wextra -ffunction-sections -fdata-sections -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit -nostdlib --specs=nano.specs
 
 # Linker flags
-LDFLAGS	= -T$(LINKER_SCRIPT) -mcpu=cortex-m4 -Os -mthumb -g3
+LDFLAGS	= -T$(LINKER_SCRIPT) -mcpu=cortex-m4 -mthumb -Os -g
 LDFLAGS += --specs=nosys.specs -Wl,--gc-sections -Wl,--check-sections -Wl,--entry=Reset_Handler -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align --specs=nano.specs
 LDFLAGS += -lstdc++ -lgcc -lm -lc
 
