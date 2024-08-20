@@ -20,7 +20,7 @@ enum class SPI_Base {
     SPI_LAST,
 };
 
-static const unsigned int SPI_baseAddress[] = {
+static constexpr unsigned int SPI_baseAddress[] = {
     0x40013000, // SPI0
     0x40003800, // SPI1
     0x40003C00, // SPI2

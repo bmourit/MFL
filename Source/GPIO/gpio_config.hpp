@@ -28,7 +28,7 @@ enum class GPIO_Base {
     GPIO_LAST,
 };
 
-static const unsigned int GPIO_baseAddress[] = {
+static constexpr unsigned int GPIO_baseAddress[] = {
     0x40010800, // GPIOA
     0x40010C00, // GPIOB
     0x40011000, // GPIOC

@@ -20,7 +20,7 @@ enum class ADC_Base {
     ADC_LAST,
 };
 
-static const unsigned int ADC_baseAddress[] = {
+static constexpr unsigned int ADC_baseAddress[] = {
     0x40012400, // ADC0
     0x40012800, // ADC1
     0x40013C00, // ADC2
