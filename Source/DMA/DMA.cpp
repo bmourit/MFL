@@ -70,6 +70,26 @@ void DMA::set_pclk_enable(bool enable)
     RCU_DEVICE.set_pclk_enable(DMA_pclk_info_.clock_reg, enable ? true : false);
 }
 
+void DMA::set_new_parameters(DMA_Channel channel, DMA_Config *params)
+{
+    if (params == nullptr) {
+        return;
+    }
+
+    config_.peripheral_address = params->peripheral_address;
+    config_.peripheral_bit_width = params->peripheral_bit_width;
+    config_.memory_address = params->memory_address;
+    config_.memory_bit_width = params->memory_bit_width;
+    config_.count = params->count;
+    config_.peripheral_increase = params->peripheral_increase;
+    config_.memory_increase = params->memory_increase;
+    config_.channel_priority = params->channel_priority;
+    config_.direction = params->direction;
+
+    // Initialize the new configuration
+    init(channel);
+}
+
 // DEPRECATED - use set_circulation_mode_enable
 void DMA::circular_mode_enable(DMA_Channel channel)
 {
