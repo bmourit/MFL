@@ -84,17 +84,17 @@ enum class DMA_Channel {
 };
 
 enum class Interrupt_Flags {
-    INTR_FLAG_GIF,
-    INTR_FLAG_FTFIF,
-    INTR_FLAG_HTFIF,
-    INTR_FLAG_ERRIF,
+    INTR_FLAG_GIF = REG_BIT_DEF(0, 0),
+    INTR_FLAG_FTFIF = REG_BIT_DEF(1, 1),
+    INTR_FLAG_HTFIF = REG_BIT_DEF(2, 2),
+    INTR_FLAG_ERRIF = REG_BIT_DEF(3, 3),
 };
 
 enum class State_Flags {
-    FLAG_GIF,
-    FLAG_FTFIF,
-    FLAG_HTFIF,
-    FLAG_ERRIF,
+    FLAG_GIF = REG_BIT_DEF(0, 0),
+    FLAG_FTFIF = REG_BIT_DEF(1, 1),
+    FLAG_HTFIF = REG_BIT_DEF(2, 2),
+    FLAG_ERRIF = REG_BIT_DEF(3, 3),
 };
 
 enum class Interrupt_Type {

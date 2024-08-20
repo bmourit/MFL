@@ -26,26 +26,14 @@ void DMA::init(DMA_Channel channel)
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(config_.memory_bit_width));
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config_.channel_priority));
 
-    // Set peripheral incr mode
-    if (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), 1);
-    } else {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), 0);
-    }
+    // Set peripheral increase mode
+     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) ? 1 : 0);
 
-    // Set memory incr mode
-    if (config_.memory_increase == Increase_Mode::INCREASE_ENABLE) {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), 1);
-    } else {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), 0);
-    }
+    // Set memory increase mode
+    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), config_.memory_increase == Increase_Mode::INCREASE_ENABLE ? 1 : 0);
 
     // Set the transfer direction
-    if (config_.direction == Transfer_Direction::P2M) {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), 0);
-    } else {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), 1);
-    }
+     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P) ? 1 : 0);
 }
 
 void DMA::reset(DMA_Channel channel)
@@ -353,21 +341,17 @@ void DMA::set_transfer_direction(DMA_Channel channel, Transfer_Direction directi
         // TODO: Error handling
     }
 
-    if (direction == Transfer_Direction::P2M) {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), 0);
-    } else {
-        write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), 1);
-    }
+    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), (direction == Transfer_Direction::M2P) ? 1 : 0);
 }
 
 bool DMA::get_flag(DMA_Channel channel, State_Flags flag)
 {
-    return (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4))) != 0;
+    return read_bit_with_channel_offset(*this, DMA_Regs::INTF, static_cast<uint32_t>(flag), channel) != 0;
 }
 
 void DMA::clear_flag(DMA_Channel channel, State_Flags flag)
 {
-    write_register(DMA_Regs::INTC, ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
+    write_bit_with_channel_offset(*this, DMA_Regs::INTC, static_cast<uint32_t>(flag), channel, 1);
 }
 
 bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
@@ -376,15 +360,15 @@ bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
     uint32_t intr_enable = 0;
     switch (flag) {
     case Interrupt_Flags::INTR_FLAG_FTFIF:
-        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
+        intr_flag = read_bit_with_channel_offset(*this, DMA_Regs::INTF, static_cast<uint32_t>(flag), channel);
         intr_enable = read_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(Interrupt_Type::INTR_FTFIE));
         break;
     case Interrupt_Flags::INTR_FLAG_HTFIF:
-        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
+        intr_flag = read_bit_with_channel_offset(*this, DMA_Regs::INTF, static_cast<uint32_t>(flag), channel);
         intr_enable = read_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(Interrupt_Type::INTR_HTFIE));
         break;
     case Interrupt_Flags::INTR_FLAG_ERRIF:
-        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
+        intr_flag = read_bit_with_channel_offset(*this, DMA_Regs::INTF, static_cast<uint32_t>(flag), channel);
         intr_enable = read_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(Interrupt_Type::INTR_ERRIE));
         break;
     default:
@@ -392,12 +376,12 @@ bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
         break;
     }
 
-    return (intr_flag && intr_enable) ? true : false;
+    return ((intr_flag != 0) && (intr_enable != 0));
 }
 
 void DMA::clear_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
 {
-    write_register(DMA_Regs::INTC, read_register<uint32_t>(DMA_Regs::INTC) | ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
+    write_bit_with_channel_offset(*this, DMA_Regs::INTC, static_cast<uint32_t>(flag), channel, 1);
 }
 
 // DEPRICATED - use set_interrupt_enable
