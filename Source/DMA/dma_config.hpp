@@ -98,9 +98,9 @@ enum class State_Flags {
 };
 
 enum class Interrupt_Type {
-    INTR_FTFIE,
-    INTR_HTFIE,
-    INTR_ERRIE,
+    INTR_FTFIE = REG_BIT_DEF(1, 1),
+    INTR_HTFIE = REG_BIT_DEF(2, 2),
+    INTR_ERRIE = REG_BIT_DEF(3, 3),
 };
 
 enum class Transfer_Direction {

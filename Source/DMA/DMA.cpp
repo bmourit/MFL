@@ -362,12 +362,12 @@ void DMA::set_transfer_direction(DMA_Channel channel, Transfer_Direction directi
 
 bool DMA::get_flag(DMA_Channel channel, State_Flags flag)
 {
-    return (read_register<uint32_t>(DMA_Regs::INTF) & (static_cast<uint32_t>(flag) << (static_cast<uint32_t>(channel) * 4))) != 0;
+    return (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4))) != 0;
 }
 
 void DMA::clear_flag(DMA_Channel channel, State_Flags flag)
 {
-    write_register(DMA_Regs::INTC, (static_cast<uint32_t>(flag) << (static_cast<uint32_t>(channel) * 4)));
+    write_register(DMA_Regs::INTC, ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
 }
 
 bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
@@ -376,15 +376,15 @@ bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
     uint32_t intr_enable = 0;
     switch (flag) {
     case Interrupt_Flags::INTR_FLAG_FTFIF:
-        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & (static_cast<uint32_t>(flag) << (static_cast<uint32_t>(channel) * 4)));
+        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
         intr_enable = read_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(Interrupt_Type::INTR_FTFIE));
         break;
     case Interrupt_Flags::INTR_FLAG_HTFIF:
-        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & (static_cast<uint32_t>(flag) << (static_cast<uint32_t>(channel) * 4)));
+        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
         intr_enable = read_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(Interrupt_Type::INTR_HTFIE));
         break;
     case Interrupt_Flags::INTR_FLAG_ERRIF:
-        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & (static_cast<uint32_t>(flag) << (static_cast<uint32_t>(channel) * 4)));
+        intr_flag = (read_register<uint32_t>(DMA_Regs::INTF) & ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
         intr_enable = read_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(Interrupt_Type::INTR_ERRIE));
         break;
     default:
@@ -397,7 +397,7 @@ bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
 
 void DMA::clear_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
 {
-    write_register(DMA_Regs::INTC, read_register<uint32_t>(DMA_Regs::INTC) | (static_cast<uint32_t>(flag) << (static_cast<uint32_t>(channel) * 4)));
+    write_register(DMA_Regs::INTC, read_register<uint32_t>(DMA_Regs::INTC) | ((1 << static_cast<uint32_t>(flag)) << (static_cast<uint32_t>(channel) * 4)));
 }
 
 // DEPRICATED - use set_interrupt_enable
