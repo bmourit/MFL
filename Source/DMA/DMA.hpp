@@ -29,7 +29,7 @@ public:
     void reset(DMA_Channel channel);
     // Clock
     void set_pclk_enable(bool enable);
-    void set_new_parameters(DMA_Channel channel, DMA_Config *update);
+    void configure(DMA_Channel channel, DMA_Config *update);
     // Circulation mode
     void circular_mode_enable(DMA_Channel channel);                                     // DEPRECATED - use set_circulation_mode_enable
     void circular_mode_disable(DMA_Channel channel);                                    // DEPRECATED - use set_circulation_mode_enable
@@ -100,12 +100,12 @@ private:
     uint32_t base_address_;
     DMA_Config& config_;
 
-    uint32_t get_base_address(DMA_Base Base) {
-        return DMA_baseAddress[static_cast<int>(Base)];
-    }
-
     DMA_Clock_Config get_clock_config(DMA_Base Base) {
         return DMA_pclk_index[static_cast<int>(Base)];
+    }
+
+    uint32_t get_base_address(DMA_Base Base) {
+        return DMA_baseAddress[static_cast<int>(Base)];
     }
 
     template<typename T>

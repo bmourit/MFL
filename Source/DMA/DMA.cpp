@@ -27,13 +27,13 @@ void DMA::init(DMA_Channel channel)
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config_.channel_priority));
 
     // Set peripheral increase mode
-     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) ? 1 : 0);
+    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) ? 1 : 0);
 
     // Set memory increase mode
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), config_.memory_increase == Increase_Mode::INCREASE_ENABLE ? 1 : 0);
 
     // Set the transfer direction
-     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P) ? 1 : 0);
+    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P) ? 1 : 0);
 }
 
 void DMA::reset(DMA_Channel channel)
@@ -58,7 +58,7 @@ void DMA::set_pclk_enable(bool enable)
     RCU_DEVICE.set_pclk_enable(DMA_pclk_info_.clock_reg, enable ? true : false);
 }
 
-void DMA::set_new_parameters(DMA_Channel channel, DMA_Config *params)
+void DMA::configure(DMA_Channel channel, DMA_Config *params)
 {
     if (params == nullptr) {
         return;

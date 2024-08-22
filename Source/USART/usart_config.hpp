@@ -264,6 +264,13 @@ enum class Inversion_Type {
     RXPIN_DISABLE,
 };
 
+enum class USART_DMA_Config {
+    DMA_NONE,
+    DMA_TX,
+    DMA_RX,
+    DMA_DUAL,
+};
+
 
 ///////////////////////////// STRUCTURES /////////////////////////////
 
@@ -298,15 +305,23 @@ struct USART_irda_params {
 
 };
 
+struct USART_Pin_Config {
+    gpio::GPIO_Base gpio_port;
+    gpio::Pin_Number pin;
+    gpio::Pin_Mode mode;
+    gpio::Output_Speed speed;
+};
+
 struct USART_Config {
+    USART_Pin_Config rx_pin_config; // Pass the expected config for rx gpio pin setup
+    USART_Pin_Config tx_pin_config; // Pass the expected config for tx gpio pin setup
+    USART_DMA_Config dma_pin_ops;   // DMA mode off, on RX pin, on TX pin, or both
     uint32_t baudrate = 115200;
     Parity_Mode parity = Parity_Mode::PM_NONE;
     Word_Length word_length = Word_Length::WL_8BITS;
-    Stop_Bits stop_Bits = Stop_Bits::STB_1BIT;
+    Stop_Bits stop_bits = Stop_Bits::STB_1BIT;
     MSBF_Mode msbf = MSBF_Mode::MSBF_MSB;
-    Bit_State use_hwfc = Bit_State::BIT_DISABLE;
-    Bit_State use_dma = Bit_State::BIT_DISABLE;
-    Bit_State half_duplex = Bit_State::BIT_DISABLE;
+    Direction_Mode direction = Direction_Mode::RXTX_MODE;
 };
 
 } // namespace usart

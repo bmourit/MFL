@@ -104,12 +104,12 @@ private:
         *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
 
-    uint32_t get_base_address(ADC_Base Base) {
-        return ADC_baseAddress[static_cast<int>(Base)];
-    }
-
     ADC_Clock_Config get_clock_config(ADC_Base Base) {
         return ADC_pclk_index[static_cast<int>(Base)];
+    }
+
+    uint32_t get_base_address(ADC_Base Base) {
+        return ADC_baseAddress[static_cast<int>(Base)];
     }
 };
 

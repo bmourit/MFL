@@ -7,6 +7,8 @@
 #include <cstdint>
 #include "BitRW.hpp"
 #include "RCU.hpp"
+#include "GPIO.hpp"
+#include "AFIO.hpp"
 #include "usart_config.hpp"
 
 #define MAX_USARTS  5
@@ -15,20 +17,22 @@ namespace usart {
 
 class USART {
 public:
-    static USART& instance(USART_Base Base) {
+    static USART& instance(USART_Base Base, USART_Config& config) {
         static USART instances[MAX_USARTS] = {
-            USART(USART_Base::USART0_BASE),
-            USART(USART_Base::USART1_BASE),
-            USART(USART_Base::USART2_BASE),
-            USART(USART_Base::UART3_BASE),
-            USART(USART_Base::UART4_BASE),
+            USART(USART_Base::USART0_BASE, config),
+            USART(USART_Base::USART1_BASE, config),
+            USART(USART_Base::USART2_BASE, config),
+            USART(USART_Base::UART3_BASE, config),
+            USART(USART_Base::UART4_BASE, config),
         };
         return instances[static_cast<int>(Base)];
     }
 
+    void init();
     void reset();
     void set_pclk_enable(bool enable);
-    void set_baudrate(uint32_t baudrate);
+    void configure(USART_Config *config);
+    void inline set_baudrate(uint32_t baudrate);
     void set_parity(Parity_Mode parity);
     void set_word_length(Word_Length word_length);
     void set_stop_bits(Stop_Bits stop_bits);
@@ -62,11 +66,13 @@ public:
     USART_Clock_Config USART_pclk_info_;
 
 private:
-    explicit USART(USART_Base Base) : base_index_(Base),
+    explicit USART(USART_Base Base, USART_Config& config) : base_index_(Base),
         USART_pclk_info_(get_clock_config(Base)),
-        base_address_(get_base_address(Base)) {}
+        base_address_(get_base_address(Base)),
+        config_(config) {}
 
     uint32_t base_address_;
+    USART_Config& config_;
 
     template<typename T>
     inline T read_register(USART_Regs reg) const {
