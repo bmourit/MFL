@@ -13,7 +13,7 @@ namespace gpio {
 
 class AFIO {
 public:
-    AFIO() {}
+    AFIO();
 
     void reset();
     void set_pclk_enable(bool enable);

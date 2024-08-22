@@ -6,6 +6,24 @@
 
 namespace gpio {
 
+//
+// Constructor
+//
+// Unlike other peripherals, we enable the clock for those that are
+// globally instantiated. Otherwise, we run the risk of messing with
+// a clock that is already being used elsewhere.
+//
+// This applies to AFIO, FMC and PMU, which are typically alwways on.
+// Others, like the WWDGT, will set thier clocks in the init() call
+// to avoid clocks running when not in use.
+//
+AFIO::AFIO()
+{
+    RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_AF, true);
+    RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_AFRST, true);
+    RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_AFRST, false);
+}
+
 void AFIO::reset()
 {
     RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_AFRST, true);

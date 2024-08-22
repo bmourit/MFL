@@ -7,7 +7,7 @@
 namespace usart {
 
 //
-// USART init() may only be called after a USART instance is created a configuration passed.
+// USART init() may only be called after a USART instance is created and a configuration passed.
 // Calling init() will get the instance(s) of the required GPIO ports and initialize the pins
 // based on the stored paramaters. This includes the pin number, mode, and speed.
 // The rest of the paramaters are then use to finish the USART setup of
@@ -28,12 +28,10 @@ void USART::init()
 {
     // get the rx/tx pin configuration
     gpio::GPIO& port = gpio::GPIO::instance(config_.rx_pin_config.gpio_port);
-    // Enable the GPIO and AFIO pclk
+    // Enable the GPIO clock
     port.set_pclk_enable(true);
-    AFIO_DEVICE.set_pclk_enable(true);
-    // Reset gpio and afio
+    // Reset gpio
     port.reset();
-    AFIO_DEVICE.reset();
     // Initialize gpio
     port.init(config_.rx_pin_config.pin, config_.rx_pin_config.mode, config_.rx_pin_config.speed);
     // Check if the tx pin needs a different port
