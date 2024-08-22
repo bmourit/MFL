@@ -13,7 +13,7 @@ namespace pmu {
 
 class PMU {
 public:
-    PMU() {}
+    PMU();
 
     // Reset
     void reset();
