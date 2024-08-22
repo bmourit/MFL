@@ -37,12 +37,12 @@ public:
 
     // Configuration
     void calibration_enable();
-    void set_dma_mode(Bit_State state);
-    void vrefint_temp_enable(Bit_State state);
+    void dma_enable(bool enable);
+    void vrefint_temp_enable(bool enaable);
     void set_resolution(ADC_Resolution resolution);
     void discontinuous_mode_config(Channel_Group_Type channel_group, uint8_t length);
     void set_mode(Sync_Mode mode);
-    void special_function_config(Special_Function function, Bit_State state);
+    void set_special_function(Special_Function function, bool enable);
     void set_data_alignment(Data_Alignment align);
     void set_channel_length(Channel_Group_Type channel_group, uint32_t length);
     void regular_channel_config(uint8_t rank, ADC_Channel channel, ADC_Sample_Time sample_time);
@@ -50,24 +50,27 @@ public:
     void inserted_channel_offset_config(Inserted_Channel inserted_channel, uint16_t offset);
 
     // Triggers
-    void external_trigger_config(Channel_Group_Type channel_group, Bit_State value);
-    void external_source_config(Channel_Group_Type channel_group, External_Trigger_Source source);
-    void software_trigger_enable(Channel_Group_Type channel_group);
+    void set_external_trigger_enable(Channel_Group_Type channel_group, bool enable);
+    void set_external_group_source(Channel_Group_Type channel_group, External_Trigger_Source source);
+    void set_software_trigger_group(Channel_Group_Type channel_group);
 
     // Read data
-    uint16_t read_regular_data();
-    uint16_t read_inserted_data(Inserted_Channel inserted_channel);
-    uint32_t read_sync_mode_convert_value();
+    uint16_t get_regular_data();
+    uint16_t get_inserted_data(Inserted_Channel inserted_channel);
+    uint32_t get_sync_mode_convert_value();
 
     // Flags
     bool get_status_flag(STAT_Bits flag);
     void clear_status_flag(STAT_Bits flag);
 
-    // Interrupts
+    // Interrupt flags
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Interrupt_Flags flag);
+
+    // Interrupts
     void interrupt_enable(Interrupt_Type interrupt);
     void interrupt_disable(Interrupt_Type interrupt);
+    void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     // Watchdog
     void single_channel_watchdog_enable(ADC_Channel channel);
@@ -76,8 +79,8 @@ public:
     void set_watchdog_threshold(uint16_t low, uint16_t high);
 
     // Oversample
-    void oversample_mode_config(Oversampling_Convertion mode, Oversampling_Shift shift, Oversampling_Ratio ratio);
-    void oversample_mode_enable(Bit_State flag);
+    void set_oversampling_configuration(Oversampling_Convertion mode, Oversampling_Shift shift, Oversampling_Ratio ratio);
+    void set_oversampling_enable(bool enable);
 
     inline volatile uint32_t *reg_address(ADC_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));

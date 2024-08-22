@@ -26,7 +26,7 @@ void ADC::reset()
 
 void ADC::set_pclk_enable(bool enable)
 {
-    RCU_DEVICE.set_pclk_enable(ADC_pclk_info_.clock_reg, enable ? true : false);
+    RCU_DEVICE.set_pclk_enable(ADC_pclk_info_.clock_reg, enable);
 }
 
 void ADC::calibration_enable()
@@ -44,15 +44,15 @@ void ADC::calibration_enable()
 }
 
 // Enable or disable DMA
-void ADC::set_dma_mode(Bit_State state)
+void ADC::dma_enable(bool enable)
 {
-    write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMA), static_cast<uint32_t>(state));
+    write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMA), enable ? 1 : 0);
 }
 
 // Enable or disable VREFINT
-void ADC::vrefint_temp_enable(Bit_State state)
+void ADC::vrefint_temp_enable(bool enable)
 {
-    write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TSVREN), static_cast<uint32_t>(state));
+    write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TSVREN), enable ? 1 : 0);
 }
 
 // Set the resolution to 12Bit, 10Bit, 8Bit, or 6Bit
@@ -86,18 +86,18 @@ void ADC::set_mode(Sync_Mode mode)
     write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SYNCM), static_cast<uint32_t>(mode));
 }
 
-void ADC::special_function_config(Special_Function function, Bit_State state)
+void ADC::set_special_function(Special_Function function, bool enable)
 {
     using enum Special_Function;
     switch (function) {
     case SCAN_MODE:
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SM), static_cast<uint32_t>(state));
+        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SM), enable ? 1 : 0);
         break;
     case INSERTED_CH_MODE:
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ICA), static_cast<uint32_t>(state));
+        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ICA), enable ? 1 : 0);
         break;
     case CONTINUOUS_MODE:
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CTN), static_cast<uint32_t>(state));
+        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CTN), enable ? 1 : 0);
     default:
         break;
     }
@@ -196,17 +196,17 @@ void ADC::inserted_channel_offset_config(Inserted_Channel inserted_channel, uint
     }
 }
 
-void ADC::external_trigger_config(Channel_Group_Type channel_group, Bit_State state)
+void ADC::set_external_trigger_enable(Channel_Group_Type channel_group, bool enable)
 {
     if (channel_group == Channel_Group_Type::REGULAR_CHANNEL) {
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETERC), static_cast<uint32_t>(state));
+        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETERC), enable ? 1 : 0);
     }
     if (channel_group == Channel_Group_Type::INSERTED_CHANNEL) {
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETEIC), static_cast<uint32_t>(state));
+        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETEIC), enable ? 1 : 0);
     }
 }
 
-void ADC::external_source_config(Channel_Group_Type channel_group, External_Trigger_Source source)
+void ADC::set_external_group_source(Channel_Group_Type channel_group, External_Trigger_Source source)
 {
     if (channel_group == Channel_Group_Type::REGULAR_CHANNEL) {
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETSRC), static_cast<uint32_t>(source));
@@ -216,7 +216,7 @@ void ADC::external_source_config(Channel_Group_Type channel_group, External_Trig
     }
 }
 
-void ADC::software_trigger_enable(Channel_Group_Type channel_group)
+void ADC::set_software_trigger_group(Channel_Group_Type channel_group)
 {
     if (channel_group == Channel_Group_Type::REGULAR_CHANNEL) {
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::SWRCST), 1);
@@ -226,12 +226,12 @@ void ADC::software_trigger_enable(Channel_Group_Type channel_group)
     }
 }
 
-uint16_t ADC::read_regular_data()
+uint16_t ADC::get_regular_data()
 {
     return read_register<uint32_t>(ADC_Regs::RDATA);
 }
 
-uint16_t ADC::read_inserted_data(Inserted_Channel inserted_channel)
+uint16_t ADC::get_inserted_data(Inserted_Channel inserted_channel)
 {
     uint32_t data = 0;
 
@@ -256,7 +256,7 @@ uint16_t ADC::read_inserted_data(Inserted_Channel inserted_channel)
     return (uint16_t)data;
 }
 
-uint32_t ADC::read_sync_mode_convert_value(void)
+uint32_t ADC::get_sync_mode_convert_value(void)
 {
     return read_register<uint32_t>(ADC_Regs::RDATA);
 }
@@ -334,6 +334,19 @@ void ADC::interrupt_disable(Interrupt_Type type)
     }
 }
 
+void ADC::set_interrupt_enable(Interrupt_Type type, bool enable)
+{
+    if (type == Interrupt_Type::INTR_WDE) {
+        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDEIE), enable ? 1 : 0);
+    }
+    if (type == Interrupt_Type::INTR_EOC) {
+        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::EOCIE), enable ? 1 : 0);
+    }
+    if (type == Interrupt_Type::INTR_EOIC) {
+        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::EOICIE), enable ? 1 : 0);
+    }
+}
+
 void ADC::single_channel_watchdog_enable(ADC_Channel channel)
 {
     write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDCHSEL), static_cast<uint32_t>(channel));
@@ -380,7 +393,7 @@ void ADC::set_watchdog_threshold(uint16_t low, uint16_t high)
     write_bit(*this, ADC_Regs::WDHT, static_cast<uint32_t>(WDHT_Bits::WDHT), static_cast<uint32_t>(high));
 }
 
-void ADC::oversample_mode_config(Oversampling_Convertion mode, Oversampling_Shift shift, Oversampling_Ratio ratio)
+void ADC::set_oversampling_configuration(Oversampling_Convertion mode, Oversampling_Shift shift, Oversampling_Ratio ratio)
 {
     if (mode == Oversampling_Convertion::OVERSAMPLING_CONVERT_ONE) {
         write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), 1);
@@ -395,9 +408,9 @@ void ADC::oversample_mode_config(Oversampling_Convertion mode, Oversampling_Shif
     write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(ratio));
 }
 
-void ADC::oversample_mode_enable(Bit_State state)
+void ADC::set_oversampling_enable(bool enable)
 {
-    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSEN), static_cast<uint32_t>(state));
+    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSEN), enable ? 1 : 0);
 }
 
 } // namespace adc
