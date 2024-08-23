@@ -7,7 +7,7 @@ I DO NOT RECOMMEND USE!
 It is currently a work in progress and NOT sufficiently tested.
 I plan to eventually release the project under GPLv3 license, or some variant.
 
-There are still some peripherals and functionality missing, one big one being timers.
+There are still some peripherals and functionality missing, one big one being ~~Timer driver~~ Complete.
 No I2S support in the SPI library, missing I2C support, no SDIO support, etc.
 That said, the missing support is mainly wrapping up, so expect full functionality soon.
 
