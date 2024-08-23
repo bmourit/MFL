@@ -5,7 +5,6 @@
 #pragma once
 
 #include <cstdint>
-#include <stdexcept>
 
 #include "BitRW.hpp"
 #include "ErrorTypes.hpp"
