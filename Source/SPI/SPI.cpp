@@ -4,12 +4,59 @@
 
 #include "SPI.hpp"
 
+// Initialize the static member
+bool spi::SPI::is_clock_enabled = false;
+
 namespace spi {
 
 void SPI::init()
 {
-    // Enable SPI pclk
-    RCU_DEVICE.set_pclk_enable(SPI_pclk_info_.clock_reg, true);
+    // Set the mosi, miso, sclk, and (optionally) ssel gpio configuration
+    auto result = gpio::GPIO::get_instance(config_.mosi_pin.gpio_port);
+    if (result.error() != gpio::GPIO_Error_Type::OK) {
+        return;
+    }
+    gpio::GPIO& port = result.value();
+    // Initialize GPIO pin
+    port.init_pin(config_.mosi_pin.pin, config_.mosi_pin.mode, config_.mosi_pin.speed);
+    // Check if miso pin needs a different port
+    if (config_.miso_pin.gpio_port == config_.mosi_pin.gpio_port) {
+        // Same port
+        port.init_pin(config_.miso_pin.pin, config_.miso_pin.mode, config_.miso_pin.speed);
+    } else {
+        auto result1 = gpio::GPIO::get_instance(config_.miso_pin.gpio_port);
+        if (result1.error() != gpio::GPIO_Error_Type::OK) {
+            return;
+        }
+        gpio::GPIO& port1 = result1.value();
+        port1.init_pin(config_.miso_pin.pin, config_.miso_pin.mode, config_.miso_pin.speed);
+    }
+    // Check if sclk pin needs a different port
+    if (config_.sclk_pin.gpio_port == config_.mosi_pin.gpio_port) {
+        // Port match
+        port.init_pin(config_.sclk_pin.pin, config_.sclk_pin.mode, config_.sclk_pin.speed);
+    } else {
+        auto result2 = gpio::GPIO::get_instance(config_.sclk_pin.gpio_port);
+        if (result2.error() != gpio::GPIO_Error_Type::OK) {
+            return;
+        }
+        gpio::GPIO& port2 = result2.value();
+        port2.init_pin(config_.sclk_pin.pin, config_.sclk_pin.mode, config_.sclk_pin.speed);
+    }
+    if (config_.use_ssel_pin == true) {
+        // Check if ssel pin needs a different port
+        if (config_.ssel_pin.gpio_port == config_.mosi_pin.gpio_port) {
+            // Port match
+            port.init_pin(config_.ssel_pin.pin, config_.ssel_pin.mode, config_.ssel_pin.speed);
+        } else {
+            auto result3 = gpio::GPIO::get_instance(config_.ssel_pin.gpio_port);
+            if (result3.error() != gpio::GPIO_Error_Type::OK) {
+                return;
+            }
+            gpio::GPIO& port3 = result3.value();
+            port3.init_pin(config_.ssel_pin.pin, config_.ssel_pin.mode, config_.ssel_pin.speed);
+        }
+    }
 
     // Configure frame format
     if (config_.frame_format == Frame_Format::FF_16BIT) {
@@ -24,7 +71,7 @@ void SPI::init()
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::CKPH), 1);
     }
     // Set First bit MSB or LSB
-    if (config_.endian == Endian_Type::LSBF) {
+    if (config_.msbf == Endian_Type::LSBF) {
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::LF), 1);
     }
     if (config_.nss_type == NSS_Type::SOFTWARE_NSS) {
@@ -72,12 +119,6 @@ void SPI::init()
     default:
         break;
     }
-}
-
-void SPI::deinit()
-{
-    RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, true);
-    RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, false);
 }
 
 void SPI::enable()

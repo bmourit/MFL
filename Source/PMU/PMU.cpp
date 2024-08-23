@@ -8,20 +8,8 @@
 
 namespace pmu {
 
-//
-// Constructor
-//
-// Unlike other peripherals, we enable the clock for those that are
-// globally instantiated in their constructors. This helps eliminate
-// the risk of messing with a clock that is already being used elsewhere.
-//
-// This applies to AFIO and PMU, which are typically always on.
-// Others, like the WWDGT, will enable their clocks in the init() call
-// to avoid clocks running while not in use.
-//
-PMU::PMU()
-{
-    RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_PMU, enable ? true);
+PMU::PMU() {
+    RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_PMU, true);
     RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, true);
     RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, false);
 }

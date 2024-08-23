@@ -7,33 +7,36 @@
 #include <cstdint>
 
 #include "BitRW.hpp"
+#include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "adc_config.hpp"
-
-#define MAX_ADCS    3
 
 namespace adc {
 
 class ADC {
 public:
-    static ADC& instance(ADC_Base Base) {
-        static ADC instances[MAX_ADCS] = {
-            ADC(ADC_Base::ADC0_BASE),
-            ADC(ADC_Base::ADC1_BASE),
-            ADC(ADC_Base::ADC2_BASE),
-        };
-        return instances[static_cast<int>(Base)];
+    static Result<ADC, ADC_Error_Type> get_instance(ADC_Base Base) {
+        switch (Base) {
+        case ADC_Base::ADC0_BASE:
+            return get_enum_instance<ADC_Base, ADC, ADC_Error_Type>(
+                       Base, ADC_Base::ADC0_BASE, get_instance_for_base<ADC_Base::ADC0_BASE>()
+                   );
+        case ADC_Base::ADC1_BASE:
+            return get_enum_instance<ADC_Base, ADC, ADC_Error_Type>(
+                       Base, ADC_Base::ADC1_BASE, get_instance_for_base<ADC_Base::ADC1_BASE>()
+                   );
+        case ADC_Base::ADC2_BASE:
+            return get_enum_instance<ADC_Base, ADC, ADC_Error_Type>(
+                       Base, ADC_Base::ADC2_BASE, get_instance_for_base<ADC_Base::ADC2_BASE>()
+                   );
+        default:
+            return RETURN_ERROR(ADC, ADC_Error_Type::INVALID_ADC);
+        }
     }
 
     // Enable
     void enable();
     void disable();
-
-    // Reset
-    void reset();
-
-    // Clocks
-    void set_pclk_enable(bool enable);
 
     // Configuration
     void calibration_enable();
@@ -90,12 +93,26 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + (static_cast<uint32_t>(reg) + extra_offset));
     }
 
-    ADC_Clock_Config ADC_pclk_info_;
-
 private:
-    explicit ADC(ADC_Base Base) : ADC_pclk_info_(get_clock_config(Base)), base_address_(get_base_address(Base)) {}
+    ADC(ADC_Base Base) : ADC_pclk_info_(ADC_pclk_index[static_cast<int>(Base)]),
+        base_address_(ADC_baseAddress[static_cast<int>(Base)]) {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(ADC_pclk_info_.clock_reg, true);
+            RCU_DEVICE.set_pclk_reset_enable(ADC_pclk_info_.reset_reg, true);
+            RCU_DEVICE.set_pclk_reset_enable(ADC_pclk_info_.reset_reg, false);
+            is_clock_enabled = true;
+        }
+    }
 
+    ADC_Clock_Config ADC_pclk_info_;
     uint32_t base_address_;
+    static bool is_clock_enabled;
+
+    template <ADC_Base Base>
+    static ADC& get_instance_for_base() {
+        static ADC instance(Base);
+        return instance;
+    }
 
     template<typename T>
     inline T read_register(ADC_Regs reg) const {
@@ -106,17 +123,6 @@ private:
     inline void write_register(ADC_Regs reg, T value) {
         *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
-
-    ADC_Clock_Config get_clock_config(ADC_Base Base) {
-        return ADC_pclk_index[static_cast<int>(Base)];
-    }
-
-    uint32_t get_base_address(ADC_Base Base) {
-        return ADC_baseAddress[static_cast<int>(Base)];
-    }
 };
 
 }  // namespace adc
-
-// Usage example:
-// adc::ADC& adc0 = adc::ADC::instance(adc::ADC_Base::ADC0_BASE);

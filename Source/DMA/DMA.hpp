@@ -5,30 +5,35 @@
 #pragma once
 
 #include <cstdint>
+
 #include "BitRW.hpp"
+#include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "dma_config.hpp"
-
-#define MAX_DMAS    2
 
 namespace dma {
 
 class DMA {
 public:
-    static DMA& instance(DMA_Base Base, DMA_Config& config) {
-        static DMA instances[MAX_DMAS] = {
-            DMA(DMA_Base::DMA0_BASE, config),
-            DMA(DMA_Base::DMA1_BASE, config),
-        };
-        return instances[static_cast<int>(Base)];
+    static Result<DMA, DMA_Error_Type> get_instance(DMA_Base Base) {
+        switch (Base) {
+        case DMA_Base::DMA0_BASE:
+            return get_enum_instance<DMA_Base, DMA, DMA_Error_Type>(
+                       Base, DMA_Base::DMA0_BASE, get_instance_for_base<DMA_Base::DMA0_BASE>()
+                   );
+        case DMA_Base::DMA1_BASE:
+            return get_enum_instance<DMA_Base, DMA, DMA_Error_Type>(
+                       Base, DMA_Base::DMA1_BASE, get_instance_for_base<DMA_Base::DMA1_BASE>()
+                   );
+        default:
+            return RETURN_ERROR(DMA, DMA_Error_Type::INVALID_DMA);
+        }
     }
 
     // Init
     void init(DMA_Channel channel);
     // Reset
     void reset(DMA_Channel channel);
-    // Clock
-    void set_pclk_enable(bool enable);
     void configure(DMA_Channel channel, DMA_Config *update);
     // Circulation mode
     void circular_mode_enable(DMA_Channel channel);                                     // DEPRECATED - use set_circulation_mode_enable
@@ -84,28 +89,30 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(channel) * 0x14U + static_cast<uint32_t>(reg));
     }
 
-    DMA(const DMA&) = delete;
-    DMA& operator = (const DMA&) = delete;
-
-    // Stored paramaters
     DMA_Base dma_base_index_;
-    DMA_Clock_Config DMA_pclk_info_;
 
 private:
-    explicit DMA(DMA_Base Base, DMA_Config& config) : dma_base_index_(Base),
-        DMA_pclk_info_(get_clock_config(Base)),
-        base_address_(get_base_address(Base)),
-        config_(config) {}
-
-    uint32_t base_address_;
-    DMA_Config& config_;
-
-    DMA_Clock_Config get_clock_config(DMA_Base Base) {
-        return DMA_pclk_index[static_cast<int>(Base)];
+    DMA(DMA_Base Base) : dma_base_index_(Base),
+        DMA_pclk_info_(DMA_pclk_index[static_cast<int>(Base)]),
+        base_address_(DMA_baseAddress[static_cast<int>(Base)]) {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(DMA_pclk_info_.clock_reg, true);
+            is_clock_enabled = true;
+        }
     }
 
-    uint32_t get_base_address(DMA_Base Base) {
-        return DMA_baseAddress[static_cast<int>(Base)];
+    DMA_Clock_Config DMA_pclk_info_;
+    uint32_t base_address_;
+    static bool is_clock_enabled;
+
+    // Default dummy config
+    DMA_Config default_config = {};
+    DMA_Config& config_ = default_config;
+
+    template <DMA_Base Base>
+    static DMA& get_instance_for_base() {
+        static DMA instance(Base);
+        return instance;
     }
 
     template<typename T>
@@ -130,6 +137,3 @@ private:
 };
 
 } // namespace dma
-
-// Usage example:
-// dma::DMA& dma0 = dma::DMA::instance(dma::DMA_Base::DMA0_BASE);

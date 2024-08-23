@@ -4,9 +4,12 @@
 
 #include "GPIO.hpp"
 
+// Initialize the static member
+bool gpio::GPIO::is_clock_enabled = false;
+
 namespace gpio {
 
-void GPIO::init(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
+void GPIO::init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
 {
     // Determine the correct register and bit position for the pin configuration
     GPIO_Regs reg = (pin < Pin_Number::PIN_8) ? GPIO_Regs::CTL0 : GPIO_Regs::CTL1;
@@ -74,17 +77,6 @@ void GPIO::init(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
 
     // Write the updated value back to the register
     write_register(reg, ctl_value);
-}
-
-void GPIO::reset()
-{
-    RCU_DEVICE.set_pclk_reset_enable(GPIO_pclk_info_.reset_reg, true);
-    RCU_DEVICE.set_pclk_reset_enable(GPIO_pclk_info_.reset_reg, false);
-}
-
-void GPIO::set_pclk_enable(bool enable)
-{
-    RCU_DEVICE.set_pclk_enable(GPIO_pclk_info_.clock_reg, enable ? true : false);
 }
 
 void GPIO::set_pin_high(Pin_Bit_Mask pin)

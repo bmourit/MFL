@@ -17,7 +17,6 @@ enum class ADC_Base {
     ADC0_BASE,
     ADC1_BASE,
     ADC2_BASE,
-    ADC_LAST,
 };
 
 static constexpr unsigned int ADC_baseAddress[] = {
@@ -303,6 +302,15 @@ enum class Bit_State {
     BIT_DISABLE,
     BIT_ENABLE
 };
+
+enum class ADC_Error_Type {
+    OK = 0,
+    INVALID_ADC,
+    INVALID_OPERATION,
+    INITIALIZATION_FAILED,
+    INVALID_SELECTION,
+};
+
 
 ///////////////////////////// STRUCTURES /////////////////////////////
 

@@ -5,33 +5,51 @@
 #pragma once
 
 #include <cstdint>
+
 #include "BitRW.hpp"
+#include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "GPIO.hpp"
-#include "AFIO.hpp"
 #include "usart_config.hpp"
-
-#define MAX_USARTS  5
 
 namespace usart {
 
 class USART {
 public:
-    static USART& instance(USART_Base Base, USART_Config& config) {
-        static USART instances[MAX_USARTS] = {
-            USART(USART_Base::USART0_BASE, config),
-            USART(USART_Base::USART1_BASE, config),
-            USART(USART_Base::USART2_BASE, config),
-            USART(USART_Base::UART3_BASE, config),
-            USART(USART_Base::UART4_BASE, config),
-        };
-        return instances[static_cast<int>(Base)];
+    static Result<USART, USART_Error_Type> get_instance(USART_Base Base) {
+        switch (Base) {
+        case USART_Base::USART0_BASE:
+            return get_enum_instance<USART_Base, USART, USART_Error_Type>(
+                       Base, USART_Base::USART0_BASE, get_instance_for_base<USART_Base::USART0_BASE>()
+                   );
+        case USART_Base::USART1_BASE:
+            return get_enum_instance<USART_Base, USART, USART_Error_Type>(
+                       Base, USART_Base::USART1_BASE, get_instance_for_base<USART_Base::USART1_BASE>()
+                   );
+        case USART_Base::USART2_BASE:
+            return get_enum_instance<USART_Base, USART, USART_Error_Type>(
+                       Base, USART_Base::USART2_BASE, get_instance_for_base<USART_Base::USART2_BASE>()
+                   );
+        case USART_Base::UART3_BASE:
+            return get_enum_instance<USART_Base, USART, USART_Error_Type>(
+                       Base, USART_Base::UART3_BASE, get_instance_for_base<USART_Base::UART3_BASE>()
+                   );
+        case USART_Base::UART4_BASE:
+            return get_enum_instance<USART_Base, USART, USART_Error_Type>(
+                       Base, USART_Base::UART4_BASE, get_instance_for_base<USART_Base::UART4_BASE>()
+                   );
+        default:
+            return RETURN_ERROR(USART, USART_Error_Type::INVALID_USART);
+        }
     }
 
     void init();
-    void reset();
-    void set_pclk_enable(bool enable);
-    void configure(USART_Config *config);
+    void configure(USART_Config *config) {
+        if (config) {
+            config_ = *config;
+        }
+        init();
+    }
     void inline set_baudrate(uint32_t baudrate);
     void set_parity(Parity_Mode parity);
     void set_word_length(Word_Length word_length);
@@ -63,16 +81,32 @@ public:
     }
 
     USART_Base base_index_;
-    USART_Clock_Config USART_pclk_info_;
 
 private:
-    explicit USART(USART_Base Base, USART_Config& config) : base_index_(Base),
-        USART_pclk_info_(get_clock_config(Base)),
-        base_address_(get_base_address(Base)),
-        config_(config) {}
+    USART(USART_Base Base) : base_index_(Base),
+        USART_pclk_info_(USART_pclk_index[static_cast<int>(Base)]),
+        base_address_(USART_baseAddress[static_cast<int>(Base)]) {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(USART_pclk_info_.clock_reg, true);
+            RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, true);
+            RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, false);
+            is_clock_enabled = true;
+        }
+    }
 
+    USART_Clock_Config USART_pclk_info_;
     uint32_t base_address_;
-    USART_Config& config_;
+    static bool is_clock_enabled;
+
+    // Default dummy config
+    USART_Config default_config = {};
+    USART_Config& config_ = default_config;
+
+    template <USART_Base Base>
+    static USART& get_instance_for_base() {
+        static USART instance(Base);
+        return instance;
+    }
 
     template<typename T>
     inline T read_register(USART_Regs reg) const {
@@ -83,18 +117,10 @@ private:
     inline void write_register(USART_Regs reg, T value) {
         *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
-
-    uint32_t get_base_address(USART_Base Base) {
-        return USART_baseAddress[static_cast<int>(Base)];
-    }
-
-    USART_Clock_Config get_clock_config(USART_Base Base) {
-        return USART_pclk_index[static_cast<int>(Base)];
-    }
 };
 
 } // namespace usart
 
 // Usage example:
-// USART& usart0 = USART::instance(USART_Base::USART0);
+// USART& usart0 = USART::get_instance(USART_Base::USART0);
 // uint32_t data = usart0.read_register<uint32_t>(USART_Regs::DATA);

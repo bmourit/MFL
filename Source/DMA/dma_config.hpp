@@ -17,7 +17,6 @@ namespace dma {
 enum class DMA_Base {
     DMA0_BASE,
     DMA1_BASE,
-    DMA_LAST,
 };
 
 static constexpr unsigned int DMA_baseAddress[] = {
@@ -134,6 +133,14 @@ enum class M2M_Mode {
 enum class Data_Type {
     MEMORY_ADDRESS,
     PERIPHERAL_ADDRESS,
+};
+
+enum class DMA_Error_Type {
+    OK = 0,
+    INVALID_DMA,
+    INVALID_OPERATION,
+    INITIALIZATION_FAILED,
+    INVALID_SELECTION,
 };
 
 

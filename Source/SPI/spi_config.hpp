@@ -17,7 +17,6 @@ enum class SPI_Base {
     SPI0_BASE,
     SPI1_BASE,
     SPI2_BASE,
-    SPI_LAST,
 };
 
 static constexpr unsigned int SPI_baseAddress[] = {
@@ -200,6 +199,14 @@ enum class Interrupt_Flags {
     INTR_FLAG_FER,
 };
 
+enum class SPI_Error_Type {
+    OK = 0,
+    INVALID_SPI,
+    INVALID_OPERATION,
+    INITIALIZATION_FAILED,
+    INVALID_SELECTION,
+};
+
 
 ///////////////////////////// STRUCTURES /////////////////////////////
 
@@ -214,14 +221,26 @@ static const SPI_Clock_Config SPI_pclk_index[] = {
     {rcu::RCU_PCLK::PCLK_SPI2, rcu::RCU_PCLK_Reset::PCLK_SPI2RST},
 };
 
+struct SPI_Pin_Config {
+    gpio::GPIO_Base gpio_port;
+    gpio::Pin_Number pin;
+    gpio::Pin_Mode mode;
+    gpio::Output_Speed speed;
+};
+
 struct SPI_Config {
-    Operational_Mode operational_mode = Operational_Mode::SFD_MODE;
-    Frame_Format frame_format = Frame_Format::FF_8BIT;
-    NSS_Type nss_type = NSS_Type::HARDWARE_NSS;
-    PCLK_Divider pclk_divider = PCLK_Divider::PCLK_2;
-    Endian_Type endian = Endian_Type::MSBF;
-    Clock_Polarity polarity_pull = Clock_Polarity::PULL_LOW;
-    Clock_Phase clock_phase = Clock_Phase::PHASE_FIRST_EDGE;
+    bool use_ssel_pin;
+    SPI_Pin_Config mosi_pin;
+    SPI_Pin_Config miso_pin;
+    SPI_Pin_Config sclk_pin;
+    SPI_Pin_Config ssel_pin;
+    Operational_Mode operational_mode;
+    Frame_Format frame_format;
+    NSS_Type nss_type;
+    PCLK_Divider pclk_divider;
+    Endian_Type msbf;
+    Clock_Polarity polarity_pull;
+    Clock_Phase clock_phase;
 };
 
 } // namespace spi

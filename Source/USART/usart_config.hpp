@@ -21,7 +21,6 @@ enum class USART_Base {
     USART2_BASE,
     UART3_BASE,
     UART4_BASE,
-    USART_LAST,
 };
 
 static constexpr unsigned int USART_baseAddress[] = {
@@ -269,6 +268,14 @@ enum class USART_DMA_Config {
     DMA_TX,
     DMA_RX,
     DMA_DUAL,
+};
+
+enum class USART_Error_Type {
+    OK = 0,
+    INVALID_USART,
+    INVALID_OPERATION,
+    INITIALIZATION_FAILED,
+    INVALID_SELECTION,
 };
 
 

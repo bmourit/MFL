@@ -4,6 +4,9 @@
 
 #include "DMA.hpp"
 
+// Initialize the static member
+bool dma::DMA::is_clock_enabled = false;
+
 namespace dma {
 
 void DMA::init(DMA_Channel channel)
@@ -12,27 +15,17 @@ void DMA::init(DMA_Channel channel)
         return;
         // TODO: Error handling
     }
-    // Set the Peripheral address
+    // Addresses
     write_register(DMA_Regs::CHXPADDR, channel, config_.peripheral_address);
-
-    // Set the memory address
     write_register(DMA_Regs::CHXMADDR, channel, config_.memory_address);
-
-    // Set count of remaining data
+    // Count
     write_register(DMA_Regs::CHXCNT, channel, config_.count & 0x0000FFFF);
-
-    // Set transfer bit width and priority
+    // Set parameters
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PWIDTH), static_cast<uint32_t>(config_.peripheral_bit_width));
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(config_.memory_bit_width));
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config_.channel_priority));
-
-    // Set peripheral increase mode
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) ? 1 : 0);
-
-    // Set memory increase mode
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), config_.memory_increase == Increase_Mode::INCREASE_ENABLE ? 1 : 0);
-
-    // Set the transfer direction
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P) ? 1 : 0);
 }
 
@@ -53,11 +46,6 @@ void DMA::reset(DMA_Channel channel)
     write_register(DMA_Regs::INTC, (0xF << (static_cast<uint32_t>(channel) * 4)));
 }
 
-void DMA::set_pclk_enable(bool enable)
-{
-    RCU_DEVICE.set_pclk_enable(DMA_pclk_info_.clock_reg, enable ? true : false);
-}
-
 void DMA::configure(DMA_Channel channel, DMA_Config *params)
 {
     if (params == nullptr) {
@@ -73,8 +61,6 @@ void DMA::configure(DMA_Channel channel, DMA_Config *params)
     config_.memory_increase = params->memory_increase;
     config_.channel_priority = params->channel_priority;
     config_.direction = params->direction;
-
-    // Initialize the new configuration
     init(channel);
 }
 

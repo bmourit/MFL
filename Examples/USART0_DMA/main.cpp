@@ -25,32 +25,61 @@
 uint8_t rxbuffer[10];
 uint8_t txbuffer[] = "\n\rUSART DMA receive and transmit example, please input 10 bytes:\n\r";
 
-// USART0 configuration storage for init()
 usart::USART_Config usart_config = {};
-// USART0 instance
-usart::USART& usart0 = usart::USART::instance(usart::USART_Base::USART0_BASE, usart_config);
 // DMA rx/tx config storage
 dma::DMA_Config dma_rx_config = {};
 dma::DMA_Config dma_tx_config = {};
-// DMA0 instance
-dma::DMA& dma_dev = dma::DMA::instance(dma::DMA_Base::DMA0_BASE, dma_tx_config);
 
-static inline void setup_serial_port();
-
-int main(void) {
-    // Initialize system clocks
+int main(void)
+{
     RCU_DEVICE.clocks_init();
 
-    // Enable DMA0 Clock
-    dma_dev.set_pclk_enable(true);
+    // Get USART0 instance
+    auto result = usart::USART::get_instance(usart::USART_Base::USART0_BASE);
+    if (result.error() != usart::USART_Error_Type::OK) {
+        return -1;
+    }
+    usart::USART& usart0 = result.value();
 
-    // Setup the serial port
-    setup_serial_port();
+    usart::USART_Pin_Config rx_pin_params = {
+        .gpio_port = gpio::GPIO_Base::GPIOA_BASE,
+        .pin = gpio::Pin_Number::PIN_10,
+        .mode = gpio::Pin_Mode::INPUT_PULLUP,
+        .speed = gpio::Output_Speed::SPEED_50MHZ,
+    };
 
-    // Reset DMA
+    usart::USART_Pin_Config tx_pin_params = {
+        .gpio_port = gpio::GPIO_Base::GPIOA_BASE,
+        .pin = gpio::Pin_Number::PIN_9,
+        .mode = gpio::Pin_Mode::ALT_PUSHPULL,
+        .speed = gpio::Output_Speed::SPEED_50MHZ,
+    };
+
+    // Set pin config
+    usart_config.rx_pin_config = rx_pin_params;
+    usart_config.tx_pin_config = tx_pin_params;
+    // Set paramaters
+    usart_config.baudrate = 115200;
+    usart_config.dma_pin_ops = usart::USART_DMA_Config::DMA_DUAL;
+    usart_config.word_length = usart::Word_Length::WL_8BITS;
+    usart_config.stop_bits = usart::Stop_Bits::STB_1BIT;
+    usart_config.parity = usart::Parity_Mode::PM_NONE;
+    usart_config.direction = usart::Direction_Mode::RXTX_MODE;
+    usart_config.msbf = usart::MSBF_Mode::MSBF_MSB;
+    usart0.configure(&usart_config);
+
+    // Get DMA0 instance
+    auto ret = dma::DMA::get_instance(dma::DMA_Base::DMA0_BASE);
+    if (ret.error() != dma::DMA_Error_Type::OK) {
+        return -1;
+    }
+    dma::DMA& dma_dev = ret.value();
+
+    // Reset dma
     dma_dev.reset(dma::DMA_Channel::CHANNEL3);
-    // Initialize DMA with defaults
+    // Initialize defaults
     dma_dev.init(dma::DMA_Channel::CHANNEL3);
+
     // TX parameters
     dma_tx_config = {
         .peripheral_address = reinterpret_cast<uint32_t>(usart0.reg_address(usart::USART_Regs::DATA)),
@@ -113,46 +142,19 @@ int main(void) {
     }
 }
 
-static inline void setup_serial_port()
-{
-    // Enable USART0 clock
-    usart0.set_pclk_enable(true);
-    usart0.reset();
-
-    usart::USART_Pin_Config rx_pin_params = {
-        .gpio_port = gpio::GPIO_Base::GPIOA_BASE,
-        .pin = gpio::Pin_Number::PIN_10,
-        .mode = gpio::Pin_Mode::INPUT_PULLUP,
-        .speed = gpio::Output_Speed::SPEED_50MHZ,
-    };
-
-    usart::USART_Pin_Config tx_pin_params = {
-        .gpio_port = gpio::GPIO_Base::GPIOA_BASE,
-        .pin = gpio::Pin_Number::PIN_9,
-        .mode = gpio::Pin_Mode::ALT_PUSHPULL,
-        .speed = gpio::Output_Speed::SPEED_50MHZ,
-    };
-
-    // Setup gpio
-    usart_config.rx_pin_config = rx_pin_params;
-    usart_config.tx_pin_config = tx_pin_params;
-
-    // Set USART0 paramaters
-    usart_config.baudrate = 115200;
-    usart_config.dma_pin_ops = usart::USART_DMA_Config::DMA_DUAL;
-    usart_config.word_length = usart::Word_Length::WL_8BITS;
-    usart_config.stop_bits = usart::Stop_Bits::STB_1BIT;
-    usart_config.parity = usart::Parity_Mode::PM_NONE;
-    usart_config.direction = usart::Direction_Mode::RXTX_MODE;
-    usart_config.msbf = usart::MSBF_Mode::MSBF_MSB;
-
-    usart0.configure(&usart_config);
-}
-
 #define UNUSED(x)   (void)(x)
-/* retarget the C library printf function to the USART */
+
+// Retarget printf to USART0
 int fputc(int ch, FILE *f)
 {
+    // Get instance
+    auto result = usart::USART::get_instance(usart::USART_Base::USART0_BASE);
+    if (result.error() != usart::USART_Error_Type::OK) {
+        return -1;
+    }
+
+    usart::USART& usart0 = result.value();
+
     UNUSED(f);
     usart0.send_data(static_cast<uint16_t>(ch));
     while (usart0.get_flag(usart::Status_Flags::FLAG_TBE) == 0);

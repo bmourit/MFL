@@ -4,6 +4,9 @@
 
 #include "USART.hpp"
 
+// Initialize the static member
+bool usart::USART::is_clock_enabled = false;
+
 namespace usart {
 
 //
@@ -15,10 +18,6 @@ namespace usart {
 // The USART instance configuration will also store parameters for the DMA mode.
 // The DMA options are NONE, RX, TX, or DUAL, and they are used at operation time.
 //
-// NOTE:
-//      The USART clock is expected to be set up after creating the instance.
-//      This needs to happen outside of the init() function for safety reasons.
-//
 // Calling init() is the preferred and fastest way to set up a U(S)ART. Everything is done
 // in a single function call, except the baudrate calculation which is inlined to save
 // function calling overhead. This is in constrast to calling 5+ different functions for
@@ -26,23 +25,25 @@ namespace usart {
 //
 void USART::init()
 {
-    // get the rx/tx pin configuration
-    gpio::GPIO& port = gpio::GPIO::instance(config_.rx_pin_config.gpio_port);
-    // Enable the GPIO clock
-    port.set_pclk_enable(true);
-    // Reset gpio
-    port.reset();
-    // Initialize gpio
-    port.init(config_.rx_pin_config.pin, config_.rx_pin_config.mode, config_.rx_pin_config.speed);
+    // Set the rx/tx pin configuration
+    auto result = gpio::GPIO::get_instance(config_.rx_pin_config.gpio_port);
+    if (result.error() != gpio::GPIO_Error_Type::OK) {
+        return;
+    }
+    gpio::GPIO& port = result.value();
+    // Initialize GPIO pin
+    port.init_pin(config_.rx_pin_config.pin, config_.rx_pin_config.mode, config_.rx_pin_config.speed);
     // Check if the tx pin needs a different port
-    if (config_.rx_pin_config.gpio_port != config_.tx_pin_config.gpio_port) {
-        gpio::GPIO& tx_port = gpio::GPIO::instance(config_.rx_pin_config.gpio_port);
-        // Enable the gpio pclk
-        tx_port.set_pclk_enable(true);
-        tx_port.init(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
+    if (config_.tx_pin_config.gpio_port != config_.rx_pin_config.gpio_port) {
+        auto result1 = gpio::GPIO::get_instance(config_.rx_pin_config.gpio_port);
+        if (result1.error() != gpio::GPIO_Error_Type::OK) {
+            return;
+        }
+        gpio::GPIO& tx_port = result1.value();
+        tx_port.init_pin(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
     } else {
         // Same port
-        port.init(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
+        port.init_pin(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
     }
     // Set USART configuration parameters
     set_baudrate(config_.baudrate);
@@ -51,33 +52,6 @@ void USART::init()
     write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::STB), static_cast<uint32_t>(config_.stop_bits));
     write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::MSBF), static_cast<uint32_t>(config_.msbf));
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), 1);
-}
-
-void USART::reset()
-{
-    RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, true);
-    RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, false);
-}
-
-void USART::set_pclk_enable(bool enable)
-{
-    RCU_DEVICE.set_pclk_enable(USART_pclk_info_.clock_reg, enable ? true : false);
-}
-
-void USART::configure(USART_Config *config)
-{
-    if (config == nullptr) {
-        return;
-    }
-    config_.rx_pin_config = config->rx_pin_config;
-    config_.tx_pin_config = config->tx_pin_config;
-    config_.dma_pin_ops = config->dma_pin_ops;
-    config_.baudrate = config->baudrate;
-    config_.parity = config->parity;
-    config_.word_length = config->word_length;
-    config_.stop_bits = config->stop_bits;
-    config_.msbf = config->msbf;
-    init();
 }
 
 void inline USART::set_baudrate(uint32_t baudrate)

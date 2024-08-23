@@ -5,28 +5,45 @@
 #pragma once
 
 #include <cstdlib>
-#include "BitRW.hpp"
-#include "RCU.hpp"
-#include "spi_config.hpp"
 
-#define MAX_SPIS  3
+#include "BitRW.hpp"
+#include "ErrorTypes.hpp"
+#include "RCU.hpp"
+#include "GPIO.hpp"
+#include "spi_config.hpp"
 
 namespace spi {
 
 class SPI {
 public:
-    static SPI& instance(SPI_Base Base) {
-        static SPI instances[MAX_SPIS] = {
-            SPI(SPI_Base::SPI0_BASE),
-            SPI(SPI_Base::SPI1_BASE),
-            SPI(SPI_Base::SPI2_BASE),
-        };
-        return instances[static_cast<int>(Base)];
+    static Result<SPI, SPI_Error_Type> get_instance(SPI_Base Base) {
+        switch (Base) {
+        case SPI_Base::SPI0_BASE:
+            return get_enum_instance<SPI_Base, SPI, SPI_Error_Type>(
+                       Base, SPI_Base::SPI0_BASE, get_instance_for_base<SPI_Base::SPI0_BASE>()
+                   );
+        case SPI_Base::SPI1_BASE:
+            return get_enum_instance<SPI_Base, SPI, SPI_Error_Type>(
+                       Base, SPI_Base::SPI1_BASE, get_instance_for_base<SPI_Base::SPI1_BASE>()
+                   );
+        case SPI_Base::SPI2_BASE:
+            return get_enum_instance<SPI_Base, SPI, SPI_Error_Type>(
+                       Base, SPI_Base::SPI2_BASE, get_instance_for_base<SPI_Base::SPI2_BASE>()
+                   );
+        default:
+            return RETURN_ERROR(SPI, SPI_Error_Type::INVALID_SPI);
+        }
     }
 
     // Initialize
     void init();
-    void deinit();
+    // Configure
+    void configure(SPI_Config* config) {
+        if (config) {
+            config_ = *config;
+        }
+        init();
+    }
     // Enable
     void enable();
     void disable();
@@ -72,14 +89,29 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
-    SPI_Clock_Config SPI_pclk_info_;
-
 private:
-    explicit SPI(SPI_Base Base) : SPI_pclk_info_(get_clock_config(Base)),
-        base_address_(get_base_address(Base)) {}
+    SPI(SPI_Base Base) : SPI_pclk_info_(SPI_pclk_index[static_cast<int>(Base)]),
+        base_address_(SPI_baseAddress[static_cast<int>(Base)]) {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(SPI_pclk_info_.clock_reg, true);
+            RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, true);
+            RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, false);
+            is_clock_enabled = true;
+        }
+    }
 
+    SPI_Config default_config = {};
+    SPI_Config& config_ = default_config;
+
+    SPI_Clock_Config SPI_pclk_info_;
     uint32_t base_address_;
-    const SPI_Config config_;
+    static bool is_clock_enabled;
+
+    template <SPI_Base Base>
+    static SPI& get_instance_for_base() {
+        static SPI instance(Base);
+        return instance;
+    }
 
     template<typename T>
     inline T read_register(SPI_Regs reg) const {
@@ -90,17 +122,6 @@ private:
     inline void write_register(SPI_Regs reg, T value) {
         *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
-
-    uint32_t get_base_address(SPI_Base Base) {
-        return SPI_baseAddress[static_cast<int>(Base)];
-    }
-
-    SPI_Clock_Config get_clock_config(SPI_Base Base) {
-        return SPI_pclk_index[static_cast<int>(Base)];
-    }
 };
 
 } // namespace spi
-
-// Usage example:
-// SPI& spi0 = SPI::instance(SPI_Base::SPI0_BASE);

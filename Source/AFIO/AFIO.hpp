@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include "BitRW.hpp"
 #include "RCU.hpp"
 #include "gpio_config.hpp"

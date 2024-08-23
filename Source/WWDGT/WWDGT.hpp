@@ -16,7 +16,7 @@ public:
     explicit WWDGT() {}
 
     void init();
-    void deinit();
+    void reset();
     void enable();
     void update_counter(uint16_t value);
     void setup(uint16_t value, uint16_t window, Prescaler_Values prescaler);

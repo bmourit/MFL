@@ -22,7 +22,6 @@ enum class GPIO_Base {
     GPIOB_BASE,
     GPIOC_BASE,
     GPIOD_BASE,
-    GPIO_LAST,
 };
 
 static constexpr unsigned int GPIO_baseAddress[] = {
@@ -450,6 +449,15 @@ enum class Remap_Type {
     FULL_SWJ_NO_NJRST = 1,
     SWJ_DP_ONLY = 2,
     ALL_DISABLED = 4,
+};
+
+enum class GPIO_Error_Type {
+    OK = 0,
+    INVALID_PIN,
+    INVALID_PORT,
+    INVALID_MODE,
+    INITIALIZATION_FAILED,
+    INVALID_SELECTION,
 };
 
 

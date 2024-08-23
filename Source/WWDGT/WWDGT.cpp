@@ -11,7 +11,7 @@ void WWDGT::init()
     RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_WWDGT, true);
 }
 
-void WWDGT::deinit()
+void WWDGT::reset()
 {
     RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_WWDGTRST, true);
     RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_WWDGTRST, false);

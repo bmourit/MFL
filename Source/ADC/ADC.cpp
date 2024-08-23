@@ -4,6 +4,9 @@
 
 #include "ADC.hpp"
 
+// Initialize the static member
+bool adc::ADC::is_clock_enabled = false;
+
 namespace adc {
 
 void ADC::enable()
@@ -16,17 +19,6 @@ void ADC::enable()
 void ADC::disable()
 {
     write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ADCON), 0);
-}
-
-void ADC::reset()
-{
-    RCU_DEVICE.set_pclk_reset_enable(ADC_pclk_info_.reset_reg, true);
-    RCU_DEVICE.set_pclk_reset_enable(ADC_pclk_info_.reset_reg, false);
-}
-
-void ADC::set_pclk_enable(bool enable)
-{
-    RCU_DEVICE.set_pclk_enable(ADC_pclk_info_.clock_reg, enable);
 }
 
 void ADC::calibration_enable()
