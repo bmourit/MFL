@@ -13,7 +13,7 @@ LINKER_SCRIPT = Linker/gd32f303re.ld
 # Source Sirectories
 SRC_DIRS = Source/ADC Source/AFIO Source/CEE Source/COMMON Source/CORTEX Source/DBG Source/DMA Source/EXTI
 SRC_DIRS +=	Source/FMC Source/FWDGT Source/GPIO Source/OB Source/PMU Source/RCU Source/RTC Source/SPI
-SRC_DIRS +=	Source/STARTUP Source/USART Source/WWDGT
+SRC_DIRS +=	Source/STARTUP Source/TIMER Source/USART Source/WWDGT
 SRC_DIRS +=	CMSIS
 
 # Include directories and files

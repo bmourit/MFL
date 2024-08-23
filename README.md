@@ -14,6 +14,9 @@ That said, the missing support is mainly wrapping up, so expect full functionali
 Eventually I indend to use this along with a custom Arduino Core for this chip.
 Documentation is non-existant as of now. This is still early stages, but it does build.
 
+# Library Size
+This being intended for an MCU with limited memory and flash size, it is important to keep this base MFL library as small as possible. Currently, compiled with -Os using g++ and the example program, the size is ~10 KB, which is smalled than the vendor provided C firmware library. It should be very memory effecient as well, though I don't have exact numbers yet.
+
 # Compiling the examples
 
 To compile the examples, simply move their main.cpp file to the base project folder,
