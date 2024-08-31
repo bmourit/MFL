@@ -11,9 +11,9 @@ OUTDIR = build
 LINKER_SCRIPT = Linker/gd32f303re.ld
 
 # Source Sirectories
-SRC_DIRS = Source/ADC Source/AFIO Source/CEE Source/COMMON Source/CORTEX Source/DBG Source/DMA Source/EXTI
-SRC_DIRS +=	Source/FMC Source/FWDGT Source/GPIO Source/OB Source/PMU Source/RCU Source/RTC Source/SPI
-SRC_DIRS +=	Source/STARTUP Source/TIMER Source/USART Source/WWDGT
+SRC_DIRS = Source/ADC Source/AFIO Source/CEE Source/COMMON Source/CORTEX Source/CRC Source/DBG Source/DMA
+SRC_DIRS +=	Source/EXTI Source/FMC Source/FWDGT Source/GPIO Source/I2C Source/OB Source/PMU Source/RCU
+SRC_DIRS +=	Source/RTC Source/SDIO Source/SPI Source/STARTUP Source/TIMER Source/USART Source/WWDGT
 SRC_DIRS +=	CMSIS
 
 # Include directories and files
@@ -44,6 +44,8 @@ $(OUTDIR):
 # Build rules
 all: $(OUTDIR) $(TARGET).elf $(TARGET).bin
 
+library: $(OUTDIR) $(TARGET).a
+
 $(OUTDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
@@ -53,7 +55,10 @@ $(TARGET).elf: $(OBJS)
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $(OUTDIR)/$< $(OUTDIR)/$@
 
+$(TARGET).a: $(OBJS)
+	$(AR) rsc $(OUTDIR)/$@ $(OBJS)
+
 clean:
 	rm -rf $(OUTDIR)
 
-.PHONEY: all clean
+.PHONEY: all clean library
