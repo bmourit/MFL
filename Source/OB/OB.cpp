@@ -8,12 +8,12 @@ namespace fmc {
 
 void OB::ob_lock()
 {
-    write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBWEN), 1);
+    write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBWEN), Set);
 }
 
 void OB::ob_unlock()
 {
-    if (read_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBWEN)) == 0) {
+    if (read_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBWEN)) == Clear) {
         write_register(FMC_Regs::OBKEY, static_cast<uint32_t>(UNLOCK_KEY0));
         write_register(FMC_Regs::OBKEY, static_cast<uint32_t>(UNLOCK_KEY1));
     }
@@ -29,22 +29,22 @@ FMC_State OB::ob_erase()
     }
 
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), 1);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
         // Wait until ready
         state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), 0);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
             write_bit(*this, OB_Regs::SPC, static_cast<uint32_t>(SPC_Bits::SPC), value);
             // Wait until ready
             state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state != FMC_State::TIMEOUT) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Clear);
             }
         } else {
             if (state != FMC_State::TIMEOUT) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Clear);
             }
         }
     }
@@ -60,7 +60,7 @@ FMC_State OB::set_ob_write_protection(WP_Sector sector)
 
     wp_sector = ~wp_sector;
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
         wp_sector_value = (wp_sector & 0x000000FF);
         if (wp_sector_value != 0xFF) {
             write_register(OB_Regs::WP0, wp_sector_value);
@@ -86,7 +86,7 @@ FMC_State OB::set_ob_write_protection(WP_Sector sector)
             state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
         }
         if (state != FMC_State::TIMEOUT) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Clear);
         }
     }
 
@@ -103,22 +103,22 @@ FMC_State OB::set_ob_security_protection(OB_Security_Type type)
     FMC_State state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
 
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), 1);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
         // Wait until ready
         state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), 0);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
             write_bit(*this, OB_Regs::SPC, static_cast<uint32_t>(SPC_Bits::SPC), static_cast<uint32_t>(type));
             // Wait until ready
             state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state != FMC_State::TIMEOUT) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Clear);
             }
         } else {
             if (state != FMC_State::TIMEOUT) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear);
             }
         }
     }
@@ -128,7 +128,7 @@ FMC_State OB::set_ob_security_protection(OB_Security_Type type)
 
 bool OB::get_ob_security_protection()
 {
-    return (read_bit(*this, FMC_Regs::OBSTAT, static_cast<uint32_t>(OBSTAT_Bits::SPC)) != 0) ? true : false;
+    return (read_bit(*this, FMC_Regs::OBSTAT, static_cast<uint32_t>(OBSTAT_Bits::SPC)) != Clear);
 }
 
 FMC_State OB::set_ob_user(OB_Watchdog_Type type, OB_Deep_Sleep deepsleep, OB_Standby standby, OB_Boot_Bank bank)
@@ -138,14 +138,14 @@ FMC_State OB::set_ob_user(OB_Watchdog_Type type, OB_Deep_Sleep deepsleep, OB_Sta
 
     state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
         user_op = static_cast<uint32_t>(bank) | static_cast<uint32_t>(type) | static_cast<uint32_t>(deepsleep) | static_cast<uint32_t>(standby) | 0x000000F0;
         write_bit(*this, OB_Regs::USER, static_cast<uint32_t>(USER_Bits::USER), user_op);
         // Wait until ready
         state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
 
         if (state != FMC_State::TIMEOUT) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Clear);
         }
     }
 
@@ -164,12 +164,12 @@ FMC_State OB::set_ob_data(uint32_t address, uint8_t data)
     FMC_State state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
 
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
         (*(volatile uint16_t *)(uint32_t)(address)) = data;
         // Wait until ready
         state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state != FMC_State::TIMEOUT) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Clear);
         }
     }
 
@@ -221,7 +221,7 @@ FMC_State OB::ob_ready_wait_bank0(uint32_t timeout)
     do {
         state = ob_get_bank0_state();
         timeout--;
-    } while ((state == FMC_State::BUSY) && (timeout != 0));
+    } while ((state == FMC_State::BUSY) && (timeout != Clear));
 
     if (state == FMC_State::BUSY) {
         state = FMC_State::TIMEOUT;
@@ -238,7 +238,7 @@ FMC_State OB::ob_ready_wait_bank1(uint32_t timeout)
     do {
         state = ob_get_bank1_state();
         timeout--;
-    } while ((state == FMC_State::BUSY) && (timeout != 0));
+    } while ((state == FMC_State::BUSY) && (timeout != Clear));
 
     if (state == FMC_State::BUSY) {
         state = FMC_State::TIMEOUT;

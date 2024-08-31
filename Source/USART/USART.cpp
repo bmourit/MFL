@@ -19,12 +19,11 @@ namespace usart {
 // The DMA options are NONE, RX, TX, or DUAL, and they are used at operation time.
 //
 // Calling init() is the preferred and fastest way to set up a U(S)ART. Everything is done
-// in a single function call, except the baudrate calculation which is inlined to save
+// in a single function call, except the direction and baudrate calculation which are inlined to save
 // function calling overhead. This is in constrast to calling 5+ different functions for
 // the same task.
 //
-void USART::init()
-{
+void USART::init() {
     // Set the rx/tx pin configuration
     auto result = gpio::GPIO::get_instance(config_.rx_pin_config.gpio_port);
     if (result.error() != gpio::GPIO_Error_Type::OK) {
@@ -45,18 +44,28 @@ void USART::init()
         // Same port
         port.init_pin(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
     }
+
+    // Some bits cannot be writing unless USART is disabled
+    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Clear);
+
     // Set USART configuration parameters
-    set_baudrate(config_.baudrate);
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PMEN), static_cast<uint32_t>(config_.parity));
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WL), static_cast<uint32_t>(config_.word_length));
+    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PMEN), static_cast<uint32_t>(config_.parity));
     write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::STB), static_cast<uint32_t>(config_.stop_bits));
     write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::MSBF), static_cast<uint32_t>(config_.msbf));
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), 1);
+    set_direction(config_.direction);
+    set_baudrate(config_.baudrate);
+    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Set);
 }
 
 void inline USART::set_baudrate(uint32_t baudrate)
 {
-    uint32_t freq, value = 0;
+    uint32_t freq = 0;
+
+    // Must not be zero
+    if (baudrate == 0) {
+        return;
+    }
 
     if (base_index_ == USART_Base::USART0_BASE) {
         freq = RCU_DEVICE.get_clock_frequency(rcu::Clock_Frequency::CK_APB2);
@@ -64,8 +73,8 @@ void inline USART::set_baudrate(uint32_t baudrate)
         freq = RCU_DEVICE.get_clock_frequency(rcu::Clock_Frequency::CK_APB1);
     }
 
-    // Configure the baudrate oversampling by 16
-    value = (freq + baudrate / 2) / baudrate;
+    // Simplified mantissa overflow fraction with 16bit oversampling
+    uint32_t value = (freq + baudrate / 2) / baudrate;
     write_register(USART_Regs::BAUD, value);
 }
 
@@ -94,26 +103,25 @@ void USART::disable()
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), 0);
 }
 
-void USART::set_direction(Direction_Mode mode)
+inline void USART::set_direction(Direction_Mode direction)
 {
-    using enum Direction_Mode;
-    switch (mode) {
-    case RX_MODE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), 0);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), 1);
+    switch (direction) {
+    case Direction_Mode::RX_MODE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Set);
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Clear);
         break;
-    case TX_MODE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), 0);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), 1);
+    case Direction_Mode::TX_MODE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Clear);
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Set);
         break;
-    case RXTX_MODE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), 1);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), 1);
+    case Direction_Mode::RXTX_MODE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Set);
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Set);
         break;
-    case RXTX_OFF:
+    case Direction_Mode::RXTX_OFF:
     default:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), 0);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), 0);
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Clear);
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Clear);
         break;
     }
 }
@@ -123,9 +131,9 @@ void USART::set_msb(MSBF_Mode msbf)
     write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::MSBF), static_cast<uint32_t>(msbf));
 }
 
-void USART::rx_timeout_enable(Bit_State state)
+void USART::rx_timeout_enable(bool enable)
 {
-    write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTEN), static_cast<uint32_t>(state));
+    write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTEN), enable ? Set : Clear);
 }
 
 void USART::set_rx_timeout_threshold(uint32_t timeout)
@@ -143,14 +151,14 @@ uint16_t USART::receive_data()
     return read_bit16(*this, USART_Regs::DATA, static_cast<uint32_t>(DATA_Bits::DATA));
 }
 
-void USART::set_address(uint8_t addr)
+void USART::set_address(uint8_t address)
 {
-    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ADDR), static_cast<uint32_t>(addr));
+    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ADDR), static_cast<uint32_t>(address));
 }
 
-void USART::mute_mode_enable(Bit_State state)
+void USART::mute_mode_enable(bool enable)
 {
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWU), static_cast<uint32_t>(state));
+    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWU), enable ? Set : Clear);
 }
 
 void USART::configure_mute_mode_wakeup(Wakeup_Mode wakeup_mode)
@@ -158,24 +166,24 @@ void USART::configure_mute_mode_wakeup(Wakeup_Mode wakeup_mode)
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WM), static_cast<uint32_t>(wakeup_mode));
 }
 
-void USART::set_halfduplex_enable(Bit_State state)
+void USART::set_halfduplex_enable(bool enable)
 {
-    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::HDEN), static_cast<uint32_t>(state));
+    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::HDEN), enable ? Set : Clear);
 }
 
-void USART::synchronous_clock_enable(Bit_State state)
+void USART::synchronous_clock_enable(bool enable)
 {
-    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CKEN), static_cast<uint32_t>(state));
+    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CKEN), enable ? Set : Clear);
 }
 
-void USART::receive_data_dma(Bit_State state)
+void USART::receive_data_dma(bool enable)
 {
-    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::DENR), static_cast<uint32_t>(state));
+    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::DENR), enable ? Set : Clear);
 }
 
-void USART::send_data_dma(Bit_State state)
+void USART::send_data_dma(bool enable)
 {
-    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::DENT), static_cast<uint32_t>(state));
+    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::DENT), enable ? Set : Clear);
 }
 
 bool USART::get_flag(Status_Flags flag)
@@ -350,6 +358,44 @@ void USART::interrupt_disable(Interrupt_Type type)
         break;
     case INTR_RTIE:
         write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTIE), 0);
+        break;
+    default:
+        break;
+    }
+}
+
+// Enable or disable interrupt base on the set value
+void USART::set_interrupt_enable(Interrupt_Type type, bool enable) {
+    switch (type) {
+    case Interrupt_Type::INTR_PERRIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PERRIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_TBEIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TBEIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_TCIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TCIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_RBNEIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RBNEIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_IDLEIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IDLEIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_LBDIE:
+        write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBDIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_CTSIE:
+        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::CTSIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_ERRIE:
+        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::ERRIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_EBIE:
+        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::EBIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_RTIE:
+        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTIE), enable ? Set : Clear);
         break;
     default:
         break;

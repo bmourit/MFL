@@ -37,6 +37,11 @@ public:
 
     // Initialize
     void init();
+    // Reset
+    void reset() {
+        RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, true);
+        RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, false);
+    }
     // Configure
     void configure(SPI_Config* config) {
         if (config) {
@@ -80,7 +85,7 @@ public:
     void quad_io23_output_enable();
     void quad_io23_output_disable();
     // Interrupts and flags
-    bool get_flag(STAT_Bits flag);
+    bool get_flag(Status_Flags flag);
     bool get_interrupt_flag(Interrupt_Flags interrupt);
     void interrupt_enable(Interrupt_Type interrupt);
     void interrupt_disable(Interrupt_Type interrupt);
@@ -100,12 +105,25 @@ private:
         }
     }
 
-    SPI_Config default_config = {};
-    SPI_Config& config_ = default_config;
-
     SPI_Clock_Config SPI_pclk_info_;
     uint32_t base_address_;
     static bool is_clock_enabled;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+
+    SPI_Config default_config = {
+        .operational_mode = Operational_Mode::SFD_MODE,
+        .frame_format = Frame_Format::FF_8BIT,
+        .nss_type = NSS_Type::HARDWARE_NSS,
+        .pclk_divider = PCLK_Divider::PCLK_2,
+        .msbf = Endian_Type::MSBF,
+        .polarity_pull = Clock_Polarity::PULL_LOW,
+        .clock_phase = Clock_Phase::PHASE_FIRST_EDGE,
+    };
+    SPI_Config& config_ = default_config;
+
+#pragma GCC diagnostic pop
 
     template <SPI_Base Base>
     static SPI& get_instance_for_base() {

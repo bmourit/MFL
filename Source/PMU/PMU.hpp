@@ -40,7 +40,7 @@ public:
     // Sleep/Standby
     void set_standby_enable();
     void set_sleep_enable(PMU_Commands cmd);
-    void set_deep_sleep_enable(Power_Driver driver, Bit_State state, PMU_Commands cmd);
+    void set_deep_sleep_enable(Power_Driver driver, PMU_Commands command, bool enable);
     // Wakeup
     void wakeup_pin_enable();
     void wakeup_pin_disable();
@@ -49,7 +49,7 @@ public:
     void backup_write_disable();
     // Flags
     bool get_flag(Status_Flags flag);
-    void clear_flag(Reset_State_Flags flag);
+    void clear_flag(Clear_Flags flag);
 
     static constexpr uint32_t PMU_baseAddress = 0x40007000;
 

@@ -13,133 +13,152 @@
 #include "USART.hpp"
 #include "DMA.hpp"
 
-#ifndef GD32F30x
-#define GD32F30x
-#endif
-#ifndef GD32F30X_HD
-#define GD32F30X_HD
-#endif
+static void handle_error(const char* error_message);
+static usart::USART& init_usart(bool use_dma_rx, bool use_dma_tx);
+static dma::DMA& init_dma(usart::USART& usart, bool use_dma_rx, bool use_dma_tx);
+static void usart_send_polling(usart::USART& usart, const char* data);
+static void wait_for_dma_transfer_complete(dma::DMA& dma_dev);
 
-#define ARRAYNUM(arr_name)     (uint32_t)(sizeof(arr_name) / sizeof(*(arr_name)))
+constexpr size_t RX_BUFFER_SIZE = 64;
+constexpr uint32_t BAUD_RATE = 115200;
+constexpr uint8_t RX_DATA_SIZE = 10;
+constexpr char TX_MESSAGE[] = "\n\rUSART DMA receive and transmit example, please input 10 bytes:\n\r";
 
-uint8_t rxbuffer[10];
-uint8_t txbuffer[] = "\n\rUSART DMA receive and transmit example, please input 10 bytes:\n\r";
+// Buffer declarations
+uint8_t rxbuffer[RX_DATA_SIZE];
+volatile uint8_t tx_count = 0;
+volatile uint16_t rx_count = 0;
 
-usart::USART_Config usart_config = {};
-// DMA rx/tx config storage
-dma::DMA_Config dma_rx_config = {};
-dma::DMA_Config dma_tx_config = {};
+// USART and DMA configuration structs
+usart::USART_Config usart_config;
+dma::DMA_Config dma_rxtx_config;
 
-int main(void)
-{
+void init_clocks() {
     RCU_DEVICE.clocks_init();
+}
 
-    // Get USART0 instance
-    auto result = usart::USART::get_instance(usart::USART_Base::USART0_BASE);
-    if (result.error() != usart::USART_Error_Type::OK) {
-        return -1;
+static usart::USART& init_usart(bool use_dma_rx, bool use_dma_tx) {
+    auto usart_result = usart::USART::get_instance(usart::USART_Base::USART0_BASE);
+    if (usart_result.error() != usart::USART_Error_Type::OK) {
+        handle_error("USART Initialization Failed");
     }
-    usart::USART& usart0 = result.value();
 
+    usart::USART& usart = usart_result.value();
+
+    // USART0 pin configurations
     usart::USART_Pin_Config rx_pin_params = {
         .gpio_port = gpio::GPIO_Base::GPIOA_BASE,
         .pin = gpio::Pin_Number::PIN_10,
-        .mode = gpio::Pin_Mode::INPUT_PULLUP,
-        .speed = gpio::Output_Speed::SPEED_50MHZ,
+        .mode = gpio::Pin_Mode::INPUT_FLOATING,
+        .speed = gpio::Output_Speed::SPEED_10MHZ,
     };
 
     usart::USART_Pin_Config tx_pin_params = {
         .gpio_port = gpio::GPIO_Base::GPIOA_BASE,
         .pin = gpio::Pin_Number::PIN_9,
         .mode = gpio::Pin_Mode::ALT_PUSHPULL,
-        .speed = gpio::Output_Speed::SPEED_50MHZ,
+        .speed = gpio::Output_Speed::SPEED_10MHZ,
     };
 
-    // Set pin config
+    // Set USART configuration parameters
     usart_config.rx_pin_config = rx_pin_params;
     usart_config.tx_pin_config = tx_pin_params;
-    // Set paramaters
-    usart_config.baudrate = 115200;
-    usart_config.dma_pin_ops = usart::USART_DMA_Config::DMA_DUAL;
+    usart_config.baudrate = BAUD_RATE;
+    usart_config.dma_pin_ops = use_dma_rx ? usart::USART_DMA_Config::DMA_RX : usart::USART_DMA_Config::DMA_NONE;
     usart_config.word_length = usart::Word_Length::WL_8BITS;
     usart_config.stop_bits = usart::Stop_Bits::STB_1BIT;
     usart_config.parity = usart::Parity_Mode::PM_NONE;
     usart_config.direction = usart::Direction_Mode::RXTX_MODE;
     usart_config.msbf = usart::MSBF_Mode::MSBF_MSB;
-    usart0.configure(&usart_config);
+    usart.configure(&usart_config);
 
-    // Get DMA0 instance
-    auto ret = dma::DMA::get_instance(dma::DMA_Base::DMA0_BASE);
-    if (ret.error() != dma::DMA_Error_Type::OK) {
-        return -1;
-    }
-    dma::DMA& dma_dev = ret.value();
-
-    // Reset dma
-    dma_dev.reset(dma::DMA_Channel::CHANNEL3);
-    // Initialize defaults
-    dma_dev.init(dma::DMA_Channel::CHANNEL3);
-
-    // TX parameters
-    dma_tx_config = {
-        .peripheral_address = reinterpret_cast<uint32_t>(usart0.reg_address(usart::USART_Regs::DATA)),
-        .peripheral_bit_width = dma::Bit_Width::WIDTH_8BIT,
-        .memory_address = reinterpret_cast<uint32_t>(txbuffer),
-        .memory_bit_width = dma::Bit_Width::WIDTH_8BIT,
-        .count = ARRAYNUM(txbuffer),
-        .peripheral_increase = dma::Increase_Mode::INCREASE_DISABLE,
-        .memory_increase = dma::Increase_Mode::INCREASE_ENABLE,
-        .channel_priority = dma::Channel_Priority::ULTRA_HIGH_PRIORITY,
-        .direction = dma::Transfer_Direction::M2P,
-    };
-    dma_dev.configure(dma::DMA_Channel::CHANNEL3, &dma_tx_config);
-    // Disable DMA circular mode
-    dma_dev.circular_mode_disable(dma::DMA_Channel::CHANNEL3);
-    // Enable channel 3 of DMA0
-    dma_dev.channel_enable(dma::DMA_Channel::CHANNEL3);
-
-    // Enable DMA transmission on USART0
-    usart0.send_data_dma(usart::Bit_State::BIT_ENABLE);
-    // Wait for transfer completion
-    while (dma_dev.get_flag(dma::DMA_Channel::CHANNEL3, dma::State_Flags::FLAG_FTFIF) == false) {
+    if (use_dma_rx || use_dma_tx) {
+        // If DMA is used, initialize DMA here
+        dma::DMA& dma_dev = init_dma(usart, use_dma_rx, use_dma_tx);
+        // Wait for DMA transfer completion if receiving
+        if (use_dma_rx) {
+            wait_for_dma_transfer_complete(dma_dev);
+        }
     }
 
-    // Disable DMA transmission on USART0
-    usart0.send_data_dma(usart::Bit_State::BIT_DISABLE);
+    return usart;
+}
 
-    while (1) {
-        // Reset DMA channel 4
+static dma::DMA& init_dma(usart::USART& usart, bool use_dma_rx, bool use_dma_tx) {
+    auto dma_result = dma::DMA::get_instance(dma::DMA_Base::DMA0_BASE);
+    if (dma_result.error() != dma::DMA_Error_Type::OK) {
+        handle_error("DMA Initialization Failed");
+    }
+
+    dma::DMA& dma_dev = dma_result.value();
+
+    if (use_dma_tx) {
+        handle_error("DMA on TX pin is not supported in this example");
+    }
+    // DMA RX Configuration
+    if (use_dma_rx) {
         dma_dev.reset(dma::DMA_Channel::CHANNEL4);
-        // Clear RBNE flag
-        usart0.clear_flag(usart::Status_Flags::FLAG_RBNE);
-        // Enable USART DMA for receiving
-        usart0.receive_data_dma(usart::Bit_State::BIT_DISABLE);
-        // Initialize DMA channel 4
-        dma_dev.init(dma::DMA_Channel::CHANNEL4);
-        // RX parameters
-        dma_rx_config = {
-            .peripheral_address = reinterpret_cast<uint32_t>(usart0.reg_address(usart::USART_Regs::DATA)),
+        usart.clear_flag(usart::Status_Flags::FLAG_RBNE);
+        usart.receive_data_dma(true);
+
+        dma_rxtx_config = {
+            .peripheral_address = reinterpret_cast<uint32_t>(usart.reg_address(usart::USART_Regs::DATA)),
             .peripheral_bit_width = dma::Bit_Width::WIDTH_8BIT,
             .memory_address = reinterpret_cast<uint32_t>(rxbuffer),
             .memory_bit_width = dma::Bit_Width::WIDTH_8BIT,
-            .count = 10,
+            .count = RX_DATA_SIZE,
             .peripheral_increase = dma::Increase_Mode::INCREASE_DISABLE,
             .memory_increase = dma::Increase_Mode::INCREASE_ENABLE,
             .channel_priority = dma::Channel_Priority::ULTRA_HIGH_PRIORITY,
             .direction = dma::Transfer_Direction::P2M,
         };
-        dma_dev.configure(dma::DMA_Channel::CHANNEL4, &dma_rx_config);
-        // Disable DMA circular mode
-        dma_dev.circular_mode_disable(dma::DMA_Channel::CHANNEL4);
-        // Enable DMA channel 4
+
+        dma_dev.configure(dma::DMA_Channel::CHANNEL4, &dma_rxtx_config);
+        dma_dev.set_circulation_mode_enable(dma::DMA_Channel::CHANNEL4, false);
         dma_dev.channel_enable(dma::DMA_Channel::CHANNEL4);
-        // Waut for transfer completion
-        while (dma_dev.get_flag(dma::DMA_Channel::CHANNEL4, dma::State_Flags::FLAG_FTFIF) == false) {
-        }
-        // Disable DMA reception
-        usart0.receive_data_dma(usart::Bit_State::BIT_DISABLE);
-        printf("\n\r%s\n\r", rxbuffer);
     }
+
+    return dma_dev;
+}
+
+static void wait_for_dma_transfer_complete(dma::DMA& dma_dev) {
+    while (!dma_dev.get_flag(dma::DMA_Channel::CHANNEL4, dma::Status_Flags::FLAG_FTFIF)) {
+        // Could implement a timeout here to avoid infinite loop
+    }
+}
+
+static void usart_send_polling(usart::USART& usart, const char* data) {
+    while (*data != '\0') {
+        usart.send_data(static_cast<uint16_t>(*data++));
+        while (!usart.get_flag(usart::Status_Flags::FLAG_TBE)) {
+            // Wait until transmission buffer is empty
+        }
+    }
+}
+
+static void handle_error(const char* error_message) {
+    // Implement error handling, such as logging to a file, flashing an LED, etc.
+    printf("Error: %s\n", error_message);
+    // Optionally halt execution
+    while (true) {
+        // Infinite loop to indicate error condition
+    }
+}
+
+int main(void)
+{
+    init_clocks();
+
+    // Initialize USART with DMA RX and non-DMA TX
+    usart::USART& usart = init_usart(true, false);
+
+    // Output received data
+    printf("\n\r%s\n\r", rxbuffer);
+
+    // Transmit message using non-DMA USART (USART0 TX)
+    usart_send_polling(usart, TX_MESSAGE);
+
+    return 0;
 }
 
 #define UNUSED(x)   (void)(x)
@@ -147,16 +166,16 @@ int main(void)
 // Retarget printf to USART0
 int fputc(int ch, FILE *f)
 {
-    // Get instance
-    auto result = usart::USART::get_instance(usart::USART_Base::USART0_BASE);
-    if (result.error() != usart::USART_Error_Type::OK) {
+    // Get USART0 instance
+    auto usart_result = usart::USART::get_instance(usart::USART_Base::USART0_BASE);
+    if (usart_result.error() != usart::USART_Error_Type::OK) {
         return -1;
     }
-
-    usart::USART& usart0 = result.value();
+    usart::USART& usart0 = usart_result.value();
 
     UNUSED(f);
     usart0.send_data(static_cast<uint16_t>(ch));
-    while (usart0.get_flag(usart::Status_Flags::FLAG_TBE) == 0);
+    while (!usart0.get_flag(usart::Status_Flags::FLAG_TBE)) {
+    }
     return ch;
 }

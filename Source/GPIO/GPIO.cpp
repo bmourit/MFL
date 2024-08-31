@@ -9,6 +9,8 @@ bool gpio::GPIO::is_clock_enabled = false;
 
 namespace gpio {
 
+constexpr uint32_t LockValue = 0x00010000;
+
 void GPIO::init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
 {
     // Determine the correct register and bit position for the pin configuration
@@ -27,48 +29,48 @@ void GPIO::init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
 
     switch (mode) {
     case Pin_Mode::ANALOG:
-        mode_bits = 0x00;   // Input mode (Analog)
-        config_bits = 0x00; // Analog mode
+        mode_bits = 0;      // Input mode (Analog)
+        config_bits = 0;    // Analog mode
         break;
     case Pin_Mode::INPUT_FLOATING:
-        mode_bits = 0x00;   // Input mode (Floating)
-        config_bits = 0x01; // Floating input
+        mode_bits = 0;      // Input mode (Floating)
+        config_bits = 1;    // Floating input
         break;
     case Pin_Mode::INPUT_PULLUP:
-        write_bit(*this, GPIO_Regs::BOP, 1 << static_cast<uint32_t>(pin), 1);
-        mode_bits = 0x00;   // Input mode (Pull-up/Pull-down)
-        config_bits = 0x02; // Input with pull-up/pull-down
+        write_bit(*this, GPIO_Regs::BOP, 1 << static_cast<uint32_t>(pin), Set);
+        mode_bits = 0;      // Input mode (Pull-up/Pull-down)
+        config_bits = 2;    // Input with pull-up/pull-down
         break;
     case Pin_Mode::INPUT_PULLDOWN:
-        write_bit(*this, GPIO_Regs::BC, 1 << static_cast<uint32_t>(pin), 1);
-        mode_bits = 0x00;   // Input mode (Pull-up/Pull-down)
-        config_bits = 0x02; // Input with pull-up/pull-down
+        write_bit(*this, GPIO_Regs::BC, 1 << static_cast<uint32_t>(pin), Set);
+        mode_bits = 0;      // Input mode (Pull-up/Pull-down)
+        config_bits = 2;    // Input with pull-up/pull-down
         break;
     case Pin_Mode::OUTPUT_PUSHPULL:
         if (speed == Output_Speed::SPEED_MAX) {
-            mode_bits = 0x03;                           // Output mode max speed
-            write_bit(*this, GPIO_Regs::SPD, 1 << static_cast<uint32_t>(pin), 1);
+            mode_bits = 3;  // Output mode max speed
+            write_bit(*this, GPIO_Regs::SPD, 1 << static_cast<uint32_t>(pin), Set);
         } else {
             mode_bits = static_cast<uint32_t>(speed);   // Output mode
         }
-        config_bits = 0x00;                             // GPIO output with push-pull
+        config_bits = 0;    // GPIO output with push-pull
         break;
     case Pin_Mode::OUTPUT_OPENDRAIN:
         if (speed == Output_Speed::SPEED_MAX) {
-            mode_bits = 0x03;                           // Output mode max speed
-            write_bit(*this, GPIO_Regs::SPD, 1 << static_cast<uint32_t>(pin), 1);
+            mode_bits = 3;  // Output mode max speed
+            write_bit(*this, GPIO_Regs::SPD, 1 << static_cast<uint32_t>(pin), Set);
         } else {
             mode_bits = static_cast<uint32_t>(speed);   // Output mode
         }
-        config_bits = 0x01;                             // GPIO output with open-drain
+        config_bits = 1;    // GPIO output with open-drain
         break;
     case Pin_Mode::ALT_PUSHPULL:
-        mode_bits = 0x01;   // AF mode (same as Input)
-        config_bits = 0x02; // AF output with push-pull
+        mode_bits = 1;      // AF mode (same as Input)
+        config_bits = 2;    // AF output with push-pull
         break;
     case Pin_Mode::ALT_OPENDRAIN:
-        mode_bits = 0x01;   // AF mode (same as Input)
-        config_bits = 0x03; // AFIO output with open-drain
+        mode_bits = 1;      // AF mode (same as Input)
+        config_bits = 3;    // AFIO output with open-drain
         break;
     }
 
@@ -81,21 +83,36 @@ void GPIO::init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
 
 void GPIO::set_pin_high(Pin_Bit_Mask pin)
 {
-    write_bit(*this, GPIO_Regs::BOP, static_cast<uint32_t>(pin), 1);
+    write_bit(*this, GPIO_Regs::BOP, static_cast<uint32_t>(pin), Set);
 }
 
 void GPIO::set_pin_low(Pin_Bit_Mask pin)
 {
-    write_bit(*this, GPIO_Regs::BC, static_cast<uint32_t>(pin), 1);
+    write_bit(*this, GPIO_Regs::BC, static_cast<uint32_t>(pin), Set);
 }
 
 void GPIO::set_pin_pull(Pin_Bit_Mask pin, bool high)
 {
     if (high != false) {
-        write_bit(*this, GPIO_Regs::BOP, static_cast<uint32_t>(pin), 1);
+        write_bit(*this, GPIO_Regs::BOP, static_cast<uint32_t>(pin), Set);
     } else {
-        write_bit(*this, GPIO_Regs::BC, static_cast<uint32_t>(pin), 1);
+        write_bit(*this, GPIO_Regs::BC, static_cast<uint32_t>(pin), Set);
     }
+}
+
+void GPIO::write_pin(Pin_Bit_Mask pin, bool set)
+{
+    write_bit(*this, set ? GPIO_Regs::BOP : GPIO_Regs::BC, static_cast<uint32_t>(pin), Set);
+}
+
+bool GPIO::read_pin(Pin_Bit_Mask pin)
+{
+    return (read_bit(*this, GPIO_Regs::ISTAT, static_cast<uint32_t>(pin)) ? true : false);
+}
+
+void GPIO::toggle_pin(Pin_Bit_Mask pin)
+{
+    write_bit(*this, GPIO_Regs::OCTL, static_cast<uint32_t>(pin), read_bit(*this, GPIO_Regs::OCTL, static_cast<uint32_t>(pin)) ? Clear : Set);
 }
 
 void GPIO::set_port(uint16_t data)
@@ -125,7 +142,7 @@ uint16_t GPIO::get_port_output_state()
 
 void GPIO::lock_pin(Pin_Number pin)
 {
-    uint32_t lock = 0x00010000U;
+    uint32_t lock = LockValue;
     lock |= (1 << static_cast<uint32_t>(pin));
 
     // lock the pin by write/read in this order

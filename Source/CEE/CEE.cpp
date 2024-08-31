@@ -8,17 +8,17 @@ namespace cee {
 
 void CEE::enhanced_mode_enable()
 {
-    write_bit(*this, CEE_Regs::CEE, static_cast<uint32_t>(CEE_Bits::CEE_EN), 1);
+    write_bit(*this, CEE_Regs::CEE, static_cast<uint32_t>(CEE_Bits::CEE_EN), Set);
 }
 
 void CEE::enhanced_mode_disable()
 {
-    write_bit(*this, CEE_Regs::CEE, static_cast<uint32_t>(CEE_Bits::CEE_EN), 0);
+    write_bit(*this, CEE_Regs::CEE, static_cast<uint32_t>(CEE_Bits::CEE_EN), Clear);
 }
 
 void CEE::set_enhanced_mode_enable(bool enable)
 {
-    write_bit(*this, CEE_Regs::CEE, static_cast<uint32_t>(CEE_Bits::CEE_EN), enable ? 1 : 0);
+    write_bit(*this, CEE_Regs::CEE, static_cast<uint32_t>(CEE_Bits::CEE_EN), enable ? Set : Clear);
 }
 
 } // namespace cee

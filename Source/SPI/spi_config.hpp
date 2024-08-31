@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+
 #include "CONFIG.hpp"
 
 namespace spi {
@@ -109,6 +110,19 @@ enum class QCTL_Bits {
     QMOD = REG_BIT_DEF(0, 0),
     QRD = REG_BIT_DEF(1, 1),
     IO23_DRV = REG_BIT_DEF(2, 2),
+};
+
+// Alias
+enum class Status_Flags {
+    FLAG_RBNE = REG_BIT_DEF(0, 0),
+    FLAG_TBE = REG_BIT_DEF(1, 1),
+    FLAG_I2SCH = REG_BIT_DEF(2, 2),
+    FLAG_TXURERR = REG_BIT_DEF(3, 3),
+    FLAG_CRCERR = REG_BIT_DEF(4, 4),
+    FLAG_CONFERR = REG_BIT_DEF(5, 5),
+    FLAG_RXORERR = REG_BIT_DEF(6, 6),
+    FLAG_TRANS = REG_BIT_DEF(7, 7),
+    FLAG_FERR = REG_BIT_DEF(8, 8),
 };
 
 

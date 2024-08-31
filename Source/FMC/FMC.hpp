@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+
 #include "BitRW.hpp"
 #include "RCU.hpp"
 #include "fmc_config.hpp"
@@ -41,8 +42,8 @@ public:
     FMC_State ready_wait_bank0(uint32_t timeout);
     FMC_State ready_wait_bank1(uint32_t timeout);
     // Flags
-    bool get_flag(Flag_Types flag);
-    void clear_flag(Flag_Types flag);
+    bool get_flag(Status_Flags flag);
+    void clear_flag(Status_Flags flag);
     // Interruppt flags
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Interrupt_Flags flag);

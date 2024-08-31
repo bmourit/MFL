@@ -34,7 +34,7 @@ public:
     void init(DMA_Channel channel);
     // Reset
     void reset(DMA_Channel channel);
-    void configure(DMA_Channel channel, DMA_Config *update);
+    void configure(DMA_Channel channel, DMA_Config* update);
     // Circulation mode
     void circular_mode_enable(DMA_Channel channel);                                     // DEPRECATED - use set_circulation_mode_enable
     void circular_mode_disable(DMA_Channel channel);                                    // DEPRECATED - use set_circulation_mode_enable
@@ -69,8 +69,8 @@ public:
     // Direction
     void set_transfer_direction(DMA_Channel channel, Transfer_Direction direction);
     // Flags
-    bool get_flag(DMA_Channel channel, State_Flags flag);
-    void clear_flag(DMA_Channel channel, State_Flags flag);
+    bool get_flag(DMA_Channel channel, Status_Flags flag);
+    void clear_flag(DMA_Channel channel, Status_Flags flag);
     // Interrupt flags
     bool get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag);
     void clear_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag);
@@ -105,8 +105,18 @@ private:
     uint32_t base_address_;
     static bool is_clock_enabled;
 
-    // Default dummy config
-    DMA_Config default_config = {};
+    // Default initialization config
+    DMA_Config default_config = {
+        .peripheral_address = 0,
+        .peripheral_bit_width = Bit_Width::WIDTH_8BIT,
+        .memory_address = 0,
+        .memory_bit_width = Bit_Width::WIDTH_8BIT,
+        .count = 0,
+        .peripheral_increase = dma::Increase_Mode::INCREASE_DISABLE,
+        .memory_increase = dma::Increase_Mode::INCREASE_DISABLE,
+        .channel_priority = dma::Channel_Priority::LOW_PRIORITY,
+        .direction = dma::Transfer_Direction::P2M,
+    };
     DMA_Config& config_ = default_config;
 
     template <DMA_Base Base>

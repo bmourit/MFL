@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+
 #include "cortex_config.hpp"
 
 namespace cortex {

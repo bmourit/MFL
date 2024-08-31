@@ -23,7 +23,7 @@ public:
     void set_output_event(Event_Port port, Pin_Number pin);
     void output_event_enable();
     void output_event_disable();
-    void set_compensation(Bit_State state);
+    void set_compensation(bool enable);
     bool get_compensation();
 
     static constexpr uint32_t AFIO_baseAddress = 0x40010000;

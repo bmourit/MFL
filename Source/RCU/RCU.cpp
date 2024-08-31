@@ -3,10 +3,8 @@
 // All rights reserved.
 
 #include "RCU_C.h"
-#include "CONFIG.hpp"
 #include "CEE.hpp"
 #include "PMU.hpp"
-#include "rcu_config.hpp"
 #include "RCU.hpp"
 
 namespace rcu {
@@ -14,42 +12,42 @@ namespace rcu {
 void RCU::reset()
 {
     // Enable IRC8M
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::IRC8MEN), 1);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::IRC8MEN), Set);
     while (is_osci_wait_until_stable(OSCI_Select::IRC8M) == false) {
         //Just wait
     }
 
     // Clear system clk source
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), 0);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), Clear);
 
     // Reset CTL register
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), 0);
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), 0);
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::PLLEN), 0);
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), 0);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), Clear);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), Clear);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::PLLEN), Clear);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), Clear);
 
     // Reset CFG0 register
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::AHBPSC), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::APB1PSC), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::APB2PSC), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLSEL), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PREDV0), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), 0);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::AHBPSC), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::APB1PSC), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::APB2PSC), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLSEL), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PREDV0), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), Clear);
 
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::CKOUT0SEL), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_5), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), 0);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::CKOUT0SEL), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_5), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), Clear);
 
-    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CKMIC), 1);
-    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CLEAR_ALL), 1);
+    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CKMIC), Set);
+    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CLEAR_ALL), Set);
 
-    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), 0);
-    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), 0);
+    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Clear);
+    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), Clear);
 }
 
 void RCU::pclk_enable(RCU_PCLK pclk)
@@ -94,7 +92,7 @@ void RCU::pclk_sleep_disable(RCU_PCLK_Sleep pclk)
 void RCU::set_pclk_sleep_enable(RCU_PCLK_Sleep pclk, bool enable)
 {
     const auto &info = pclk_sleep_index[static_cast<size_t>(pclk)];
-    write_bit(*this, info.register_offset, info.bit_info, enable ? 1 : 0);
+    write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
 void RCU::pclk_reset_enable(RCU_PCLK_Reset pclk)
@@ -111,23 +109,23 @@ void RCU::pclk_reset_disable(RCU_PCLK_Reset pclk)
 void RCU::set_pclk_reset_enable(RCU_PCLK_Reset pclk, bool enable)
 {
     const auto &info = pclk_reset_index[static_cast<size_t>(pclk)];
-    write_bit(*this, info.register_offset, info.bit_info, enable ? 1 : 0);
+    write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
 void RCU::backup_reset_enable()
 {
-    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), 1);
+    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), Set);
 }
 
 void RCU::backup_reset_disable()
 {
-    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), 0);
+    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), Clear);
 }
 
 // Enable or disable backup clock reset
 void RCU::set_backup_reset_enable(bool enable)
 {
-    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), enable ? 1 : 0);
+    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), enable ? Set : Clear);
 }
 
 void RCU::set_system_source(System_Clock_Source source)
@@ -178,68 +176,68 @@ void RCU::set_pll_config(PLL_Source source, PLLMF_Select multiplier)
     } else {
         switch (multiplier) {
         case PLLMF_Select::PLL_MUL17:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 0);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), Clear);
             break;
         case PLLMF_Select::PLL_MUL18:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), Set);
             break;
         case PLLMF_Select::PLL_MUL19:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 2);
             break;
         case PLLMF_Select::PLL_MUL20:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 3);
             break;
         case PLLMF_Select::PLL_MUL21:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 4);
             break;
         case PLLMF_Select::PLL_MUL22:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 5);
             break;
         case PLLMF_Select::PLL_MUL23:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 6);
             break;
         case PLLMF_Select::PLL_MUL24:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 7);
             break;
         case PLLMF_Select::PLL_MUL25:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 8);
             break;
         case PLLMF_Select::PLL_MUL26:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 9);
             break;
         case PLLMF_Select::PLL_MUL27:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 10);
             break;
         case PLLMF_Select::PLL_MUL28:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 11);
             break;
         case PLLMF_Select::PLL_MUL29:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 12);
             break;
         case PLLMF_Select::PLL_MUL30:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 13);
             break;
         case PLLMF_Select::PLL_MUL31:
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 14);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 1);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
             break;
         // default to 72MHz
         default:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), 0);
+            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear);
             write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 18);
             break;
         }
@@ -287,9 +285,9 @@ void RCU::set_predv0_config(uint32_t div)
 void RCU::set_adc_prescaler(ADC_Prescaler prescaler)
 {
     // Reset prescaler
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), 0);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 0);
-    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), 0);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Clear);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
+    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Clear);
 
     // Set the prescaler
     using enum ADC_Prescaler;
@@ -301,28 +299,28 @@ void RCU::set_adc_prescaler(ADC_Prescaler prescaler)
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), static_cast<uint32_t>(prescaler));
         break;
     case CKAPB2_DIV12:
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 1);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), 1);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Set);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
         break;
     case CKAPB2_DIV16:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 3);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), 1);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
         break;
     case CKAHB_DIV5:
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 0);
-        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), 1);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
+        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
     case CKAHB_DIV6:
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 1);
-        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), 1);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Set);
+        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
     case CKAHB_DIV10:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 2);
-        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), 1);
+        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
     case CKAHB_DIV20:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 3);
-        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), 1);
+        write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
     default:
         break;
@@ -350,7 +348,7 @@ void RCU::set_usb_prescaler(USB_Prescaler prescaler)
             break;
         }
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), real_bit_value);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), 1);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), Set);
     }
 }
 
@@ -382,7 +380,7 @@ void RCU::osci_stop(OSCI_Select osci)
 void RCU::set_osci_enable(OSCI_Select osci, bool enable)
 {
     const auto &info = osci_select_index[static_cast<size_t>(osci)];
-    write_bit(*this, info.register_offset, info.bit_info, enable ? 1 : 0);
+    write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
 bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
@@ -563,11 +561,11 @@ void RCU::bypass_mode_enable(OSCI_Select osci)
     switch (osci) {
     case HXTAL:
         set_osci_enable(osci, false);
-        write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), 1);
+        write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), Set);
         break;
     case LXTAL:
         set_osci_enable(osci, false);
-        write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALBPS), 1);
+        write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALBPS), Set);
         break;
     case IRC8M:
     case IRC48M:
@@ -585,11 +583,11 @@ void RCU::bypass_mode_disable(OSCI_Select osci)
     switch (osci) {
     case HXTAL:
         set_osci_enable(osci, false);
-        write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), 0);
+        write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), Clear);
         break;
     case LXTAL:
         set_osci_enable(osci, false);
-        write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALEN), 0);
+        write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALEN), Clear);
         break;
     case IRC8M:
     case IRC48M:
@@ -608,12 +606,12 @@ void RCU::set_irc8m_adjustment_value(uint32_t value)
 
 void RCU::hxtal_monitor_enable(void)
 {
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), 1);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), Set);
 }
 
 void RCU::hxtal_monitor_disable(void)
 {
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), 0);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), Clear);
 }
 
 void RCU::set_deep_sleep_voltage(DeepSleep_Voltage voltage)
@@ -628,7 +626,7 @@ bool RCU::is_flag_status_set(RCU_Reset_Flags flag)
 
 void RCU::clear_all_reset_flags()
 {
-    write_bit(*this, RCU_Regs::RSTSCK, static_cast<uint32_t>(RSTSCK_Bits::RSTFC), 1);
+    write_bit(*this, RCU_Regs::RSTSCK, static_cast<uint32_t>(RSTSCK_Bits::RSTFC), Set);
 }
 
 bool RCU::is_interrupt_flag_set(RCU_Interrupt_Flags flag)
@@ -655,42 +653,12 @@ void RCU::interrupt_disable(RCU_Interrupt_Enable type)
 void RCU::set_interrupt_enable(RCU_Interrupt_Enable type, bool enable)
 {
     const auto &info = interrupt_enable_index[static_cast<size_t>(type)];
-    write_bit(*this, info.register_offset, info.bit_info, enable ? 1 : 0);
-}
-
-///////////////////////////// STARTUP FUNCTIONALITY /////////////////////////////
-
-void RCU::system_startup()
-{
-    uint32_t temp = read_register<uint32_t>(RCU_Regs::CTL);
-    temp |= 0x00000001;
-    write_register(RCU_Regs::CTL, temp);
-    temp = read_register<uint32_t>(RCU_Regs::CFG0);
-    temp &= 0xF8FF0000;
-    write_register(RCU_Regs::CFG0, temp);
-    temp = read_register<uint32_t>(RCU_Regs::CTL);
-    temp &= 0xFEF6FFFF;
-    write_register(RCU_Regs::CTL, temp);
-    temp = read_register<uint32_t>(RCU_Regs::CTL);
-    temp &= 0xFFFBFFFF;
-    write_register(RCU_Regs::CTL, temp);
-    temp = read_register<uint32_t>(RCU_Regs::CFG0);
-    temp &= 0xFF80FFFF;
-    write_register(RCU_Regs::CFG0, temp);
-    write_register(RCU_Regs::INTR, 0x009F0000);
-#ifndef DISABLE_CEE_ENHANCE
-    CEE_DEVICE.enhanced_mode_enable();
-#endif
-
-#ifdef SET_CLOCKS_IN_STARTUP_CODE
-    clocks_init();
-#endif
-    SCB->VTOR = VTOR_ADDRESS;
+    write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
 void RCU::clocks_init()
 {
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), 1);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), Set);
 
     // Wait until HXTAL stable flag is set or a timeout occurs
     while (is_osci_wait_until_stable(OSCI_Select::HXTAL) == false) {
@@ -716,7 +684,7 @@ void RCU::clocks_init()
     //PMU_DEVICE.set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_HIGH);
 
     // Enable PMU clock
-    write_bit(*this, RCU_Regs::APB1EN, static_cast<uint32_t>(APB1EN_Bits::PMUEN), 1);
+    write_bit(*this, RCU_Regs::APB1EN, static_cast<uint32_t>(APB1EN_Bits::PMUEN), Set);
 
     // AHB = SYSCLK
     set_ahb_prescaler(AHB_Prescaler::CKSYS_DIV1);
@@ -728,7 +696,7 @@ void RCU::clocks_init()
     set_pll_config(PLL_Source::PLLSRC_HXTAL_IRC48M, PLLMF_Select::PLL_MUL30);
 
     // Enable PLL
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::PLLEN), 1);
+    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::PLLEN), Set);
 
     // Wait for PLL to stablize
     while (is_osci_wait_until_stable(OSCI_Select::PLL_CK) == false) {
@@ -749,7 +717,7 @@ void RCU::clocks_init()
     }
 
     // Set the CMSIS global variable
-    SystemCoreClock = 120000000;
+    SystemCoreClock = CoreClockFrequency;
 }
 
 void RCU::update_system_clock()

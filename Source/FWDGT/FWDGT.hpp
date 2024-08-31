@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+
 #include "BitRW.hpp"
 #include "RCU.hpp"
 #include "fwdgt_config.hpp"
@@ -23,7 +24,7 @@ public:
     bool set_reload_prescaler(uint16_t reload, Prescaler_Values value);
     bool set_reload(uint16_t reload);
     void reload_counter();
-    bool get_flag(State_Flags flag);
+    bool get_flag(Status_Flags flag);
 
     static constexpr uint32_t FWDGT_baseAddress = 0x40003000;
 

@@ -10,8 +10,7 @@
 
 extern int main();
 
-extern "C"
-void Reset_Handler()
+extern "C" void Reset_Handler()
 {
     // Initialize data section
     extern uint32_t _sidata;
@@ -30,8 +29,6 @@ void Reset_Handler()
     while (dest < &__bss_end__)
         *(dest++) = 0;
 
-    //std::fill(&__bss_start__, &__bss_end__, UINT8_C(0x00));
-
     // Initialize static objects by calling their constructors
     extern void (*__preinit_array_start[])(void);
     extern void (*__preinit_array_end[])(void);
@@ -41,7 +38,7 @@ void Reset_Handler()
         __preinit_array_start[i++]();
 
     // Call system startup
-    RCU_DEVICE.system_startup();
+    system_startup();
 
     extern void (*__init_array_start[])(void);
     extern void (*__init_array_end[])(void);
@@ -60,3 +57,27 @@ void Reset_Handler()
     // jump to main
     main();
 }
+
+// Simple register mapping for startup code
+struct RCUMin {
+    volatile uint32_t CTL;
+    volatile uint32_t CFG0;
+    volatile uint32_t INTR;
+};
+
+static const uintptr_t rcuRegsAddr = 0x40021000;
+
+static RCUMin* regs = (RCUMin*)rcuRegsAddr;
+
+void system_startup()
+{
+    regs->CTL |= 0x00000001;
+    regs->CFG0 &= 0xF8FF0000;
+    regs->CTL &= 0xFEF6FFFF;
+    regs->CTL &= 0xFFFBFFFF;
+    regs->CFG0 &= 0xFF80FFFF;
+    regs->INTR = 0x009F0000;
+
+    SCB->VTOR = VTOR_ADDRESS;
+}
+

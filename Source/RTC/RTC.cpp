@@ -8,37 +8,37 @@ namespace rtc {
 
 void RTC::interrupt_enable(Interrupt_Type type)
 {
-    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), 1);
+    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), Set);
 }
 
 void RTC::interrupt_disable(Interrupt_Type type)
 {
-    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), 0);
+    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), Clear);
 }
 
 void RTC::start_configuration()
 {
-    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CMF), 1);
+    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CMF), Set);
 }
 
 void RTC::stop_configuration()
 {
-    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CMF), 0);
+    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CMF), Clear);
 }
 
 void RTC::lwoff_wait()
 {
     // Loop until LWOFF flag gets set
-    while (read_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LWOFF)) == 0U) {
+    while (read_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LWOFF)) == Clear) {
     }
 }
 
 void RTC::sync_register_wait()
 {
     // Clear RSYNF
-    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::RSYNF), 0);
+    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::RSYNF), Clear);
     // Loop until RSYNF flag gets set
-    while (read_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::RSYNF)) == 0U) {
+    while (read_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::RSYNF)) == Clear) {
     }
 }
 
@@ -89,7 +89,7 @@ bool RTC::get_flag(Status_Flags flag)
 
 void RTC::clear_flag(Status_Flags flag)
 {
-    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(flag), 0);
+    write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(flag), Clear);
 }
 
 } // namespace rtc

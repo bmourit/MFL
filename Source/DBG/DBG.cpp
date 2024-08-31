@@ -8,7 +8,7 @@ namespace armdbg {
 
 void ARMDBG::reset()
 {
-    write_register(DBG_Regs::CTL0, 0x00000000);
+    write_register(DBG_Regs::CTL0, Clear);
 }
 
 uint32_t ARMDBG::get_debug_id()
@@ -18,47 +18,47 @@ uint32_t ARMDBG::get_debug_id()
 
 void ARMDBG::debug_with_trace_enable()
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TRACE_IOEN), 1);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TRACE_IOEN), Set);
 }
 
 void ARMDBG::debug_with_trace_disable()
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TRACE_IOEN), 0);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TRACE_IOEN), Clear);
 }
 
 void ARMDBG::set_debug_with_trace_enable(bool enable)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TRACE_IOEN), enable ? 1 : 0);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TRACE_IOEN), enable ? Set : Clear);
 }
 
 void ARMDBG::peripheral_debug_enable(Debug_Peripheral peripheral)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(peripheral), 1);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(peripheral), Set);
 }
 
 void ARMDBG::peripheral_debug_disable(Debug_Peripheral peripheral)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(peripheral), 0);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(peripheral), Clear);
 }
 
 void ARMDBG::set_peripheral_debug_enable(Debug_Peripheral peripheral, bool enable)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(peripheral), enable ? 1 : 0);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(peripheral), enable ? Set : Clear);
 }
 
 void ARMDBG::debug_during_low_power_enable(Low_Power_Debug type)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), 1);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), Set);
 }
 
 void ARMDBG::debug_during_low_power_disable(Low_Power_Debug type)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), 0);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), Clear);
 }
 
 void ARMDBG::set_debug_during_low_power_enable(Low_Power_Debug type, bool enable)
 {
-    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), enable ? 1 : 0);
+    write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), enable ? Set : Clear);
 }
 
 } // namespace armdbg

@@ -17,9 +17,9 @@ void WWDGT::reset()
     RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_WWDGTRST, false);
 }
 
-void WWDGT::enable(void)
+void WWDGT::enable()
 {
-    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::WDGTEN), 1);
+    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::WDGTEN), Set);
 }
 
 void WWDGT::update_counter(uint16_t value)
@@ -34,24 +34,24 @@ void WWDGT::setup(uint16_t value, uint16_t window, Prescaler_Values prescaler)
     write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::PSC), static_cast<uint32_t>(prescaler));
 }
 
-bool WWDGT::get_flag(void)
+bool WWDGT::get_flag()
 {
-    return (read_bit(*this, WWDGT_Regs::STAT, static_cast<uint32_t>(STAT_Bits::EWIF)) ? true : false);
+    return (read_bit(*this, WWDGT_Regs::STAT, static_cast<uint32_t>(STAT_Bits::EWIF) != Clear));
 }
 
 void WWDGT::clear_flag()
 {
-    write_register(WWDGT_Regs::STAT, 0);
+    write_register(WWDGT_Regs::STAT, Clear);
 }
 
 void WWDGT::interrupt_enable()
 {
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), 1);
+    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), Set);
 }
 
 void WWDGT::interrupt_disable()
 {
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), 0);
+    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), Clear);
 }
 
 } // namespace wwdgt

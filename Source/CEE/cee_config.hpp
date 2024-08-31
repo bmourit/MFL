@@ -6,7 +6,9 @@
 
 #include <cstdlib>
 #include <cstdint>
+
 #include "CONFIG.hpp"
+#include "BitRW.hpp"
 
 namespace cee {
 

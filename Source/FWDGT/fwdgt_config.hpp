@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+
 #include "CONFIG.hpp"
 
 namespace fwdgt {
@@ -53,7 +54,7 @@ enum class Prescaler_Values {
     DIV256,
 };
 
-enum class State_Flags {
+enum class Status_Flags {
     FLAG_PUD,
     FLAG_RUD,
 };

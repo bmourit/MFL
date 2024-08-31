@@ -7,6 +7,9 @@
 #include <limits>
 #include "dma_config.hpp"
 
+constexpr uint32_t Clear = 0;
+constexpr uint32_t Set = 1;
+
 template <typename RegType, typename Instance>
 inline uint32_t read_bit(const Instance& instance, RegType reg, uint32_t bits)
 {

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdlib>
+
 #include "BitRW.hpp"
 #include "rcu_config.hpp"
 
@@ -85,7 +86,6 @@ public:
     void set_interrupt_enable(RCU_Interrupt_Enable type, bool enable);
 
     // System startup functionality
-    void system_startup();
     void update_system_clock();
     inline uint32_t calculate_pll_clock();
     virtual void clocks_init();

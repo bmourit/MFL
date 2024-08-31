@@ -371,11 +371,6 @@ enum class Pin_Number {
     PIN_15,
 };
 
-enum class Bit_State {
-    BIT_DISABLE,
-    BIT_ENABLE,
-};
-
 enum class Pin_Remap_Select {
     SPI0_NO_REMAP,
     SPI0_REMAP,
@@ -436,7 +431,7 @@ enum class Pin_Remap_Select {
     CTC_REMAP0,
     CTC_NO_REMAP1,
     CTC_REMAP1,
-    REMAP_LAST,
+    NO_REMAP = 60,
 };
 
 enum class Remap_Type {

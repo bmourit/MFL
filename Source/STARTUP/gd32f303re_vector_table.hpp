@@ -2,6 +2,8 @@
 // Copyright (c) B. Mourit <bnmguy@gmail.com
 // All rights reserved.
 
+#pragma once
+
 #include <cstdint>
 
 #define DEFINE_DEFAULT_ISR(name) \

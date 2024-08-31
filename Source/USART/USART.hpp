@@ -43,38 +43,43 @@ public:
         }
     }
 
+    void reset() {
+        RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, true);
+        RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, false);
+    }
     void init();
-    void configure(USART_Config *config) {
+    void configure(USART_Config* config) {
         if (config) {
             config_ = *config;
         }
         init();
     }
-    void inline set_baudrate(uint32_t baudrate);
+    inline void set_baudrate(uint32_t baudrate);
     void set_parity(Parity_Mode parity);
     void set_word_length(Word_Length word_length);
     void set_stop_bits(Stop_Bits stop_bits);
     void enable();
     void disable();
-    void set_direction(Direction_Mode mode);
+    inline void set_direction(Direction_Mode direction);
     void set_msb(MSBF_Mode msbf);
-    void rx_timeout_enable(Bit_State state);
+    void rx_timeout_enable(bool enable);
     void set_rx_timeout_threshold(uint32_t timeout);
     void send_data(uint16_t data);	// TX
     uint16_t receive_data();        // RX
     void set_address(uint8_t address);
-    void mute_mode_enable(Bit_State state);
-    void configure_mute_mode_wakeup(Wakeup_Mode wakeup_method);
-    void set_halfduplex_enable(Bit_State state);
-    void synchronous_clock_enable(Bit_State state);
-    void receive_data_dma(Bit_State state);
-    void send_data_dma(Bit_State state);
+    void mute_mode_enable(bool enable);
+    void configure_mute_mode_wakeup(Wakeup_Mode method);
+    void set_halfduplex_enable(bool enable);
+    void synchronous_clock_enable(bool enable);
+    void receive_data_dma(bool enable);
+    void send_data_dma(bool enable);
     bool get_flag(Status_Flags flag);
     void clear_flag(Status_Flags flag);
-    void interrupt_enable(Interrupt_Type interrupt);
-    void interrupt_disable(Interrupt_Type interrupt);
-    bool get_interrupt_flag(Interrupt_Flags interrupt_flag);
-    void clear_interrupt_flag(Interrupt_Flags interrupt_flag);
+    void interrupt_enable(Interrupt_Type type);
+    void interrupt_disable(Interrupt_Type type);
+    void set_interrupt_enable(Interrupt_Type type, bool enable);
+    bool get_interrupt_flag(Interrupt_Flags flag);
+    void clear_interrupt_flag(Interrupt_Flags flag);
 
     inline volatile uint32_t *reg_address(USART_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
@@ -120,7 +125,3 @@ private:
 };
 
 } // namespace usart
-
-// Usage example:
-// USART& usart0 = USART::get_instance(USART_Base::USART0);
-// uint32_t data = usart0.read_register<uint32_t>(USART_Regs::DATA);

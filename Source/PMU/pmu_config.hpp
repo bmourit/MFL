@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+
 #include "CONFIG.hpp"
 
 namespace pmu {
@@ -89,7 +90,7 @@ enum class Status_Flags {
     LDR_FLAG = REG_BIT_DEF(18, 19),
 };
 
-enum class Reset_State_Flags {
+enum class Clear_Flags {
     RESET_WAKEUP_FLAG,
     RESET_STANDBY_FLAG
 };
@@ -97,11 +98,6 @@ enum class Reset_State_Flags {
 enum class PMU_Commands {
     WFI_CMD,
     WFE_CMD
-};
-
-enum class Bit_State {
-    BIT_DISABLE,
-    BIT_ENABLE
 };
 
 } // namespace pmu

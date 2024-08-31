@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+
 #include "CONFIG.hpp"
 
 namespace fmc {
@@ -45,7 +46,7 @@ enum class OB_Regs {
 ///////////////////////////// REGISTER BITS /////////////////////////////
 
 enum class WS_Bits {
-    WSCNT = REG_BIT_DEF(0, 2)
+    WSCNT = REG_BIT_DEF(0, 2),
 };
 
 enum class STAT0_Bits {
@@ -124,7 +125,7 @@ enum class Interrupt_Types {
     INTR_BANK1_ERR		// CTL1 ERRIE
 };
 
-enum class Flag_Types {
+enum class Status_Flags {
     FLAG_BANK0_BUSY,	// STAT0 BUSY
     FLAG_BANK0_PGERR, 	// STAT0 PGERR
     FLAG_BANK0_WPERR,	// STAT0 WPERR

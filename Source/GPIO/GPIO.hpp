@@ -44,6 +44,10 @@ public:
     void set_pin_high(Pin_Bit_Mask pin);
     void set_pin_low(Pin_Bit_Mask pin);
     void set_pin_pull(Pin_Bit_Mask pin, bool high);
+    // Read/write
+    void write_pin(Pin_Bit_Mask pin, bool set);
+    bool read_pin(Pin_Bit_Mask pin);
+    void toggle_pin(Pin_Bit_Mask pin);
     // Port
     void set_port(uint16_t data);
     // Pin state

@@ -38,21 +38,21 @@ void FMC::unlock_bank1()
 
 void FMC::lock(void)
 {
-    write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::LK), 1);
+    write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::LK), Set);
 
     if (BANK0_SIZE < *MAX_SIZE) {
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LK), 1);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LK), Set);
     }
 }
 
 void FMC::lock_bank0(void)
 {
-    write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::LK), 1);
+    write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::LK), Set);
 }
 
 void FMC::lock_bank1(void)
 {
-    write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LK), 1);
+    write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LK), Set);
 }
 
 FMC_State FMC::mass_erase()
@@ -62,31 +62,31 @@ FMC_State FMC::mass_erase()
         // Wait until ready
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), 1);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state != FMC_State::READY) {
                 return state;
             }
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Clear);
         }
         state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), 1);
-            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), 1);
+            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Set);
+            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), Set);
             // Wait until ready
             state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), 0);
+            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Clear);
         }
     } else {
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), 1);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Clear);
         }
     }
 
@@ -101,26 +101,26 @@ FMC_State FMC::erase_page(uint32_t address)
         if (address < BANK0_END_ADDRESS) {
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PER), 1);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PER), Set);
                 write_register(FMC_Regs::ADDR0, address);
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
                 // Wait until ready
                 state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PER), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PER), Clear);
             }
         } else {
             // Wait until ready
             state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PER), 1);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PER), Set);
                 write_register(FMC_Regs::ADDR1, address);
                 if (read_bit(*this, FMC_Regs::OBSTAT, static_cast<uint32_t>(OBSTAT_Bits::SPC))) {
                     write_register(FMC_Regs::ADDR0, address);
                 }
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), 1);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), Set);
                 // Wait until ready
                 state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>((CTL1_Bits::PER)), 0);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>((CTL1_Bits::PER)), Clear);
             }
         }
     } else {
@@ -131,7 +131,7 @@ FMC_State FMC::erase_page(uint32_t address)
             write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PER), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PER), Clear);
         }
     }
 
@@ -144,11 +144,11 @@ FMC_State FMC::erase_bank0()
 
     state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), 1);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
         // Wait until ready
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), 0);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Clear);
     }
 
     return state;
@@ -160,11 +160,11 @@ FMC_State FMC::erase_bank1()
 
     state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), 1);
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), 1);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Set);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), Set);
         // Wait until ready
         state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), 0);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Clear);
     }
 
     return state;
@@ -178,30 +178,30 @@ FMC_State FMC::program_word(uint32_t address, uint32_t data)
         if (address < BANK0_END_ADDRESS) {
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 1);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Set);
                 (*(volatile uint32_t *)(uint32_t)address) = data;
                 // Wait until ready
                 state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Clear);
             }
         } else {
             state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), 1);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), Set);
                 (*(volatile uint32_t *)(uint32_t)address) = data;
                 // Wait until ready
                 state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), 0);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), Clear);
             }
         }
     } else {
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Set);
             (*(volatile uint32_t *)(uint32_t)address) = data;
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Clear);
         }
     }
 
@@ -216,30 +216,30 @@ FMC_State FMC::program_halfword(uint32_t address, uint16_t data)
         if (address < BANK0_END_ADDRESS) {
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 1);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Set);
                 (*(volatile uint16_t *)(uint32_t)address) = data;
                 // Wait until ready
                 state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Clear);
             }
         } else {
             state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), 1);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), Set);
                 (*(volatile uint16_t *)(uint32_t)address) = data;
                 // Wait until ready
                 state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), 0);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), Clear);
             }
         }
     } else {
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Set);
             (*(volatile uint16_t *)(uint32_t)address) = data;
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Clear);
         }
     }
 
@@ -253,34 +253,34 @@ FMC_State FMC::reprogram_word(uint32_t address, uint32_t data)
     if (BANK0_SIZE < *MAX_SIZE) {
         if (address < BANK0_END_ADDRESS) {
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::WSEN, static_cast<uint32_t>(WSEN_Bits::BPEN), 1);
+            write_bit(*this, FMC_Regs::WSEN, static_cast<uint32_t>(WSEN_Bits::BPEN), Set);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 1);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Set);
                 (*(volatile uint32_t *)(uint32_t)address) = data;
                 // Wait until ready
                 state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 0);
+                write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Clear);
             }
         } else {
             state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::WSEN, static_cast<uint32_t>(WSEN_Bits::BPEN), 1);
+            write_bit(*this, FMC_Regs::WSEN, static_cast<uint32_t>(WSEN_Bits::BPEN), Set);
             if (state == FMC_State::READY) {
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), 1);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), Set);
                 (*(volatile uint32_t *)(uint32_t)address) = data;
                 // Wait until ready
                 state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
-                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), 0);
+                write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::PG), Clear);
             }
         }
     } else {
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-        write_bit(*this, FMC_Regs::WSEN, static_cast<uint32_t>(WSEN_Bits::BPEN), 1);
+        write_bit(*this, FMC_Regs::WSEN, static_cast<uint32_t>(WSEN_Bits::BPEN), Set);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 1);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Set);
             (*(volatile uint32_t *)(uint32_t)address) = data;
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), 0);
+            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PG), Clear);
         }
     }
 
@@ -356,75 +356,75 @@ FMC_State FMC::ready_wait_bank1(uint32_t timeout)
     return state;
 }
 
-bool FMC::get_flag(Flag_Types flag)
+bool FMC::get_flag(Status_Flags flag)
 {
     uint32_t value = 0;
 
     switch (flag) {
-    case Flag_Types::FLAG_BANK0_BUSY:
+    case Status_Flags::FLAG_BANK0_BUSY:
         value = read_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::BUSY));
         break;
-    case Flag_Types::FLAG_BANK0_PGERR:
+    case Status_Flags::FLAG_BANK0_PGERR:
         value = read_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PGERR));
         break;
-    case Flag_Types::FLAG_BANK0_WPERR:
+    case Status_Flags::FLAG_BANK0_WPERR:
         value = read_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::WPERR));
         break;
-    case Flag_Types::FLAG_BANK0_END:
+    case Status_Flags::FLAG_BANK0_END:
         value = read_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ENDF));
         break;
-    case Flag_Types::FLAG_OBERR:
+    case Status_Flags::FLAG_OBERR:
         value = read_bit(*this, FMC_Regs::OBSTAT, static_cast<uint32_t>(OBSTAT_Bits::OBERR));
         break;
-    case Flag_Types::FLAG_BANK1_BUSY:
+    case Status_Flags::FLAG_BANK1_BUSY:
         value = read_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::BUSY));
         break;
-    case Flag_Types::FLAG_BANK1_PGERR:
+    case Status_Flags::FLAG_BANK1_PGERR:
         value = read_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::PGERR));
         break;
-    case Flag_Types::FLAG_BANK1_WPERR:
+    case Status_Flags::FLAG_BANK1_WPERR:
         value = read_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::WPERR));
         break;
-    case Flag_Types::FLAG_BANK1_END:
+    case Status_Flags::FLAG_BANK1_END:
         value = read_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::ENDF));
         break;
     default:
         break;
     }
 
-    return (value != 0) ? true : false;
+    return (value != 0);
 
 }
 
-void FMC::clear_flag(Flag_Types flag)
+void FMC::clear_flag(Status_Flags flag)
 {
     switch (flag) {
-    case Flag_Types::FLAG_BANK0_BUSY:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::BUSY), 1);
+    case Status_Flags::FLAG_BANK0_BUSY:
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::BUSY), Set);
         break;
-    case Flag_Types::FLAG_BANK0_PGERR:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PGERR), 1);
+    case Status_Flags::FLAG_BANK0_PGERR:
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PGERR), Set);
         break;
-    case Flag_Types::FLAG_BANK0_WPERR:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::WPERR), 1);
+    case Status_Flags::FLAG_BANK0_WPERR:
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::WPERR), Set);
         break;
-    case Flag_Types::FLAG_BANK0_END:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ENDF), 1);
+    case Status_Flags::FLAG_BANK0_END:
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ENDF), Set);
         break;
-    case Flag_Types::FLAG_OBERR:
-        write_bit(*this, FMC_Regs::OBSTAT, static_cast<uint32_t>(OBSTAT_Bits::OBERR), 1);
+    case Status_Flags::FLAG_OBERR:
+        write_bit(*this, FMC_Regs::OBSTAT, static_cast<uint32_t>(OBSTAT_Bits::OBERR), Set);
         break;
-    case Flag_Types::FLAG_BANK1_BUSY:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::BUSY), 1);
+    case Status_Flags::FLAG_BANK1_BUSY:
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::BUSY), Set);
         break;
-    case Flag_Types::FLAG_BANK1_PGERR:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::PGERR), 1);
+    case Status_Flags::FLAG_BANK1_PGERR:
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::PGERR), Set);
         break;
-    case Flag_Types::FLAG_BANK1_WPERR:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::WPERR), 1);
+    case Status_Flags::FLAG_BANK1_WPERR:
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::WPERR), Set);
         break;
-    case Flag_Types::FLAG_BANK1_END:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::ENDF), 1);
+    case Status_Flags::FLAG_BANK1_END:
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::ENDF), Set);
         break;
     default:
         break;
@@ -465,7 +465,7 @@ bool FMC::get_interrupt_flag(Interrupt_Flags flag)
         break;
     }
 
-    return (value1 && value2) ? true : false;
+    return (value1 && value2);
 
 }
 
@@ -473,28 +473,28 @@ void FMC::clear_interrupt_flag(Interrupt_Flags flag)
 {
     switch (flag) {
     case Interrupt_Flags::INTR_FLAG_BANK0_PGERR:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PGERR), 1);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), 1);
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PGERR), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), Set);
         break;
     case Interrupt_Flags::INTR_FLAG_BANK0_WPERR:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::WPERR), 1);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), 1);
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::WPERR), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), Set);
         break;
     case Interrupt_Flags::INTR_FLAG_BANK0_END:
-        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ENDF), 1);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), 1);
+        write_bit(*this, FMC_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ENDF), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), Set);
         break;
     case Interrupt_Flags::INTR_FLAG_BANK1_PGERR:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::PGERR), 1);
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), 1);
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::PGERR), Set);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Set);
         break;
     case Interrupt_Flags::INTR_FLAG_BANK1_WPERR:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::WPERR), 1);
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), 1);
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::WPERR), Set);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Set);
         break;
     case Interrupt_Flags::INTR_FLAG_BANK1_END:
-        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::ENDF), 1);
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), 1);
+        write_bit(*this, FMC_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::ENDF), Set);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), Set);
         break;
     }
 }
@@ -503,16 +503,16 @@ void FMC::interrupt_enable(Interrupt_Types type)
 {
     switch (type) {
     case Interrupt_Types::INTR_BANK0_END:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), Set);
         break;
     case Interrupt_Types::INTR_BANK0_ERR:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), 1);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), Set);
         break;
     case Interrupt_Types::INTR_BANK1_END:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), 1);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), Set);
         break;
     case Interrupt_Types::INTR_BANK1_ERR:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), 1);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Set);
         break;
     default:
         break;
@@ -523,16 +523,16 @@ void FMC::interrupt_disable(Interrupt_Types type)
 {
     switch (type) {
     case Interrupt_Types::INTR_BANK0_END:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), 0);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), Clear);
         break;
     case Interrupt_Types::INTR_BANK0_ERR:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), 0);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), Clear);
         break;
     case Interrupt_Types::INTR_BANK1_END:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), 0);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), Clear);
         break;
     case Interrupt_Types::INTR_BANK1_ERR:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), 0);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Clear);
         break;
     default:
         break;

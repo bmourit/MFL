@@ -154,12 +154,6 @@ enum class Direction_Mode {
     RXTX_OFF
 };
 
-// Transmit or Receive enable bits
-enum class Bit_State {
-    BIT_DISABLE,
-    BIT_ENABLE
-};
-
 enum class Parity_Mode {
     PM_NONE,
     PM_EVEN,
@@ -276,6 +270,7 @@ enum class USART_Error_Type {
     INVALID_OPERATION,
     INITIALIZATION_FAILED,
     INVALID_SELECTION,
+    USART_INSTANCE_FAILED,
 };
 
 
@@ -322,13 +317,13 @@ struct USART_Pin_Config {
 struct USART_Config {
     USART_Pin_Config rx_pin_config; // Pass the expected config for rx gpio pin setup
     USART_Pin_Config tx_pin_config; // Pass the expected config for tx gpio pin setup
-    USART_DMA_Config dma_pin_ops;   // DMA mode off, on RX pin, on TX pin, or both
-    uint32_t baudrate = 115200;
-    Parity_Mode parity = Parity_Mode::PM_NONE;
-    Word_Length word_length = Word_Length::WL_8BITS;
-    Stop_Bits stop_bits = Stop_Bits::STB_1BIT;
-    MSBF_Mode msbf = MSBF_Mode::MSBF_MSB;
-    Direction_Mode direction = Direction_Mode::RXTX_MODE;
+    USART_DMA_Config dma_pin_ops;   // DMA pin usage flag: off, RX pin, TX pin, or both pins
+    uint32_t baudrate;              // Must never be 0
+    Parity_Mode parity;
+    Word_Length word_length;
+    Stop_Bits stop_bits;
+    MSBF_Mode msbf;
+    Direction_Mode direction;
 };
 
 } // namespace usart

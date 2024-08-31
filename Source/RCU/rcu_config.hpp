@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <array>
+
 #include "CONFIG.hpp"
 
 namespace rcu {
@@ -570,7 +571,7 @@ enum class Clock_Frequency {
     CK_SYS,
     CK_AHB,
     CK_APB1,
-    CK_APB2
+    CK_APB2,
 };
 
 // SCS and SCSS

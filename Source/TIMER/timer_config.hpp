@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <cstdint>
 
+#include "CONFIG.hpp"
+
 namespace timer {
 
 ///////////////////////////// BASE ADDRESS /////////////////////////////
@@ -246,17 +248,6 @@ enum class CFG_Bits {
 
 ///////////////////////////// ENUMS /////////////////////////////
 
-enum class Interrupt_Type {
-    INTR_UPIE,
-    INTR_CH0IE,
-    INTR_CH1IE,
-    INTR_CH2IE,
-    INTR_CH3IE,
-    INTR_CMTIE,
-    INTR_TRGIE,
-    INTR_BRKIE,
-};
-
 enum class Status_Flags {
     FLAG_UPIF,
     FLAG_CH0,
@@ -281,6 +272,17 @@ enum class Interrupt_Flags {
     INTR_FLAG_CMT,
     INTR_FLAG_TRG,
     INTR_FLAG_BRK,
+};
+
+enum class Interrupt_Type {
+    INTR_UPIE,
+    INTR_CH0IE,
+    INTR_CH1IE,
+    INTR_CH2IE,
+    INTR_CH3IE,
+    INTR_CMTIE,
+    INTR_TRGIE,
+    INTR_BRKIE,
 };
 
 enum class DMA_Request {

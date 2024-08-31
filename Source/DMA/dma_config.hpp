@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 #include <cstdint>
+
 #include "CONFIG.hpp"
 #include "rcu_config.hpp"
 
@@ -82,18 +83,18 @@ enum class DMA_Channel {
     CHANNEL6,
 };
 
+enum class Status_Flags {
+    FLAG_GIF = REG_BIT_DEF(0, 0),
+    FLAG_FTFIF = REG_BIT_DEF(1, 1), // Full transfer fifo is full
+    FLAG_HTFIF = REG_BIT_DEF(2, 2), // Half transfer fifo is full
+    FLAG_ERRIF = REG_BIT_DEF(3, 3),
+};
+
 enum class Interrupt_Flags {
     INTR_FLAG_GIF = REG_BIT_DEF(0, 0),
     INTR_FLAG_FTFIF = REG_BIT_DEF(1, 1),
     INTR_FLAG_HTFIF = REG_BIT_DEF(2, 2),
     INTR_FLAG_ERRIF = REG_BIT_DEF(3, 3),
-};
-
-enum class State_Flags {
-    FLAG_GIF = REG_BIT_DEF(0, 0),
-    FLAG_FTFIF = REG_BIT_DEF(1, 1),
-    FLAG_HTFIF = REG_BIT_DEF(2, 2),
-    FLAG_ERRIF = REG_BIT_DEF(3, 3),
 };
 
 enum class Interrupt_Type {

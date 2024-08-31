@@ -16,7 +16,7 @@ extern "C" {
 #define __MPU_PRESENT             0			// GD32F30x provide MPU
 #define __NVIC_PRIO_BITS          4			// GD32F30x uses 4 bits for the priority levels
 #define __Vendor_SysTickConfig    0			// set to 1 if different SysTick config is used
-#define __FPU_PRESENT			  1
+#define __FPU_PRESENT		  1
 
 // IRQs
 typedef enum IRQn {
@@ -95,6 +95,8 @@ typedef enum IRQn {
 
 #include "core_cm4.h"
 #include <stdint.h>
+
+extern void system_startup();
 
 #ifdef __cplusplus
 }
