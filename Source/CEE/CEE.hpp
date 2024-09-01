@@ -22,7 +22,7 @@ public:
 
     // Register access needed for read_bit/write_bit functionality
     inline volatile uint32_t *reg_address(CEE_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(CEE_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(CEE_baseAddress + static_cast<uint32_t>(reg));
     }
 
 private:

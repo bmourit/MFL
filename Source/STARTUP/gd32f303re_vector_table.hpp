@@ -86,11 +86,11 @@ DEFINE_DEFAULT_ISR(DMA1_Channel1_IRQHandler)
 DEFINE_DEFAULT_ISR(DMA1_Channel2_IRQHandler)
 DEFINE_DEFAULT_ISR(DMA1_Channel3_4_IRQHandler)
 
-extern uint32_t _estack;
+extern "C" uint32_t _estack;
 
 extern "C" void Reset_Handler();
 
-const volatile uintptr_t g_pfnVectors[] __attribute__((section(".isr_vector")))
+extern "C" const volatile uintptr_t g_pfnVectors[] __attribute__((section(".isr_vector")))
 {
     reinterpret_cast<uintptr_t>(&_estack),
     reinterpret_cast<uintptr_t>(Reset_Handler),

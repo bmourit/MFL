@@ -17,14 +17,15 @@
 // Set the oppropriate offset here.
 // This should match the offset expected by the bootloader.
 // If no bootloader exists, use 0x00000000
-constexpr unsigned int VECT_TAB_OFFSET = 0x00007000;
+constexpr uintptr_t VECT_TAB_OFFSET = 0x00007000;
 
 // DO NOT CHANGE THESE
-constexpr unsigned int NVIC_VECTTAB_SRAM = 0x20000000;
-constexpr unsigned int NVIC_VECTTAB_FLASH = 0x08000000;
+constexpr uintptr_t NVIC_VECTTAB_SRAM = 0x20000000;
+constexpr uintptr_t NVIC_VECTTAB_FLASH = 0x08000000;
+
 
 #ifdef VECT_TAB_SRAM
-#define VTOR_ADDRESS	(NVIC_VECTTAB_SRAM | VECT_TAB_OFFSET)
+constexpr uintptr_t VTOR_ADDRESS = NVIC_VECTTAB_SRAM + VECT_TAB_OFFSET;
 #else
-#define VTOR_ADDRESS	(NVIC_VECTTAB_FLASH | VECT_TAB_OFFSET)
+constexpr uintptr_t VTOR_ADDRESS = NVIC_VECTTAB_FLASH + VECT_TAB_OFFSET;
 #endif

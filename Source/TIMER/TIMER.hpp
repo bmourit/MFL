@@ -156,7 +156,7 @@ public:
     void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     inline volatile uint32_t *reg_address(TIMER_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
 private:

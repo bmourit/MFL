@@ -29,7 +29,7 @@ public:
     static constexpr uint32_t AFIO_baseAddress = 0x40010000;
 
     inline volatile uint32_t *reg_address(AFIO_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(AFIO_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(AFIO_baseAddress + static_cast<uint32_t>(reg));
     }
 
 private:

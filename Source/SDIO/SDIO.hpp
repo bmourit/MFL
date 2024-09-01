@@ -93,7 +93,7 @@ public:
     static constexpr uint32_t SDIO_baseAddress = 0x40018000;
 
     inline volatile uint32_t *reg_address(SDIO_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(SDIO_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(SDIO_baseAddress + static_cast<uint32_t>(reg));
     }
 
 private:

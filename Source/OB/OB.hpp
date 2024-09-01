@@ -44,10 +44,10 @@ public:
     static constexpr uint32_t OB_baseAddress = 0x1FFFF800;
     // Register addresses
     inline volatile uint32_t *reg_address(OB_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(OB_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(OB_baseAddress + static_cast<uint32_t>(reg));
     }
     inline volatile uint32_t *reg_address(FMC_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(FMC_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(FMC_baseAddress + static_cast<uint32_t>(reg));
     }
 
 private:

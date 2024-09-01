@@ -86,11 +86,11 @@ public:
     void set_oversampling_enable(bool enable);
 
     inline volatile uint32_t *reg_address(ADC_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
     inline volatile uint32_t *reg_address(ADC_Regs reg, uint32_t extra_offset) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(reg) + extra_offset);
+        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg) + extra_offset);
     }
 
 private:

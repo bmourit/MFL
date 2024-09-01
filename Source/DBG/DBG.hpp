@@ -38,7 +38,7 @@ public:
 
     // Offset access
     inline volatile uint32_t *reg_address(DBG_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(DBG_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(DBG_baseAddress + static_cast<uint32_t>(reg));
     }
 
 private:

@@ -10,8 +10,14 @@
 
 extern int main();
 
-extern "C" void Reset_Handler()
-{
+extern "C" {
+    extern uint32_t _sbss;
+    extern uint32_t _ebss;
+    extern uint32_t __bss_start__;
+    extern uint32_t __bss_end__;
+}
+
+void Reset_Handler() {
     // Initialize data section
     extern uint32_t _sidata;
     extern uint32_t _sdata;
@@ -20,39 +26,43 @@ extern "C" void Reset_Handler()
     uint32_t *src = &_sidata;
     uint32_t *dest = &_sdata;
     while (dest < &_edata)
-        *(dest++) = *(src++); //(&_etext, &_etext + size, &_sdata);
+        *dest++ = *src++;
 
     // Initialize bss section
-    extern uint32_t __bss_start__;
-    extern uint32_t __bss_end__;
-    dest = &__bss_start__;
-    while (dest < &__bss_end__)
-        *(dest++) = 0;
+    uint32_t *bss_start = &__bss_start__;
+    uint32_t *bss_end = &__bss_end__;
+    while (bss_start < bss_end)
+        *(bss_start++) = 0;
 
     // Initialize static objects by calling their constructors
     extern void (*__preinit_array_start[])(void);
     extern void (*__preinit_array_end[])(void);
+
     uintptr_t n = __preinit_array_end - __preinit_array_start;
-    uintptr_t i = 0;
-    while (i < n)
-        __preinit_array_start[i++]();
+    for (uintptr_t i = 0; i < n; ++i) {
+         __preinit_array_start[i]();
+    }
 
-    // Call system startup
-    system_startup();
-
+    // Initialize C++ static objects
     extern void (*__init_array_start[])(void);
     extern void (*__init_array_end[])(void);
-    n = __init_array_end - __init_array_start;
-    i = 0;
-    while (i < n)
-        __init_array_start[i++]();
 
+    n = __init_array_end - __init_array_start;
+    for (uintptr_t i = 0; i < n; ++i) {
+        __init_array_start[i]();
+    }
+
+    // Call system startup function
+    system_startup();
+
+    // Call destructors for static objects if needed
     extern void (*__fini_array_start[])(void);
     extern void (*__fini_array_end[])(void);
+
     n = __fini_array_end - __fini_array_start;
-    i = 0;
-    while (i < n)
-        __fini_array_start[i++]();
+    for (uintptr_t i = 0; i < n; ++i) {
+        __fini_array_start[i]();
+    }
 
     // jump to main
     main();
@@ -66,11 +76,9 @@ struct RCUMin {
 };
 
 static const uintptr_t rcuRegsAddr = 0x40021000;
+static RCUMin* regs = reinterpret_cast<RCUMin*>(rcuRegsAddr);
 
-static RCUMin* regs = (RCUMin*)rcuRegsAddr;
-
-void system_startup()
-{
+void system_startup() {
     regs->CTL |= 0x00000001;
     regs->CFG0 &= 0xF8FF0000;
     regs->CTL &= 0xFEF6FFFF;
@@ -78,6 +86,5 @@ void system_startup()
     regs->CFG0 &= 0xFF80FFFF;
     regs->INTR = 0x009F0000;
 
-    SCB->VTOR = VTOR_ADDRESS;
+    SCB->VTOR = static_cast<uint32_t>(VTOR_ADDRESS);
 }
-

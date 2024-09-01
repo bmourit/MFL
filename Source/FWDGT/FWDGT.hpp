@@ -29,7 +29,7 @@ public:
     static constexpr uint32_t FWDGT_baseAddress = 0x40003000;
 
     inline volatile uint32_t *reg_address(FWDGT_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(FWDGT_baseAddress) + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(FWDGT_baseAddress + static_cast<uint32_t>(reg));
     }
 
 private:
