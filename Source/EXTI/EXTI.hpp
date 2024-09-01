@@ -42,7 +42,7 @@ public:
     static constexpr uint32_t EXTI_baseAddress = 0x40010400;
 
     inline volatile uint32_t *reg_address(EXTI_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(EXTI_baseAddress + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(EXTI_baseAddress) + static_cast<uint32_t>(reg));
     }
 
 private:

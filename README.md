@@ -3,19 +3,16 @@
 This is a C++ microcontroller firmware library for the GD32F303RE ARM Cortex-M4 microcontroller.
 Written from scratch by yours truly using the vendor manuals and datasheets.
 
-I DO NOT RECOMMEND USE!
-It is currently a work in progress and NOT sufficiently tested.
+It is currently a work in progress and NOT tested. If you use this, you are doing sp at your own risk!
 I plan to eventually release the project under GPLv3 license, or some variant.
 
-There are still some peripherals and functionality missing, one big one being ~~Timer driver~~ Complete.
-No I2S support in the SPI library, missing I2C support, no SDIO support, etc.
-That said, the missing support is mainly wrapping up, so expect full functionality soon.
+There are still some functionality missing, for example no I2S support yet in the SPI peripheral library. Most major portions, however, are complete.
 
 Eventually I indend to use this along with a custom Arduino Core for this chip.
 Documentation is non-existant as of now. This is still early stages, but it does build.
 
 # Library Size
-This being intended for an MCU with limited memory and flash size, it is important to keep this base MFL library as small as possible. Currently, compiled with -Os using g++ and the example program, the size is ~10 KB, which is smalled than the vendor provided C firmware library. It should be very memory effecient as well, though I don't have exact numbers yet.
+This being intended for an MCU with limited memory and flash size, it is important to keep this base MFL library as small as possible. It should also be memory effecient as well, though I don't have exact numbers yet. This will be tackeled more completely during the optimization phase.
 
 # Compiling the examples
 

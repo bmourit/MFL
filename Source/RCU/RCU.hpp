@@ -95,7 +95,7 @@ public:
     static constexpr uint32_t RCU_baseAddress = 0x40021000;
 
     inline volatile uint32_t *reg_address(RCU_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(RCU_baseAddress + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(RCU_baseAddress) + static_cast<uint32_t>(reg));
     }
 
 private:

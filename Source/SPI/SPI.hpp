@@ -91,7 +91,7 @@ public:
     void interrupt_disable(Interrupt_Type interrupt);
 
     inline volatile uint32_t *reg_address(SPI_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(reg));
     }
 
 private:

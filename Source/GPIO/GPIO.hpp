@@ -61,7 +61,7 @@ public:
 
     // Register address
     inline volatile uint32_t *reg_address(GPIO_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(reg));
     }
 
 private:

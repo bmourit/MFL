@@ -83,10 +83,10 @@ public:
 
     // Register address
     volatile uint32_t *reg_address(DMA_Regs reg) const {
-        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(reg));
     }
     volatile uint32_t *reg_address(DMA_Regs reg, DMA_Channel channel) const {
-        return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(channel) * 0x14U + static_cast<uint32_t>(reg));
+        return reinterpret_cast<volatile uint32_t *>(reinterpret_cast<uintptr_t>(base_address_) + static_cast<uint32_t>(channel) * 0x14U + static_cast<uint32_t>(reg));
     }
 
     DMA_Base dma_base_index_;
