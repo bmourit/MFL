@@ -389,9 +389,8 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
     bool stable = false;
     bool osci_stable = false;
 
-    using enum OSCI_Select;
     switch (osci) {
-    case HXTAL:
+    case OSCI_Select::HXTAL:
         while ((osci_stable == false) && (count != HXTAL_STARTUP_TIMEOUT)) {
             osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_HXTALSTB);
             count++;
@@ -400,7 +399,7 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
             stable = true;
         }
         break;
-    case LXTAL:
+    case OSCI_Select::LXTAL:
         while ((osci_stable == false) && (count != LXTAL_STARTUP_TIMEOUT)) {
             osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_LXTALSTB);
             count++;
@@ -409,7 +408,7 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
             stable = true;
         }
         break;
-    case IRC8M:
+    case OSCI_Select::IRC8M:
         while ((osci_stable == false) && (count != IRC8M_STARTUP_TIMEOUT)) {
             osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_IRC8MSTB);
             count++;
@@ -418,7 +417,7 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
             stable = true;
         }
         break;
-    case IRC48M:
+    case OSCI_Select::IRC48M:
         while ((osci_stable == false) && (count != OSC_STARTUP_TIMEOUT)) {
             osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_IRC48MSTB);
             count++;
@@ -427,7 +426,7 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
             stable = true;
         }
         break;
-    case IRC40K:
+    case OSCI_Select::IRC40K:
         while ((osci_stable == false) && (count != OSC_STARTUP_TIMEOUT)) {
             osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_IRC40KSTB);
             count++;
@@ -436,7 +435,7 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
             stable = true;
         }
         break;
-    case PLL_CK:
+    case OSCI_Select::PLL_CK:
         while ((osci_stable == false) && (count != OSC_STARTUP_TIMEOUT)) {
             osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_PLLSTB);
             count++;
@@ -557,20 +556,19 @@ uint32_t RCU::get_clock_frequency(Clock_Frequency clock)
 
 void RCU::bypass_mode_enable(OSCI_Select osci)
 {
-    using enum OSCI_Select;
     switch (osci) {
-    case HXTAL:
+    case OSCI_Select::HXTAL:
         set_osci_enable(osci, false);
         write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), Set);
         break;
-    case LXTAL:
+    case OSCI_Select::LXTAL:
         set_osci_enable(osci, false);
         write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALBPS), Set);
         break;
-    case IRC8M:
-    case IRC48M:
-    case IRC40K:
-    case PLL_CK:
+    case OSCI_Select::IRC8M:
+    case OSCI_Select::IRC48M:
+    case OSCI_Select::IRC40K:
+    case OSCI_Select::PLL_CK:
         break;
     default:
         break;
@@ -579,20 +577,19 @@ void RCU::bypass_mode_enable(OSCI_Select osci)
 
 void RCU::bypass_mode_disable(OSCI_Select osci)
 {
-    using enum OSCI_Select;
     switch (osci) {
-    case HXTAL:
+    case OSCI_Select::HXTAL:
         set_osci_enable(osci, false);
         write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), Clear);
         break;
-    case LXTAL:
+    case OSCI_Select::LXTAL:
         set_osci_enable(osci, false);
         write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALEN), Clear);
         break;
-    case IRC8M:
-    case IRC48M:
-    case IRC40K:
-    case PLL_CK:
+    case OSCI_Select::IRC8M:
+    case OSCI_Select::IRC48M:
+    case OSCI_Select::IRC40K:
+    case OSCI_Select::PLL_CK:
         break;
     default:
         break;
@@ -662,7 +659,6 @@ void RCU::clocks_init()
 
     // Wait until HXTAL stable flag is set or a timeout occurs
     while (is_osci_wait_until_stable(OSCI_Select::HXTAL) == false) {
-        // Just wait
     }
 
     // TODO: Make this a configurable setting
@@ -673,10 +669,10 @@ void RCU::clocks_init()
     //  PLL is off, this is automatically set to LDO_VOLATGE_LOW
     //  This helps lower power requirements at the expense of driving
     //  capabilities.
-    //  Since we needs PLL off for this, we should make this a
+    //  Since we need PLL off for this, we should make this a
     //  configurable setting for different user requirments.
-    //  For now, if you need something diffent comment the default (LOW)
-    //  and uncomment one of the other choices below.
+    //  For now, if you need something different comment out the
+    //  default (LOW) and uncomment one of the other choices below.
     //  Once Arduino core is supported with this library, this whole
     //  clocks_init will move into board variant files.
     PMU_DEVICE.set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_LOW);
@@ -688,11 +684,11 @@ void RCU::clocks_init()
 
     // AHB = SYSCLK
     set_ahb_prescaler(AHB_Prescaler::CKSYS_DIV1);
-    set_apb1_prescaler(APB_Prescaler::CKAHB_DIV2);
     set_apb2_prescaler(APB_Prescaler::CKAHB_DIV1);
+    set_apb1_prescaler(APB_Prescaler::CKAHB_DIV2);
 
     // CK_PLL = (CK_HXTAL / 2) * 30 = 120 MHz
-    set_predv0_config(1);
+    set_predv0_config(Set);
     set_pll_config(PLL_Source::PLLSRC_HXTAL_IRC48M, PLLMF_Select::PLL_MUL30);
 
     // Enable PLL
@@ -700,7 +696,6 @@ void RCU::clocks_init()
 
     // Wait for PLL to stablize
     while (is_osci_wait_until_stable(OSCI_Select::PLL_CK) == false) {
-        // Just wait
     }
 
     // Enable high-drive for high clock frequency
@@ -713,7 +708,6 @@ void RCU::clocks_init()
 
     // Verify PLL is set as system clock
     while (get_system_source() != System_Clock_Source::SOURCE_PLL) {
-        // Just wait
     }
 
     // Set the CMSIS global variable

@@ -85,37 +85,36 @@ void SPI::init() {
 
     // Set SPI operational mode
     // Operational_Mode in config file
-    using enum Operational_Mode;
     switch (config_.operational_mode) {
-    case MFD_MODE:
-    case MTU_MODE:
+    case Operational_Mode::MFD_MODE:
+    case Operational_Mode::MTU_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
         break;
-    case MRU_MODE:
+    case Operational_Mode::MRU_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RO), Set);
         break;
-    case MTB_MODE:
+    case Operational_Mode::MTB_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
         break;
-    case MRB_MODE:
+    case Operational_Mode::MRB_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
         break;
-    case SRU_MODE:
+    case Operational_Mode::SRU_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RO), Set);
         break;
-    case STB_MODE:
+    case Operational_Mode::STB_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
         break;
-    case SRB_MODE:
+    case Operational_Mode::SRB_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
         break;
-    case SFD_MODE:
-    case STU_MODE:
+    case Operational_Mode::SFD_MODE:
+    case Operational_Mode::STU_MODE:
     default:
         break;
     }
@@ -255,15 +254,14 @@ void SPI::quad_io23_output_disable() {
 }
 
 void SPI::interrupt_enable(Interrupt_Type interrupt) {
-    using enum Interrupt_Type;
     switch (interrupt) {
-    case INTR_TBE:
+    case Interrupt_Type::INTR_TBE:
         write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TBEIE), Set);
         break;
-    case INTR_RBNE:
+    case Interrupt_Type::INTR_RBNE:
         write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::RBNEIE), Set);
         break;
-    case INTR_ERR:
+    case Interrupt_Type::INTR_ERR:
         write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Set);
         break;
     default:
@@ -272,15 +270,14 @@ void SPI::interrupt_enable(Interrupt_Type interrupt) {
 }
 
 void SPI::interrupt_disable(Interrupt_Type interrupt) {
-    using enum Interrupt_Type;
     switch (interrupt) {
-    case INTR_TBE:
+    case Interrupt_Type::INTR_TBE:
         write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TBEIE), Clear);
         break;
-    case INTR_RBNE:
+    case Interrupt_Type::INTR_RBNE:
         write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::RBNEIE), Clear);
         break;
-    case INTR_ERR:
+    case Interrupt_Type::INTR_ERR:
         write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Clear);
         break;
     default :

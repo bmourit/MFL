@@ -151,55 +151,66 @@ enum class Direction_Mode {
     RX_MODE,
     TX_MODE,
     RXTX_MODE,
-    RXTX_OFF
+    RXTX_OFF,
 };
 
 enum class Parity_Mode {
     PM_NONE,
     PM_EVEN,
-    PM_ODD
+    PM_ODD,
 };
 
 enum class Wakeup_Mode {
     WM_IDLE,
-    WM_ADDR
+    WM_ADDR,
 };
 
 enum class Word_Length {
     WL_8BITS,
-    WL_9BITS
+    WL_9BITS,
 };
 
-enum class Line_Break_Length {
-    LBLEN_10B,
-    LBLEN_11B
+enum class Break_Length {
+    LENGTH_10B,
+    LENGTH_11B,
 };
 
-enum class CK_Length {
-    CLEN_NONE,
-    CLEN_EN
+enum class Pulse_Length {
+    EXT_PULSE_DISABLE,
+    EXT_PULSE_ENABLE,
 };
 
 enum class Clock_Phase {
-    CPH_FIRST_CK,
-    CPH_SECOND_CK
+    FIRST_CLOCK,
+    SECOND_CLOCK,
 };
 
 enum class Clock_Polarity {
-    CPL_LOW,
-    CPL_HIGH
+    POLARITY_LOW,
+    POLARITY_HIGH,
 };
 
 enum class Stop_Bits {
     STB_1BIT,
     STB_0_5BIT,
     STB_2BIT,
-    STB_1_5BIT
+    STB_1_5BIT,
 };
 
 enum class MSBF_Mode {
     MSBF_LSB,
-    MSBF_MSB
+    MSBF_MSB,
+};
+
+enum class Inversion_Method {
+    DATA,
+    TRANSMISSION,
+    RECEPTION,
+};
+
+enum class IrDA_Power {
+    NORMAL,
+    LOW,
 };
 
 enum class Status_Flags {
@@ -215,7 +226,7 @@ enum class Status_Flags {
     FLAG_CTSF,	// STAT0, CTSF
     FLAG_RTF,	// STAT1, RTF
     FLAG_EBF,	// STAT1, EBF
-    FLAG_BSY	// STAT1, BSY
+    FLAG_BSY,	// STAT1, BSY
 };
 
 enum class Interrupt_Flags {
@@ -231,7 +242,7 @@ enum class Interrupt_Flags {
     INTR_FLAG_CTL2_NERR,    // STAT0, FERR CTL2, ERRIE
     INTR_FLAG_CTL2_FERR,    // STAT0, NERR CTL2, ERRIE
     INTR_FLAG_CTL3_EBF,		// STAT1, EBF CTL3, EBIE
-    INTR_FLAG_CTL3_RTF		// STAT1, RTF CTL3, RTIE
+    INTR_FLAG_CTL3_RTF,		// STAT1, RTF CTL3, RTIE
 
 };
 
@@ -245,7 +256,7 @@ enum class Interrupt_Type {
     INTR_CTSIE,		// CTL2
     INTR_ERRIE,		// CTL2
     INTR_EBIE,		// CTL3
-    INTR_RTIE		// CTL3
+    INTR_RTIE,		// CTL3
 };
 
 enum class Inversion_Type {
@@ -271,6 +282,11 @@ enum class USART_Error_Type {
     INITIALIZATION_FAILED,
     INVALID_SELECTION,
     USART_INSTANCE_FAILED,
+    PARITY_ERROR,
+    NOISE_ERROR,
+    FRAME_ERROR,
+    DMA_TRANSFER_ERRROR,
+    TIMEOUT,
 };
 
 

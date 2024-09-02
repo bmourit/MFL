@@ -62,17 +62,37 @@ public:
     void disable();
     inline void set_direction(Direction_Mode direction);
     void set_msb(MSBF_Mode msbf);
+    void set_inversion_method_enable(Inversion_Method method, bool enable);
     void rx_timeout_enable(bool enable);
     void set_rx_timeout_threshold(uint32_t timeout);
     void send_data(uint16_t data);	// TX
     uint16_t receive_data();        // RX
-    void set_address(uint8_t address);
+    void set_wakeup_address(uint8_t address);
     void mute_mode_enable(bool enable);
-    void configure_mute_mode_wakeup(Wakeup_Mode method);
-    void set_halfduplex_enable(bool enable);
-    void synchronous_clock_enable(bool enable);
+    void set_mute_mode_wakeup(Wakeup_Mode method);
+    void set_half_duplex_enable(bool enable);
+    void set_synchronous_clock_enable(bool enable);
+    void synchronous_clock_configure(Pulse_Length length, Clock_Phase phase, Clock_Polarity polarity);
     void receive_data_dma(bool enable);
     void send_data_dma(bool enable);
+    // LIN mode
+    void set_lin_mode_enable(bool enable);
+    void set_lin_frame_break_length(Break_Length length);
+    void send_lin_frame_break();
+    void set_guard_time(uint8_t guard_time);
+    // Smartcard mode
+    void set_smardcard_mode_enable(bool enable);
+    void set_smartcard_nack_mode_enable(bool enable);
+    void set_smartcard_auto_retry(uint8_t retry_count);
+    void set_smartcard_block_size(uint8_t size);
+    // IrDA mode
+    void set_irda_mode_enable(bool enable);
+    void set_irda_low_power_prescaler(uint8_t prescaler);
+    void set_irda_power_mode(IrDA_Power power);
+    // HWFC
+    void set_hwfc_rts_enable(bool enable);
+    void set_hwfc_cts_enable(bool enable);
+    // Interrupt and flags
     bool get_flag(Status_Flags flag);
     void clear_flag(Status_Flags flag);
     void interrupt_enable(Interrupt_Type type);
