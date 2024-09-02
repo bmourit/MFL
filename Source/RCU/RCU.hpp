@@ -18,20 +18,12 @@ public:
     // Reset
     void reset();
     // Set peripheral clock
-    void pclk_enable(RCU_PCLK pclk);
-    void pclk_disable(RCU_PCLK pclk);
     void set_pclk_enable(RCU_PCLK pclk, bool enable);
     // Set peripheral clock sleep
-    void pclk_sleep_enable(RCU_PCLK_Sleep pclk);
-    void pclk_sleep_disable(RCU_PCLK_Sleep pclk);
     void set_pclk_sleep_enable(RCU_PCLK_Sleep pclk, bool enable);
     // Set peripheral clock reset
-    void pclk_reset_enable(RCU_PCLK_Reset pclk);
-    void pclk_reset_disable(RCU_PCLK_Reset pclk);
     void set_pclk_reset_enable(RCU_PCLK_Reset pclk, bool enable);
     // Backup clock reset
-    void backup_reset_enable();
-    void backup_reset_disable();
     void set_backup_reset_enable(bool enable);
     // System clock source
     void set_system_source(System_Clock_Source system_source);
@@ -59,10 +51,8 @@ public:
     // LXTAL campability
     void set_lxtal_drive_capability(LXTAL_Drive drive);
     // OSCI
-    void osci_start(OSCI_Select osci);
-    void osci_stop(OSCI_Select osci);
     void set_osci_enable(OSCI_Select osci, bool enable);
-    bool is_osci_wait_until_stable(OSCI_Select osci);
+    bool is_osci_stable(OSCI_Select osci);
     // Clock frequency
     uint32_t get_clock_frequency(Clock_Frequency clock);
     // Bypass
@@ -76,19 +66,18 @@ public:
     // Deep sleep
     void set_deep_sleep_voltage(DeepSleep_Voltage voltage);
     // Flags
-    bool is_flag_status_set(RCU_Reset_Flags flag);
+    bool get_flag(Status_Flags flag);
     void clear_all_reset_flags();
-    bool is_interrupt_flag_set(RCU_Interrupt_Flags flag);
-    void clear_interrupt_flag(RCU_Interrupt_Clear_Flags flag);
+    bool get_interrupt_flag(Interrupt_Flags flag);
+    void clear_interrupt_flag(Clear_Flags flag);
     // Interrupts
-    void interrupt_enable(RCU_Interrupt_Enable type);   // Deprecated
-    void interrupt_disable(RCU_Interrupt_Enable type);  // Deprecated
-    void set_interrupt_enable(RCU_Interrupt_Enable type, bool enable);
+    void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     // System startup functionality
     void update_system_clock();
     inline uint32_t calculate_pll_clock();
     virtual void clocks_init();
+    // Optional
     virtual void mfl_init() {};
     virtual void device_init() {};
 
@@ -110,8 +99,8 @@ private:
     }
 
     // Get value helpers
-    bool get_value(RCU_Reset_Flags flag) const {
-        const auto &info = reset_flag_index[static_cast<size_t>(flag)];
+    bool get_value(Status_Flags flag) const {
+        const auto &info = status_flag_index[static_cast<size_t>(flag)];
         uint32_t reg_value = *reg_address(info.register_offset);
 
         const uint32_t width = info.bit_info & 0xFF;
@@ -123,8 +112,8 @@ private:
         return reg_value;
     }
 
-    bool get_value(RCU_Interrupt_Flags flag) const {
-        const auto &info = interrupt_flag_index[static_cast<size_t>(flag)];
+    bool get_value(Interrupt_Flags flag) const {
+        const auto &info = interrupt_type_index[static_cast<size_t>(flag)];
         uint32_t reg_value = *reg_address(info.register_offset);
 
         const uint32_t width = info.bit_info & 0xFF;

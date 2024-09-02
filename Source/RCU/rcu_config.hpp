@@ -451,7 +451,7 @@ static const index_to_bits pclk_sleep_index[] = {
 
 ///////////////////////////// INTERRUPTS AND FLAGS /////////////////////////////
 
-enum class RCU_Reset_Flags {
+enum class Status_Flags {
     FLAG_IRC8MSTB,
     FLAG_HXTALSTB,
     FLAG_PLLSTB,
@@ -467,7 +467,7 @@ enum class RCU_Reset_Flags {
     FLAG_LAST,
 };
 
-static const index_to_bits reset_flag_index[] = {
+static const index_to_bits status_flag_index[] = {
     {RCU_Regs::CTL, REG_BIT_DEF(1, 1)},
     {RCU_Regs::CTL, REG_BIT_DEF(17, 17)},
     {RCU_Regs::CTL, REG_BIT_DEF(25, 25)},
@@ -482,7 +482,7 @@ static const index_to_bits reset_flag_index[] = {
     {RCU_Regs::RSTSCK, REG_BIT_DEF(31, 31)},
 };
 
-enum class RCU_Interrupt_Flags {
+enum class Interrupt_Flags {
     INTR_FLAG_IRC40KSTB,
     INTR_FLAG_LXTALSTB,
     INTR_FLAG_IRC8MSTB,
@@ -503,7 +503,7 @@ static const index_to_bits interrupt_flag_index[] = {
     {RCU_Regs::ADDINTR, REG_BIT_DEF(6, 6)},
 };
 
-enum class RCU_Interrupt_Clear_Flags {
+enum class Clear_Flags {
     INTR_FLAG_IRC40KSTB_CLR,
     INTR_FLAG_LXTALSTB_CLR,
     INTR_FLAG_IRC8MSTB_CLR,
@@ -514,7 +514,7 @@ enum class RCU_Interrupt_Clear_Flags {
     INTR_FLAG_CLR_LAST,
 };
 
-static const index_to_bits interrupt_clear_flag_index[] = {
+static const index_to_bits clear_flag_index[] = {
     {RCU_Regs::INTR, REG_BIT_DEF(16, 16)},
     {RCU_Regs::INTR, REG_BIT_DEF(17, 17)},
     {RCU_Regs::INTR, REG_BIT_DEF(18, 18)},
@@ -524,7 +524,7 @@ static const index_to_bits interrupt_clear_flag_index[] = {
     {RCU_Regs::ADDINTR, REG_BIT_DEF(22, 22)},
 };
 
-enum class RCU_Interrupt_Enable {
+enum class Interrupt_Type {
     INTR_IRC40KSTB,
     INTR_LXTALSTB,
     INTR_IRC8MSTB,
@@ -534,7 +534,7 @@ enum class RCU_Interrupt_Enable {
     INTR_ENABLE_LAST,
 };
 
-static const index_to_bits interrupt_enable_index[] = {
+static const index_to_bits interrupt_type_index[] = {
     {RCU_Regs::INTR, REG_BIT_DEF(8, 8)},
     {RCU_Regs::INTR, REG_BIT_DEF(9, 9)},
     {RCU_Regs::INTR, REG_BIT_DEF(10, 10)},

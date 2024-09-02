@@ -15,7 +15,7 @@ void RCU::reset()
 {
     // Enable IRC8M
     write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::IRC8MEN), Set);
-    while (is_osci_wait_until_stable(OSCI_Select::IRC8M) == false) {
+    while (is_osci_stable(OSCI_Select::IRC8M) == false) {
         //Just wait
     }
 
@@ -52,16 +52,6 @@ void RCU::reset()
     write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), Clear);
 }
 
-void RCU::pclk_enable(RCU_PCLK pclk)
-{
-    set_pclk_enable(pclk, true);
-}
-
-void RCU::pclk_disable(RCU_PCLK pclk)
-{
-    set_pclk_enable(pclk, false);
-}
-
 // Enable or disable peripheral clock
 void RCU::set_pclk_enable(RCU_PCLK pclk, bool enable)
 {
@@ -80,16 +70,6 @@ void RCU::set_pclk_enable(RCU_PCLK pclk, bool enable)
     write_register(info.register_offset, reg_value);
 }
 
-void RCU::pclk_sleep_enable(RCU_PCLK_Sleep pclk)
-{
-    set_pclk_sleep_enable(pclk, true);
-}
-
-void RCU::pclk_sleep_disable(RCU_PCLK_Sleep pclk)
-{
-    set_pclk_sleep_enable(pclk, false);
-}
-
 // Enable or disable peripheral clock sleep
 void RCU::set_pclk_sleep_enable(RCU_PCLK_Sleep pclk, bool enable)
 {
@@ -97,31 +77,11 @@ void RCU::set_pclk_sleep_enable(RCU_PCLK_Sleep pclk, bool enable)
     write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
-void RCU::pclk_reset_enable(RCU_PCLK_Reset pclk)
-{
-    set_pclk_reset_enable(pclk, true);
-}
-
-void RCU::pclk_reset_disable(RCU_PCLK_Reset pclk)
-{
-    set_pclk_reset_enable(pclk, false);
-}
-
 // Enable or disable peripheral clock reset
 void RCU::set_pclk_reset_enable(RCU_PCLK_Reset pclk, bool enable)
 {
     const auto &info = pclk_reset_index[static_cast<size_t>(pclk)];
     write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
-}
-
-void RCU::backup_reset_enable()
-{
-    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), Set);
-}
-
-void RCU::backup_reset_disable()
-{
-    write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::BKPRST), Clear);
 }
 
 // Enable or disable backup clock reset
@@ -307,23 +267,13 @@ void RCU::set_lxtal_drive_capability(LXTAL_Drive drive)
     write_bit(*this, RCU_Regs::BDCTL, static_cast<uint32_t>(BDCTL_Bits::LXTALDRI), static_cast<uint32_t>(drive));
 }
 
-void RCU::osci_start(OSCI_Select osci)
-{
-    set_osci_enable(osci, true);
-}
-
-void RCU::osci_stop(OSCI_Select osci)
-{
-    set_osci_enable(osci, false);
-}
-
 void RCU::set_osci_enable(OSCI_Select osci, bool enable)
 {
     const auto &info = osci_select_index[static_cast<size_t>(osci)];
     write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
-bool RCU::is_osci_wait_until_stable(OSCI_Select osci) {
+bool RCU::is_osci_stable(OSCI_Select osci) {
     volatile uint32_t count = 0;
     bool osci_stable = false;
 
@@ -332,15 +282,15 @@ bool RCU::is_osci_wait_until_stable(OSCI_Select osci) {
                              (osci == OSCI_Select::IRC8M) ? IRC8M_STARTUP_TIMEOUT :
                              OSC_STARTUP_TIMEOUT;  // Default for IRC48M, IRC40K, PLL_CK
 
-    RCU_Reset_Flags flag = (osci == OSCI_Select::HXTAL) ? RCU_Reset_Flags::FLAG_HXTALSTB :
-                           (osci == OSCI_Select::LXTAL) ? RCU_Reset_Flags::FLAG_LXTALSTB :
-                           (osci == OSCI_Select::IRC8M) ? RCU_Reset_Flags::FLAG_IRC8MSTB :
-                           (osci == OSCI_Select::IRC48M) ? RCU_Reset_Flags::FLAG_IRC48MSTB :
-                           (osci == OSCI_Select::IRC40K) ? RCU_Reset_Flags::FLAG_IRC40KSTB :
-                           RCU_Reset_Flags::FLAG_PLLSTB; // Default for PLL_CK
+    Status_Flags flag = (osci == OSCI_Select::HXTAL) ? Status_Flags::FLAG_HXTALSTB :
+                           (osci == OSCI_Select::LXTAL) ? Status_Flags::FLAG_LXTALSTB :
+                           (osci == OSCI_Select::IRC8M) ? Status_Flags::FLAG_IRC8MSTB :
+                           (osci == OSCI_Select::IRC48M) ? Status_Flags::FLAG_IRC48MSTB :
+                           (osci == OSCI_Select::IRC40K) ? Status_Flags::FLAG_IRC40KSTB :
+                           Status_Flags::FLAG_PLLSTB; // Default for PLL_CK
 
     while (!osci_stable && count != timeout) {
-        osci_stable = is_flag_status_set(flag);
+        osci_stable = get_flag(flag);
         count = count + 1;
     }
 
@@ -511,7 +461,7 @@ void RCU::set_deep_sleep_voltage(DeepSleep_Voltage voltage)
     write_bit(*this, RCU_Regs::DSV, static_cast<uint32_t>(DSV_Bits::DSLPVS), static_cast<uint32_t>(voltage));
 }
 
-bool RCU::is_flag_status_set(RCU_Reset_Flags flag)
+bool RCU::get_flag(Status_Flags flag)
 {
     return get_value(flag);
 }
@@ -521,30 +471,20 @@ void RCU::clear_all_reset_flags()
     write_bit(*this, RCU_Regs::RSTSCK, static_cast<uint32_t>(RSTSCK_Bits::RSTFC), Set);
 }
 
-bool RCU::is_interrupt_flag_set(RCU_Interrupt_Flags flag)
+bool RCU::get_interrupt_flag(Interrupt_Flags flag)
 {
     return get_value(flag);
 }
 
-void RCU::clear_interrupt_flag(RCU_Interrupt_Clear_Flags flag)
+void RCU::clear_interrupt_flag(Clear_Flags flag)
 {
-    const auto &info = interrupt_clear_flag_index[static_cast<size_t>(flag)];
+    const auto &info = clear_flag_index[static_cast<size_t>(flag)];
     write_bit(*this, info.register_offset, info.bit_info, 1);
 }
 
-void RCU::interrupt_enable(RCU_Interrupt_Enable type)
+void RCU::set_interrupt_enable(Interrupt_Type type, bool enable)
 {
-    set_interrupt_enable(type, true);
-}
-
-void RCU::interrupt_disable(RCU_Interrupt_Enable type)
-{
-    set_interrupt_enable(type, false);
-}
-
-void RCU::set_interrupt_enable(RCU_Interrupt_Enable type, bool enable)
-{
-    const auto &info = interrupt_enable_index[static_cast<size_t>(type)];
+    const auto &info = interrupt_type_index[static_cast<size_t>(type)];
     write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
@@ -553,7 +493,7 @@ void RCU::clocks_init()
     write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), Set);
 
     // Wait until HXTAL stable flag is set or a timeout occurs
-    while (is_osci_wait_until_stable(OSCI_Select::HXTAL) == false) {
+    while (is_osci_stable(OSCI_Select::HXTAL) == false) {
     }
 
     // TODO: Make this a configurable setting
@@ -590,7 +530,7 @@ void RCU::clocks_init()
     write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::PLLEN), Set);
 
     // Wait for PLL to stablize
-    while (is_osci_wait_until_stable(OSCI_Select::PLL_CK) == false) {
+    while (is_osci_stable(OSCI_Select::PLL_CK) == false) {
     }
 
     // Enable high-drive for high clock frequency
