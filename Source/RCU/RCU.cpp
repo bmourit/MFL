@@ -9,6 +9,8 @@
 
 namespace rcu {
 
+constexpr uint32_t CoreClockFrequency = 120000000;
+
 void RCU::reset()
 {
     // Enable IRC8M
@@ -166,81 +168,21 @@ void RCU::set_ckout0_source(CKOUT0_Source source)
     write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::CKOUT0SEL), static_cast<uint32_t>(source));
 }
 
-void RCU::set_pll_config(PLL_Source source, PLLMF_Select multiplier)
-{
-    // Set pll source
+void RCU::set_pll_config(PLL_Source source, PLLMF_Select multiplier) {
+    // Set PLL source
     write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLSEL), static_cast<uint32_t>(source));
 
     if (multiplier <= PLLMF_Select::PLL_MUL16) {
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), static_cast<uint32_t>(multiplier));
+    } else if (multiplier <= PLLMF_Select::PLL_MUL31) {
+        // Set the PLLMF_4 bit and adjust PLLMF value based on multiplier
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
+        uint32_t pllmf_val = static_cast<uint32_t>(multiplier) - 16;
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), pllmf_val);
     } else {
-        switch (multiplier) {
-        case PLLMF_Select::PLL_MUL17:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), Clear);
-            break;
-        case PLLMF_Select::PLL_MUL18:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), Set);
-            break;
-        case PLLMF_Select::PLL_MUL19:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 2);
-            break;
-        case PLLMF_Select::PLL_MUL20:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 3);
-            break;
-        case PLLMF_Select::PLL_MUL21:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 4);
-            break;
-        case PLLMF_Select::PLL_MUL22:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 5);
-            break;
-        case PLLMF_Select::PLL_MUL23:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 6);
-            break;
-        case PLLMF_Select::PLL_MUL24:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 7);
-            break;
-        case PLLMF_Select::PLL_MUL25:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 8);
-            break;
-        case PLLMF_Select::PLL_MUL26:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 9);
-            break;
-        case PLLMF_Select::PLL_MUL27:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 10);
-            break;
-        case PLLMF_Select::PLL_MUL28:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 11);
-            break;
-        case PLLMF_Select::PLL_MUL29:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 12);
-            break;
-        case PLLMF_Select::PLL_MUL30:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 13);
-            break;
-        case PLLMF_Select::PLL_MUL31:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 14);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
-            break;
-        // default to 72MHz
-        default:
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear);
-            write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 18);
-            break;
-        }
+        // Default configuration
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear);
+        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 18);  // Default to 72MHz
     }
 }
 
@@ -290,35 +232,34 @@ void RCU::set_adc_prescaler(ADC_Prescaler prescaler)
     write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Clear);
 
     // Set the prescaler
-    using enum ADC_Prescaler;
     switch (prescaler) {
-    case CKAPB2_DIV2:
-    case CKAPB2_DIV4:
-    case CKAPB2_DIV6:
-    case CKAPB2_DIV8:
+    case ADC_Prescaler::CKAPB2_DIV2:
+    case ADC_Prescaler::CKAPB2_DIV4:
+    case ADC_Prescaler::CKAPB2_DIV6:
+    case ADC_Prescaler::CKAPB2_DIV8:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), static_cast<uint32_t>(prescaler));
         break;
-    case CKAPB2_DIV12:
+    case ADC_Prescaler::CKAPB2_DIV12:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Set);
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
         break;
-    case CKAPB2_DIV16:
+    case ADC_Prescaler::CKAPB2_DIV16:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 3);
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
         break;
-    case CKAHB_DIV5:
+    case ADC_Prescaler::CKAHB_DIV5:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
         write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
-    case CKAHB_DIV6:
+    case ADC_Prescaler::CKAHB_DIV6:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Set);
         write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
-    case CKAHB_DIV10:
+    case ADC_Prescaler::CKAHB_DIV10:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 2);
         write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
-    case CKAHB_DIV20:
+    case ADC_Prescaler::CKAHB_DIV20:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 3);
         write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Set);
         break;
@@ -333,15 +274,14 @@ void RCU::set_usb_prescaler(USB_Prescaler prescaler)
     if (prescaler <= USB_Prescaler::DIV2) {
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), static_cast<uint32_t>(prescaler));
     } else {
-        using enum USB_Prescaler;
         switch (prescaler) {
-        case DIV3:
+        case USB_Prescaler::DIV3:
             real_bit_value = 0;
             break;
-        case DIV3_5:
+        case USB_Prescaler::DIV3_5:
             real_bit_value = 1;
             break;
-        case DIV4:
+        case USB_Prescaler::DIV4:
             real_bit_value = 2;
             break;
         default:
@@ -383,72 +323,28 @@ void RCU::set_osci_enable(OSCI_Select osci, bool enable)
     write_bit(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
 
-bool RCU::is_osci_wait_until_stable(OSCI_Select osci)
-{
-    uint32_t count = 0;
-    bool stable = false;
+bool RCU::is_osci_wait_until_stable(OSCI_Select osci) {
+    volatile uint32_t count = 0;
     bool osci_stable = false;
 
-    switch (osci) {
-    case OSCI_Select::HXTAL:
-        while ((osci_stable == false) && (count != HXTAL_STARTUP_TIMEOUT)) {
-            osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_HXTALSTB);
-            count++;
-        }
-        if (is_flag_status_set(RCU_Reset_Flags::FLAG_HXTALSTB) != false) {
-            stable = true;
-        }
-        break;
-    case OSCI_Select::LXTAL:
-        while ((osci_stable == false) && (count != LXTAL_STARTUP_TIMEOUT)) {
-            osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_LXTALSTB);
-            count++;
-        }
-        if (is_flag_status_set(RCU_Reset_Flags::FLAG_LXTALSTB) != false) {
-            stable = true;
-        }
-        break;
-    case OSCI_Select::IRC8M:
-        while ((osci_stable == false) && (count != IRC8M_STARTUP_TIMEOUT)) {
-            osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_IRC8MSTB);
-            count++;
-        }
-        if (is_flag_status_set(RCU_Reset_Flags::FLAG_IRC8MSTB) != false) {
-            stable = true;
-        }
-        break;
-    case OSCI_Select::IRC48M:
-        while ((osci_stable == false) && (count != OSC_STARTUP_TIMEOUT)) {
-            osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_IRC48MSTB);
-            count++;
-        }
-        if (is_flag_status_set(RCU_Reset_Flags::FLAG_IRC48MSTB) != false) {
-            stable = true;
-        }
-        break;
-    case OSCI_Select::IRC40K:
-        while ((osci_stable == false) && (count != OSC_STARTUP_TIMEOUT)) {
-            osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_IRC40KSTB);
-            count++;
-        }
-        if (is_flag_status_set(RCU_Reset_Flags::FLAG_IRC40KSTB) != false) {
-            stable = true;
-        }
-        break;
-    case OSCI_Select::PLL_CK:
-        while ((osci_stable == false) && (count != OSC_STARTUP_TIMEOUT)) {
-            osci_stable = is_flag_status_set(RCU_Reset_Flags::FLAG_PLLSTB);
-            count++;
-        }
-        if (is_flag_status_set(RCU_Reset_Flags::FLAG_PLLSTB) != false) {
-            stable = true;
-        }
-        break;
-    default:
-        break;
+    const uint32_t timeout = (osci == OSCI_Select::HXTAL) ? HXTAL_STARTUP_TIMEOUT :
+                             (osci == OSCI_Select::LXTAL) ? LXTAL_STARTUP_TIMEOUT :
+                             (osci == OSCI_Select::IRC8M) ? IRC8M_STARTUP_TIMEOUT :
+                             OSC_STARTUP_TIMEOUT;  // Default for IRC48M, IRC40K, PLL_CK
+
+    RCU_Reset_Flags flag = (osci == OSCI_Select::HXTAL) ? RCU_Reset_Flags::FLAG_HXTALSTB :
+                           (osci == OSCI_Select::LXTAL) ? RCU_Reset_Flags::FLAG_LXTALSTB :
+                           (osci == OSCI_Select::IRC8M) ? RCU_Reset_Flags::FLAG_IRC8MSTB :
+                           (osci == OSCI_Select::IRC48M) ? RCU_Reset_Flags::FLAG_IRC48MSTB :
+                           (osci == OSCI_Select::IRC40K) ? RCU_Reset_Flags::FLAG_IRC40KSTB :
+                           RCU_Reset_Flags::FLAG_PLLSTB; // Default for PLL_CK
+
+    while (!osci_stable && count != timeout) {
+        osci_stable = is_flag_status_set(flag);
+        count = count + 1;
     }
 
-    return stable;
+    return osci_stable;
 }
 
 uint32_t RCU::get_clock_frequency(Clock_Frequency clock)
@@ -467,15 +363,14 @@ uint32_t RCU::get_clock_frequency(Clock_Frequency clock)
     uint8_t apb1_exp[8] = {0, 0, 0, 0, 1, 2, 3, 4};
     uint8_t apb2_exp[8] = {0, 0, 0, 0, 1, 2, 3, 4};
 
-    using enum System_Clock_Source;
     switch (current_source) {
-    case SOURCE_IRC8M:
+    case System_Clock_Source::SOURCE_IRC8M:
         cksys_freq = IRC8M_VALUE;
         break;
-    case SOURCE_HXTAL:
+    case System_Clock_Source::SOURCE_HXTAL:
         cksys_freq = HXTAL_VALUE;
         break;
-    case SOURCE_PLL:
+    case System_Clock_Source::SOURCE_PLL:
         // PLL driven by HXTAL, IRC48M or IRC8M/2
         pll_source = get_pll_source();
         if (pll_source == PLL_Source::PLLSRC_HXTAL_IRC48M) {
@@ -711,7 +606,7 @@ void RCU::clocks_init()
     }
 
     // Set the CMSIS global variable
-    SystemCoreClock = CoreClockFrequency;
+    //SystemCoreClock = CoreClockFrequency;
 }
 
 void RCU::update_system_clock()
