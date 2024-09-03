@@ -62,8 +62,8 @@ FMC_State FMC::mass_erase()
         // Wait until ready
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
+            write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set,
+                       static_cast<uint32_t>(CTL0_Bits::START), Set);
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
             if (state != FMC_State::READY) {
@@ -73,8 +73,8 @@ FMC_State FMC::mass_erase()
         }
         state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Set);
-            write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), Set);
+            write_bits(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Set,
+                       static_cast<uint32_t>(CTL1_Bits::START), Set);
             // Wait until ready
             state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
             write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Clear);
@@ -82,8 +82,8 @@ FMC_State FMC::mass_erase()
     } else {
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
+            write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set,
+                       static_cast<uint32_t>(CTL0_Bits::START), Set);
             // Wait until ready
             state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
             write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Clear);
@@ -144,8 +144,8 @@ FMC_State FMC::erase_bank0()
 
     state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
+        write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Set,
+                   static_cast<uint32_t>(CTL0_Bits::START), Set);
         // Wait until ready
         state = ready_wait_bank0(FMC_TIMEOUT_COUNT);
         write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MER), Clear);
@@ -160,8 +160,8 @@ FMC_State FMC::erase_bank1()
 
     state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Set);
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::START), Set);
+        write_bits(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Set,
+                   static_cast<uint32_t>(CTL1_Bits::START), Set);
         // Wait until ready
         state = ready_wait_bank1(FMC_TIMEOUT_COUNT);
         write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::MER), Clear);
@@ -499,40 +499,20 @@ void FMC::clear_interrupt_flag(Interrupt_Flags flag)
     }
 }
 
-void FMC::interrupt_enable(Interrupt_Types type)
+void FMC::set_interrupt_enable(Interrupt_Types type, bool enable)
 {
     switch (type) {
     case Interrupt_Types::INTR_BANK0_END:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), enable ? Set : Clear);
         break;
     case Interrupt_Types::INTR_BANK0_ERR:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), Set);
+        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), enable ? Set : Clear);
         break;
     case Interrupt_Types::INTR_BANK1_END:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), Set);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), enable ? Set : Clear);
         break;
     case Interrupt_Types::INTR_BANK1_ERR:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Set);
-        break;
-    default:
-        break;
-    }
-}
-
-void FMC::interrupt_disable(Interrupt_Types type)
-{
-    switch (type) {
-    case Interrupt_Types::INTR_BANK0_END:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ENDIE), Clear);
-        break;
-    case Interrupt_Types::INTR_BANK0_ERR:
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ERRIE), Clear);
-        break;
-    case Interrupt_Types::INTR_BANK1_END:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ENDIE), Clear);
-        break;
-    case Interrupt_Types::INTR_BANK1_ERR:
-        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Clear);
+        write_bit(*this, FMC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), enable ? Set : Clear);
         break;
     default:
         break;

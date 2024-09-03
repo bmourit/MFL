@@ -109,10 +109,9 @@ void SDIO::reset(void)
 void SDIO::clock_configure(Clock_Edge edge, bool bypass, bool low_power, uint16_t divider)
 {
     // Configure the parameters
-    write_bit(*this, SDIO_Regs::CLKCTL, static_cast<uint32_t>(CLKCTL_Bits::CLKEDGE), static_cast<uint32_t>(edge));
-    write_bit(*this, SDIO_Regs::CLKCTL, static_cast<uint32_t>(CLKCTL_Bits::CLKBYP), bypass ? 1 : 0);
-    write_bit(*this, SDIO_Regs::CLKCTL, static_cast<uint32_t>(CLKCTL_Bits::CLKPWRSAV), low_power ? 1 : 0);
-
+    write_bits(*this, SDIO_Regs::CLKCTL, static_cast<uint32_t>(CLKCTL_Bits::CLKEDGE), static_cast<uint32_t>(edge),
+               static_cast<uint32_t>(CLKCTL_Bits::CLKBYP), bypass ? Set : Clear,
+               static_cast<uint32_t>(CLKCTL_Bits::CLKPWRSAV), low_power ? Set : Clear);
     // Check if we need to set DIV8 bit
     if (divider >= 256) {
         write_bit(*this, SDIO_Regs::CLKCTL, static_cast<uint32_t>(CLKCTL_Bits::DIV8), 1);
@@ -149,9 +148,9 @@ void SDIO::set_clock_enable(bool enable)
 void SDIO::set_command_config(Command_Index index, uint32_t argument, Command_Response response, Wait_Type type)
 {
     write_register(SDIO_Regs::CMDAGMT, argument);
-    write_bit(*this, SDIO_Regs::CMDCTL, static_cast<uint32_t>(CMDCTL_Bits::CMDIDX), static_cast<uint32_t>(index));
-    write_bit(*this, SDIO_Regs::CMDCTL, static_cast<uint32_t>(CMDCTL_Bits::CMDRESP), static_cast<uint32_t>(response));
-    write_bit(*this, SDIO_Regs::CMDCTL, static_cast<uint32_t>(CMDCTL_Bits::WAITTYPE), static_cast<uint32_t>(type));
+    write_bits(*this, SDIO_Regs::CMDCTL, static_cast<uint32_t>(CMDCTL_Bits::CMDIDX), static_cast<uint32_t>(index),
+               static_cast<uint32_t>(CMDCTL_Bits::CMDRESP), static_cast<uint32_t>(response),
+               static_cast<uint32_t>(CMDCTL_Bits::WAITTYPE), static_cast<uint32_t>(type));
 }
 
 void SDIO::send_command(bool enable)
@@ -182,8 +181,8 @@ void SDIO::data_configure(uint32_t timeout, uint32_t length, Block_Size size)
 
 void SDIO::data_transfer_configure(Transfer_Mode mode, Transfer_Direction direction)
 {
-    write_bit(*this, SDIO_Regs::DATACTL, static_cast<uint32_t>(DATACTL_Bits::TRANSMOD), static_cast<uint32_t>(mode));
-    write_bit(*this, SDIO_Regs::DATACTL, static_cast<uint32_t>(DATACTL_Bits::DATADIR), static_cast<uint32_t>(direction));
+    write_bits(*this, SDIO_Regs::DATACTL, static_cast<uint32_t>(DATACTL_Bits::TRANSMOD), static_cast<uint32_t>(mode),
+               static_cast<uint32_t>(DATACTL_Bits::DATADIR), static_cast<uint32_t>(direction));
 }
 
 void SDIO::set_data_state_machine_enable(bool enable)
@@ -214,36 +213,6 @@ uint32_t SDIO::get_fifo_count()
 void SDIO::set_dma_enable(bool enable)
 {
     write_bit(*this, SDIO_Regs::DATACTL, static_cast<uint32_t>(DATACTL_Bits::DMAEN), enable ? 1 : 0);
-}
-
-bool SDIO::get_flag(Status_Flags flag) const
-{
-    return (read_bit(*this, SDIO_Regs::STAT, static_cast<uint32_t>(flag)) != 0);
-}
-
-void SDIO::clear_flag(Clear_Flags flag)
-{
-    write_bit(*this, SDIO_Regs::INTC, static_cast<uint32_t>(flag), 1);
-}
-
-void SDIO::clear_all_flags()
-{
-    write_register(SDIO_Regs::INTC, static_cast<uint32_t>(All_Flags_Mask));
-};
-
-bool SDIO::get_interrupt_flag(Interrupt_Flags flag)
-{
-    return (read_bit(*this, SDIO_Regs::STAT, static_cast<uint32_t>(flag)) != 0);
-}
-
-void SDIO::clear_interrupt_flag(Clear_Flags flag)
-{
-    write_bit(*this, SDIO_Regs::INTC, static_cast<uint32_t>(flag), 1);
-}
-
-void SDIO::set_interrupt_enable(Interrupt_Type type, bool enable)
-{
-    write_bit(*this, SDIO_Regs::INTEN, static_cast<uint32_t>(type), enable ? 1 : 0);
 }
 
 void SDIO::set_read_wait_enable(bool enable)
@@ -286,6 +255,36 @@ void SDIO::set_CE_ATA_interrupt_enable(bool enable)
 void SDIO::set_CE_ATA_command_completion_enable(bool enable)
 {
     write_bit(*this, SDIO_Regs::CMDCTL, static_cast<uint32_t>(CMDCTL_Bits::ENCMDC), enable ? 1 : 0);
+}
+
+bool SDIO::get_flag(Status_Flags flag) const
+{
+    return (read_bit(*this, SDIO_Regs::STAT, static_cast<uint32_t>(flag)) != 0);
+}
+
+void SDIO::clear_flag(Clear_Flags flag)
+{
+    write_bit(*this, SDIO_Regs::INTC, static_cast<uint32_t>(flag), 1);
+}
+
+void SDIO::clear_all_flags()
+{
+    write_register(SDIO_Regs::INTC, static_cast<uint32_t>(All_Flags_Mask));
+};
+
+bool SDIO::get_interrupt_flag(Interrupt_Flags flag)
+{
+    return (read_bit(*this, SDIO_Regs::STAT, static_cast<uint32_t>(flag)) != 0);
+}
+
+void SDIO::clear_interrupt_flag(Clear_Flags flag)
+{
+    write_bit(*this, SDIO_Regs::INTC, static_cast<uint32_t>(flag), 1);
+}
+
+void SDIO::set_interrupt_enable(Interrupt_Type type, bool enable)
+{
+    write_bit(*this, SDIO_Regs::INTEN, static_cast<uint32_t>(type), enable ? 1 : 0);
 }
 
 } // namespace sdio

@@ -91,24 +91,24 @@ void SPI::init() {
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
         break;
     case Operational_Mode::MRU_MODE:
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RO), Set);
+        write_bits(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set,
+                   static_cast<uint32_t>(CTL0_Bits::RO), Set);
         break;
     case Operational_Mode::MTB_MODE:
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
+        write_bits(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set,
+                   static_cast<uint32_t>(CTL0_Bits::BDEN), Set,
+                   static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
         break;
     case Operational_Mode::MRB_MODE:
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
+        write_bits(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), Set,
+                   static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
         break;
     case Operational_Mode::SRU_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RO), Set);
         break;
     case Operational_Mode::STB_MODE:
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
+        write_bits(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set,
+                   static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
         break;
     case Operational_Mode::SRB_MODE:
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
@@ -128,12 +128,8 @@ void SPI::disable() {
     write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SPIEN), Clear);
 }
 
-void SPI::nss_output_enable() {
-    write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::NSSDRV), Set);
-}
-
-void SPI::nss_output_disable() {
-    write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::NSSDRV), Clear);
+void SPI::set_nss_output_enable(bool enabled) {
+    write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::NSSDRV), enabled ? Set : Clear);
 }
 
 void SPI::nss_internal_high() {
@@ -144,19 +140,11 @@ void SPI::nss_internal_low() {
     write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SWNSS), Clear);
 }
 
-void SPI::dma_enable(DMA_Direction dma) {
+void SPI::set_dma_enable(DMA_Direction dma, bool enabled) {
     if (dma == DMA_Direction::DMA_TX) {
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMATEN), Set);
+        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMATEN), enabled ? Set : Clear);
     } else {
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMAREN), Set);
-    }
-}
-
-void SPI::dma_disable(DMA_Direction dma) {
-    if (dma == DMA_Direction::DMA_TX) {
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMATEN), Clear);
-    } else {
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMAREN), Clear);
+        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMAREN), enabled ? Set : Clear);
     }
 }
 
@@ -176,12 +164,12 @@ uint16_t SPI::data_receive() {
 void SPI::bidirectional_transfer_config(Direction_Mode transfer_direction) {
     if (transfer_direction == Direction_Mode::BIDIRECTIONAL_TRANSMIT) {
         // Set tx only mode
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Set);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
+        write_bits(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Set,
+                   static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
     } else {
         // Set rx only mode
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Clear);
-        write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
+        write_bits(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::BDOEN), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::BDEN), Set);
     }
 }
 
@@ -194,12 +182,8 @@ uint16_t SPI::get_crc_polynomial() {
     return static_cast<uint16_t>(value);
 }
 
-void SPI::crc_enable() {
-    write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::CRCEN), Set);
-}
-
-void SPI::crc_disable() {
-    write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::CRCEN), Clear);
+void SPI::set_crc_enable(bool enabled) {
+    write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::CRCEN), enabled ? Set : Clear);
 }
 
 void SPI::set_crc_next() {
@@ -221,20 +205,12 @@ void SPI::clear_crc_error() {
     write_bit(*this, SPI_Regs::STAT, static_cast<uint32_t>(STAT_Bits::CRCERR), Clear);
 }
 
-void SPI::nssp_mode_enable() {
-    write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::NSSP), Set);
+void SPI::set_nssp_mode_enable(bool enabled) {
+    write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::NSSP), enabled ? Set : Clear);
 }
 
-void SPI::nssp_mode_disable() {
-    write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::NSSP), Clear);
-}
-
-void SPI::quad_mode_enable() {
-    write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::QMOD), Set);
-}
-
-void SPI::quad_mode_disable() {
-    write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::QMOD), Clear);
+void SPI::set_quad_mode_enable(bool enabled) {
+    write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::QMOD), enabled ? Set : Clear);
 }
 
 void SPI::quad_write_enable() {
@@ -245,51 +221,19 @@ void SPI::quad_read_enable() {
     write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::QRD), Set);
 }
 
-void SPI::quad_io23_output_enable() {
-    write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::IO23_DRV), Set);
+void SPI::set_quad_io23_output_enable(bool enabled) {
+    write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::IO23_DRV), enabled ? Set : Clear);
 }
 
-void SPI::quad_io23_output_disable() {
-    write_bit(*this, SPI_Regs::QCTL, static_cast<uint32_t>(QCTL_Bits::IO23_DRV), Clear);
+bool SPI::get_flag(Status_Flags flag) {
+    return (read_bit(*this, SPI_Regs::STAT, static_cast<uint32_t>(flag)) != Set);
 }
 
-void SPI::interrupt_enable(Interrupt_Type interrupt) {
-    switch (interrupt) {
-    case Interrupt_Type::INTR_TBE:
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TBEIE), Set);
-        break;
-    case Interrupt_Type::INTR_RBNE:
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::RBNEIE), Set);
-        break;
-    case Interrupt_Type::INTR_ERR:
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Set);
-        break;
-    default:
-        break;
-    }
-}
-
-void SPI::interrupt_disable(Interrupt_Type interrupt) {
-    switch (interrupt) {
-    case Interrupt_Type::INTR_TBE:
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TBEIE), Clear);
-        break;
-    case Interrupt_Type::INTR_RBNE:
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::RBNEIE), Clear);
-        break;
-    case Interrupt_Type::INTR_ERR:
-        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), Clear);
-        break;
-    default :
-        break;
-    }
-}
-
-bool SPI::get_interrupt_flag(Interrupt_Flags interrupt) {
+bool SPI::get_interrupt_flag(Interrupt_Flags flag) {
     uint32_t stat = read_register<uint32_t>(SPI_Regs::STAT);
     uint32_t ctl = read_register<uint32_t>(SPI_Regs::CTL1);
 
-    switch (interrupt) {
+    switch (flag) {
     case Interrupt_Flags::INTR_FLAG_TBE:
         stat = read_bit(*this, SPI_Regs::STAT, static_cast<uint32_t>(STAT_Bits::TBE));
         ctl = read_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TBEIE));
@@ -325,8 +269,20 @@ bool SPI::get_interrupt_flag(Interrupt_Flags interrupt) {
     return (stat && ctl);
 }
 
-bool SPI::get_flag(Status_Flags flag) {
-    return (read_bit(*this, SPI_Regs::STAT, static_cast<uint32_t>(flag)) != Set);
+void SPI::set_interrupt_enable(Interrupt_Type type, bool enabled) {
+    switch (type) {
+    case Interrupt_Type::INTR_TBE:
+        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::TBEIE), enabled ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_RBNE:
+        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::RBNEIE), enabled ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_ERR:
+        write_bit(*this, SPI_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ERRIE), enabled ? Set : Clear);
+        break;
+    default:
+        break;
+    }
 }
 
 } // namespace spi

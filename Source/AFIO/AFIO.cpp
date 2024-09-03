@@ -61,12 +61,8 @@ void AFIO::set_output_event(Event_Port port, Pin_Number pin) {
 
 }
 
-void AFIO::output_event_enable(void) {
-    write_bit(*this, AFIO_Regs::EC, static_cast<uint32_t>(EC_Bits::EOE), Set);
-}
-
-void AFIO::output_event_disable(void) {
-    write_bit(*this, AFIO_Regs::EC, static_cast<uint32_t>(EC_Bits::EOE), Clear);
+void AFIO::set_output_event_enable(bool enable) {
+    write_bit(*this, AFIO_Regs::EC, static_cast<uint32_t>(EC_Bits::EOE), enable ? Set : Clear);
 }
 
 void AFIO::set_compensation(bool enable) {

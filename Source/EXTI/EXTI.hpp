@@ -27,16 +27,10 @@ public:
     bool get_interrupt_flag(EXTI_Line line);
     void clear_interrupt_flag(EXTI_Line line);
     // Events
-    void event_enable(EXTI_Line line);                  // DEPRECATED - use set_event_enable
-    void event_disable(EXTI_Line line);                 // DEPRECATED - use set_event_enable
     void set_event_enable(EXTI_Line line, bool enable);
     // Software interrupts
-    void software_interrupt_enable(EXTI_Line line);     // DEPRECATED - use set_software_interrrupt_enable
-    void software_interrupt_disable(EXTI_Line line);    // DEPRECATED - use set_software_interrrupt_enable
     void set_software_interrupt_enable(EXTI_Line line, bool enable);
     // Interrupts
-    void interrupt_enable(EXTI_Line line);              // DEPRECATED - use set_interrupt_enable
-    void interrupt_disable(EXTI_Line line);             // DEPRECATED - use set_interrupt_enable
     void set_interrupt_enable(EXTI_Line line, bool enable);
 
     static constexpr uint32_t EXTI_baseAddress = 0x40010400;

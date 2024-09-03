@@ -53,13 +53,11 @@ public:
     void enable();
     void disable();
     // NSS
-    void nss_output_enable();
-    void nss_output_disable();
+    void set_nss_output_enable(bool enabled);
     void nss_internal_high();
     void nss_internal_low();
     // DMA
-    void dma_enable(DMA_Direction dma);
-    void dma_disable(DMA_Direction dma);
+    void set_dma_enable(DMA_Direction dma, bool enabled);
     // Configuration
     void data_frame_format_config(Frame_Format frame_format);
     void bidirectional_transfer_config(Direction_Mode transfer_direction);
@@ -67,28 +65,23 @@ public:
     void data_transmit(uint16_t data);
     uint16_t data_receive();
     // CRC
-    void crc_enable();
-    void crc_disable();
+    void set_crc_enable(bool enabled);
     void set_crc_next();
     uint16_t get_crc(CRC_Direction crc);
     void clear_crc_error();
     void set_crc_polynomial(uint16_t crc_poly);
     uint16_t get_crc_polynomial();
     // NSSP
-    void nssp_mode_enable();
-    void nssp_mode_disable();
+    void set_nssp_mode_enable(bool enabled);
     // QUAD
-    void quad_mode_enable();
-    void quad_mode_disable();
+    void set_quad_mode_enable(bool enabled);
     void quad_write_enable();
     void quad_read_enable();
-    void quad_io23_output_enable();
-    void quad_io23_output_disable();
+    void set_quad_io23_output_enable(bool enabled);
     // Interrupts and flags
     bool get_flag(Status_Flags flag);
-    bool get_interrupt_flag(Interrupt_Flags interrupt);
-    void interrupt_enable(Interrupt_Type interrupt);
-    void interrupt_disable(Interrupt_Type interrupt);
+    bool get_interrupt_flag(Interrupt_Flags flag);
+    void set_interrupt_enable(Interrupt_Type type, bool enabled);
 
     inline volatile uint32_t *reg_address(SPI_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));

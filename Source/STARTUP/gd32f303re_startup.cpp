@@ -15,6 +15,9 @@ extern "C" {
     extern uint32_t _ebss;
     extern uint32_t __bss_start__;
     extern uint32_t __bss_end__;
+    extern uint32_t _etext;
+    extern uint32_t end;
+    extern uint32_t _end;
 }
 
 void Reset_Handler() {
@@ -40,7 +43,7 @@ void Reset_Handler() {
 
     uintptr_t n = __preinit_array_end - __preinit_array_start;
     for (uintptr_t i = 0; i < n; ++i) {
-         __preinit_array_start[i]();
+        __preinit_array_start[i]();
     }
 
     // Initialize C++ static objects

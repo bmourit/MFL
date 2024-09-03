@@ -73,11 +73,6 @@ public:
         }
         return false;
     }
-    // Interrupt flags
-    bool get_interrupt_flag(Interrupt_Flags int_flag);
-    void clear_interrupt_flag(Clear_Flags int_flag);
-    // Interrupts
-    void set_interrupt_enable(Interrupt_Type type, bool enable);
     // Read wait
     void set_read_wait_enable(bool enable);
     void set_stop_read_wait_enable(bool enable);
@@ -89,6 +84,11 @@ public:
     void set_CE_ATA_command_enable(bool enable);
     void set_CE_ATA_interrupt_enable(bool enable);
     void set_CE_ATA_command_completion_enable(bool enable);
+    // Interrupt flags
+    bool get_interrupt_flag(Interrupt_Flags int_flag);
+    void clear_interrupt_flag(Clear_Flags int_flag);
+    // Interrupts
+    void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     static constexpr uint32_t SDIO_baseAddress = 0x40018000;
 

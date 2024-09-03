@@ -36,20 +36,12 @@ public:
     void reset(DMA_Channel channel);
     void configure(DMA_Channel channel, DMA_Config* update);
     // Circulation mode
-    void circular_mode_enable(DMA_Channel channel);                                     // DEPRECATED - use set_circulation_mode_enable
-    void circular_mode_disable(DMA_Channel channel);                                    // DEPRECATED - use set_circulation_mode_enable
     void set_circulation_mode_enable(DMA_Channel channel, bool enable);
     // M2M
-    void memory_to_memory_enable(DMA_Channel channel);                                  // DEPRECATED - use set_memory_to_memory_enable
-    void memory_to_memory_disable(DMA_Channel channel);                                 // DEPRECATED - use set_memory_to_memory_enable
     void set_memory_to_memory_enable(DMA_Channel, bool enable);
     // Channel
-    void channel_enable(DMA_Channel channel);                                           // DEPRECATED - use set_channel_enable
-    void channel_disable(DMA_Channel channel);                                          // DEPRECATED - use set_channel_enable
     void set_channel_enable(DMA_Channel channel, bool enable);
     // RX/TX addresses
-    void set_peripheral_address(DMA_Channel channel, uint32_t address);                 // DEPRECATED - use set_data_address
-    void set_memory_address(DMA_Channel channel, uint32_t address);                     // DEPRECATED - use set_data_address
     void set_data_address(DMA_Channel channel, Data_Type type, uint32_t address);
     // Transfer count
     void set_transfer_count(DMA_Channel channel, uint32_t count);
@@ -57,14 +49,8 @@ public:
     // Priority
     void set_channel_priority(DMA_Channel channel, Channel_Priority priority);
     // Bit width
-    void set_memory_bit_width(DMA_Channel channel, Bit_Width width);                    // DEPRECATED - use set_bit_width
-    void set_peripheral_bit_width(DMA_Channel channel, Bit_Width width);                // DEPRECATED - use set_bit_width
     void set_bit_width(DMA_Channel channel, Data_Type type, Bit_Width width);
     // Increase mode
-    void memory_incr_enable(DMA_Channel channel);                                       // DEPRECATED - use set_increase_mode_enable
-    void memory_incr_disable(DMA_Channel channel);                                      // DEPRECATED - use set_increase_mode_enable
-    void peripheral_incr_enable(DMA_Channel channel);                                   // DEPRECATED - use set_increase_mode_enable
-    void peripheral_incr_disable(DMA_Channel channel);                                  // DEPRECATED - use set_increase_mode_enable
     void set_increase_mode_enable(DMA_Channel channel, Data_Type type, bool enable);
     // Direction
     void set_transfer_direction(DMA_Channel channel, Transfer_Direction direction);
@@ -75,8 +61,6 @@ public:
     bool get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag);
     void clear_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag);
     // Interrupts
-    void interrupt_enable(DMA_Channel channel, Interrupt_Type interrupt);               // DEPRECATED - use set_interrupt_enable
-    void interrupt_disable(DMA_Channel channel, Interrupt_Type interrupt);              // DEPRECATED - use set_interrupt_enable
     void set_interrupt_enable(DMA_Channel channel, Interrupt_Type type, bool enable);
     // Validity
     inline bool channel_validity(DMA_Channel channel);

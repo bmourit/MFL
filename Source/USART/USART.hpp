@@ -63,7 +63,7 @@ public:
     inline void set_direction(Direction_Mode direction);
     void set_msb(MSBF_Mode msbf);
     void set_inversion_method_enable(Inversion_Method method, bool enable);
-    void rx_timeout_enable(bool enable);
+    void set_rx_timeout_enable(bool enable);
     void set_rx_timeout_threshold(uint32_t timeout);
     void send_data(uint16_t data);	// TX
     uint16_t receive_data();        // RX
@@ -95,11 +95,9 @@ public:
     // Interrupt and flags
     bool get_flag(Status_Flags flag);
     void clear_flag(Status_Flags flag);
-    void interrupt_enable(Interrupt_Type type);
-    void interrupt_disable(Interrupt_Type type);
-    void set_interrupt_enable(Interrupt_Type type, bool enable);
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Interrupt_Flags flag);
+    void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     inline volatile uint32_t *reg_address(USART_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));

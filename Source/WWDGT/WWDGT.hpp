@@ -23,8 +23,7 @@ public:
     void setup(uint16_t value, uint16_t window, Prescaler_Values prescaler);
     bool get_flag();
     void clear_flag();
-    void interrupt_enable();
-    void interrupt_disable();
+    void set_interrupt_enable(bool enable);
 
     static constexpr uint32_t WWDGT_baseAddress = 0x40002C00;
 

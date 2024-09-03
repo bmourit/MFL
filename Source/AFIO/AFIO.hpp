@@ -21,8 +21,7 @@ public:
     void set_remap(Pin_Remap_Select remap);
     void set_exti_source(Source_Port port, Pin_Number pin);
     void set_output_event(Event_Port port, Pin_Number pin);
-    void output_event_enable();
-    void output_event_disable();
+    void set_output_event_enable(bool enable);
     void set_compensation(bool enable);
     bool get_compensation();
 

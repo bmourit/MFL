@@ -49,8 +49,8 @@ void USART::init() {
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Clear);
 
     // Set USART configuration parameters
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WL), static_cast<uint32_t>(config_.word_length));
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PMEN), static_cast<uint32_t>(config_.parity));
+    write_bits(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WL), static_cast<uint32_t>(config_.word_length),
+               static_cast<uint32_t>(CTL0_Bits::PMEN), static_cast<uint32_t>(config_.parity));
     write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::STB), static_cast<uint32_t>(config_.stop_bits));
     write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::MSBF), static_cast<uint32_t>(config_.msbf));
     set_direction(config_.direction);
@@ -103,21 +103,21 @@ void USART::disable() {
 inline void USART::set_direction(Direction_Mode direction) {
     switch (direction) {
     case Direction_Mode::RX_MODE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Set);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Clear);
+        write_bits(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Set,
+                   static_cast<uint32_t>(CTL0_Bits::TEN), Clear);
         break;
     case Direction_Mode::TX_MODE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Clear);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Set);
+        write_bits(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::TEN), Set);
         break;
     case Direction_Mode::RXTX_MODE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Set);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Set);
+        write_bits(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Set,
+                   static_cast<uint32_t>(CTL0_Bits::TEN), Set);
         break;
     case Direction_Mode::RXTX_OFF:
     default:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Clear);
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TEN), Clear);
+        write_bits(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::REN), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::TEN), Clear);
         break;
     }
 }
@@ -142,7 +142,7 @@ void USART::set_inversion_method_enable(Inversion_Method method, bool enable) {
     }
 }
 
-void USART::rx_timeout_enable(bool enable) {
+void USART::set_rx_timeout_enable(bool enable) {
     write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTEN), enable ? Set : Clear);
 }
 
@@ -179,9 +179,9 @@ void USART::set_synchronous_clock_enable(bool enable) {
 }
 
 void USART::synchronous_clock_configure(Pulse_Length length, Clock_Phase phase, Clock_Polarity polarity) {
-    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CLEN), static_cast<uint32_t>(length));
-    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CPH), static_cast<uint32_t>(phase));
-    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CPL), static_cast<uint32_t>(polarity));
+    write_bits(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CLEN), static_cast<uint32_t>(length),
+               static_cast<uint32_t>(CTL1_Bits::CPH), static_cast<uint32_t>(phase),
+               static_cast<uint32_t>(CTL1_Bits::CPL), static_cast<uint32_t>(polarity));
 }
 
 void USART::receive_data_dma(bool enable) {
@@ -340,118 +340,6 @@ void USART::clear_flag(Status_Flags flag) {
     }
 }
 
-void USART::interrupt_enable(Interrupt_Type type) {
-    switch (type) {
-    case Interrupt_Type::INTR_PERRIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PERRIE), 1);
-        break;
-    case Interrupt_Type::INTR_TBEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TBEIE), 1);
-        break;
-    case Interrupt_Type::INTR_TCIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TCIE), 1);
-        break;
-    case Interrupt_Type::INTR_RBNEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RBNEIE), 1);
-        break;
-    case Interrupt_Type::INTR_IDLEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IDLEIE), 1);
-        break;
-    case Interrupt_Type::INTR_LBDIE:
-        write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBDIE), 1);
-        break;
-    case Interrupt_Type::INTR_CTSIE:
-        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::CTSIE), 1);
-        break;
-    case Interrupt_Type::INTR_ERRIE:
-        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::ERRIE), 1);
-        break;
-    case Interrupt_Type::INTR_EBIE:
-        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::EBIE), 1);
-        break;
-    case Interrupt_Type::INTR_RTIE:
-        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTIE), 1);
-        break;
-    default:
-        break;
-    }
-}
-
-void USART::interrupt_disable(Interrupt_Type type) {
-    switch (type) {
-    case Interrupt_Type::INTR_PERRIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PERRIE), 0);
-        break;
-    case Interrupt_Type::INTR_TBEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TBEIE), 0);
-        break;
-    case Interrupt_Type::INTR_TCIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TCIE), 0);
-        break;
-    case Interrupt_Type::INTR_RBNEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RBNEIE), 0);
-        break;
-    case Interrupt_Type::INTR_IDLEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IDLEIE), 0);
-        break;
-    case Interrupt_Type::INTR_LBDIE:
-        write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBDIE), 0);
-        break;
-    case Interrupt_Type::INTR_CTSIE:
-        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::CTSIE), 0);
-        break;
-    case Interrupt_Type::INTR_ERRIE:
-        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::ERRIE), 0);
-        break;
-    case Interrupt_Type::INTR_EBIE:
-        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::EBIE), 0);
-        break;
-    case Interrupt_Type::INTR_RTIE:
-        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTIE), 0);
-        break;
-    default:
-        break;
-    }
-}
-
-// Enable or disable interrupt base on the set value
-void USART::set_interrupt_enable(Interrupt_Type type, bool enable) {
-    switch (type) {
-    case Interrupt_Type::INTR_PERRIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PERRIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_TBEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TBEIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_TCIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TCIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_RBNEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RBNEIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_IDLEIE:
-        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IDLEIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_LBDIE:
-        write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBDIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_CTSIE:
-        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::CTSIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_ERRIE:
-        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::ERRIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_EBIE:
-        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::EBIE), enable ? Set : Clear);
-        break;
-    case Interrupt_Type::INTR_RTIE:
-        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTIE), enable ? Set : Clear);
-        break;
-    default:
-        break;
-    }
-}
-
 bool USART::get_interrupt_flag(Interrupt_Flags flag) {
     uint32_t intr_flag = 0;
     uint32_t state = 0;
@@ -556,6 +444,44 @@ void USART::clear_interrupt_flag(Interrupt_Flags flag) {
         break;
     case Interrupt_Flags::INTR_FLAG_CTL3_RTF:
         write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::RTF), 0);
+        break;
+    default:
+        break;
+    }
+}
+
+// Enable or disable interrupt base on the set value
+void USART::set_interrupt_enable(Interrupt_Type type, bool enable) {
+    switch (type) {
+    case Interrupt_Type::INTR_PERRIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PERRIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_TBEIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TBEIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_TCIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::TCIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_RBNEIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RBNEIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_IDLEIE:
+        write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IDLEIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_LBDIE:
+        write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBDIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_CTSIE:
+        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::CTSIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_ERRIE:
+        write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::ERRIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_EBIE:
+        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::EBIE), enable ? Set : Clear);
+        break;
+    case Interrupt_Type::INTR_RTIE:
+        write_bit(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::RTIE), enable ? Set : Clear);
         break;
     default:
         break;

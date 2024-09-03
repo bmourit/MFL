@@ -101,7 +101,7 @@ private:
     // Get value helpers
     bool get_value(Status_Flags flag) const {
         const auto &info = status_flag_index[static_cast<size_t>(flag)];
-        uint32_t reg_value = *reg_address(info.register_offset);
+        uint32_t reg_value = read_register<uint32_t>(info.register_offset);
 
         const uint32_t width = info.bit_info & 0xFF;
         const uint32_t bitno = info.bit_info >> 16;
@@ -114,7 +114,7 @@ private:
 
     bool get_value(Interrupt_Flags flag) const {
         const auto &info = interrupt_type_index[static_cast<size_t>(flag)];
-        uint32_t reg_value = *reg_address(info.register_offset);
+        uint32_t reg_value = read_register<uint32_t>(info.register_offset);
 
         const uint32_t width = info.bit_info & 0xFF;
         const uint32_t bitno = info.bit_info >> 16;

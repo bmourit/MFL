@@ -48,8 +48,7 @@ public:
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Interrupt_Flags flag);
     // Interrupts
-    void interrupt_enable(Interrupt_Types type);
-    void interrupt_disable(Interrupt_Types type);
+    void set_interrupt_enable(Interrupt_Types type, bool enable);
 
     // Base address
     static constexpr uint32_t FMC_baseAddress = 0x40022000;

@@ -151,8 +151,6 @@ public:
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Interrupt_Flags flag);
     // Interrupts
-    void interrupt_enable(Interrupt_Type type);
-    void interrupt_disable(Interrupt_Type type);
     void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     inline volatile uint32_t *reg_address(TIMER_Regs reg) const {

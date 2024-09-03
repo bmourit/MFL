@@ -133,3 +133,44 @@ inline void write_bit_with_channel_offset(const Instance& instance, RegType reg,
 
     *instance.reg_address(reg) = regval;
 }
+
+template <typename RegType, typename Instance>
+inline void write_bits(const Instance& instance, RegType reg) {
+    // Base case: No-op if no fields are passed
+}
+
+template <typename RegType, typename Instance, typename... Args>
+inline void write_bits(const Instance& instance, RegType reg, uint32_t bits, uint32_t value, Args... args) {
+    uint32_t regval = *instance.reg_address(reg);
+
+    const uint32_t width = bits & 0xff;
+    const uint32_t bitno = bits >> 16;
+
+    regval &= ~(((1 << width) - 1) << bitno);
+    regval |= (value << bitno);
+
+    *instance.reg_address(reg) = regval;
+
+    // Recursive call to handle the remaining arguments
+    if constexpr (sizeof...(args) > 0) {
+        write_bits(instance, reg, args...);
+    }
+}
+
+template <typename RegType, typename Instance, typename... Args>
+inline void write_bits_channel(const Instance& instance, RegType reg, dma::DMA_Channel channel, uint32_t bits, uint32_t value, Args... args) {
+    uint32_t regval = *instance.reg_address(reg, channel);
+
+    const uint32_t width = bits & 0xff;
+    const uint32_t bitno = bits >> 16;
+
+    regval &= ~(((1 << width) - 1) << bitno);
+    regval |= value << bitno;
+
+    *instance.reg_address(reg, channel) = regval;
+
+    // Recursive call to handle the remaining arguments
+    if constexpr (sizeof...(args) > 0) {
+        write_bits_channel(instance, reg, channel, args...);
+    }
+}

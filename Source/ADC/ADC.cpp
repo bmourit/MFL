@@ -55,13 +55,13 @@ void ADC::set_resolution(ADC_Resolution resolution)
 
 void ADC::discontinuous_mode_config(Channel_Group_Type channel_group, uint8_t length)
 {
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISRC), Clear);
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISIC), Clear);
+    write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISRC), Clear,
+               static_cast<uint32_t>(CTL0_Bits::DISIC), Clear);
 
     switch (channel_group) {
     case Channel_Group_Type::REGULAR_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISNUM), static_cast<uint32_t>(length) - 1);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISRC), Set);
+        write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISNUM), static_cast<uint32_t>(length) - 1,
+                   static_cast<uint32_t>(CTL0_Bits::DISRC), Set);
         break;
     case Channel_Group_Type::INSERTED_CHANNEL:
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISIC), Set);
@@ -249,12 +249,13 @@ uint32_t ADC::get_sync_mode_convert_value(void)
     return read_register<uint32_t>(ADC_Regs::RDATA);
 }
 
-bool ADC::get_status_flag(STAT_Bits flag)
+
+bool ADC::get_flag(STAT_Bits flag)
 {
     return (read_bit(*this, ADC_Regs::STAT, static_cast<uint32_t>(flag))) ? true : false;
 }
 
-void ADC::clear_status_flag(STAT_Bits flag)
+void ADC::clear_flag(STAT_Bits flag)
 {
     write_bit(*this, ADC_Regs::STAT, static_cast<uint32_t>(flag), Clear);
 }
@@ -295,32 +296,6 @@ void ADC::clear_interrupt_flag(Interrupt_Flags flag)
     write_bit(*this, ADC_Regs::STAT, static_cast<uint32_t>(flag), Clear);
 }
 
-void ADC::interrupt_enable(Interrupt_Type type)
-{
-    if (type == Interrupt_Type::INTR_WDE) {
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDEIE), Set);
-    }
-    if (type == Interrupt_Type::INTR_EOC) {
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::EOCIE), Set);
-    }
-    if (type == Interrupt_Type::INTR_EOIC) {
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::EOICIE), Set);
-    }
-}
-
-void ADC::interrupt_disable(Interrupt_Type type)
-{
-    if (type == Interrupt_Type::INTR_WDE) {
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDEIE), Clear);
-    }
-    if (type == Interrupt_Type::INTR_EOC) {
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::EOCIE), Clear);
-    }
-    if (type == Interrupt_Type::INTR_EOIC) {
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::EOICIE), Clear);
-    }
-}
-
 void ADC::set_interrupt_enable(Interrupt_Type type, bool enable)
 {
     if (type == Interrupt_Type::INTR_WDE) {
@@ -336,29 +311,29 @@ void ADC::set_interrupt_enable(Interrupt_Type type, bool enable)
 
 void ADC::single_channel_watchdog_enable(ADC_Channel channel)
 {
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDCHSEL), static_cast<uint32_t>(channel));
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWDEN), Set);
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), Set);
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDSC), Set);
+    write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDCHSEL), static_cast<uint32_t>(channel),
+               static_cast<uint32_t>(CTL0_Bits::RWDEN), Set,
+               static_cast<uint32_t>(CTL0_Bits::IWDEN), Set,
+               static_cast<uint32_t>(CTL0_Bits::WDSC), Set);
 }
 
 void ADC::group_channel_watchdog_enable(Channel_Group_Type channel_group)
 {
     switch (channel_group) {
     case Channel_Group_Type::REGULAR_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), Clear);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDSC), Clear);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWDEN), Set);
+        write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::WDSC), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::RWDEN), Set);
         break;
     case Channel_Group_Type::INSERTED_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWDEN), Clear);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDSC), Clear);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), Set);
+        write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWDEN), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::WDSC), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::IWDEN), Set);
         break;
     case Channel_Group_Type::REGULAR_INSERTED_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDSC), Clear);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWDEN), Set);
-        write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), Set);
+        write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDSC), Clear,
+                   static_cast<uint32_t>(CTL0_Bits::RWDEN), Set,
+                   static_cast<uint32_t>(CTL0_Bits::IWDEN), Set);
         break;
     default:
         break;
@@ -367,10 +342,10 @@ void ADC::group_channel_watchdog_enable(Channel_Group_Type channel_group)
 
 void ADC::watchdog_disable()
 {
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), 0);
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDSC), 0);
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RWDEN), 0);
-    write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::WDCHSEL), 0);
+    write_bits(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), Clear,
+               static_cast<uint32_t>(CTL0_Bits::WDSC), Clear,
+               static_cast<uint32_t>(CTL0_Bits::RWDEN), Clear,
+               static_cast<uint32_t>(CTL0_Bits::WDCHSEL), Clear);
 }
 
 void ADC::set_watchdog_threshold(uint16_t low, uint16_t high)
@@ -382,21 +357,18 @@ void ADC::set_watchdog_threshold(uint16_t low, uint16_t high)
 void ADC::set_oversampling_configuration(Oversampling_Convertion mode, Oversampling_Shift shift, Oversampling_Ratio ratio)
 {
     if (mode == Oversampling_Convertion::OVERSAMPLING_CONVERT_ONE) {
-        write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), 1);
+        write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), Set);
     } else {
-        write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), 0);
+        write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), Clear);
     }
 
-    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), 0);
-    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), 0);
-
-    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), static_cast<uint32_t>(shift));
-    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(ratio));
+    write_bits(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), static_cast<uint32_t>(shift),
+               static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(ratio));
 }
 
 void ADC::set_oversampling_enable(bool enable)
 {
-    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSEN), enable ? 1 : 0);
+    write_bit(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::OVSEN), enable ? Set : Clear);
 }
 
 } // namespace adc

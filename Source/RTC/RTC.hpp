@@ -26,8 +26,7 @@ public:
     void set_counter(uint32_t counter);
     bool get_flag(Status_Flags flag);
     void clear_flag(Status_Flags flag);
-    void interrupt_enable(Interrupt_Type type);
-    void interrupt_disable(Interrupt_Type type);
+    void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     static constexpr uint32_t RTC_baseAddress = 0x40002800;
 

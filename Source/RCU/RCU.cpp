@@ -18,38 +18,32 @@ void RCU::reset()
     while (is_osci_stable(OSCI_Select::IRC8M) == false) {
         //Just wait
     }
-
     // Clear system clk source
     write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), Clear);
-
     // Reset CTL register
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), Clear);
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CKMEN), Clear);
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::PLLEN), Clear);
-    write_bit(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALBPS), Clear);
-
+    write_bits(*this, RCU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HXTALEN), Clear,
+            static_cast<uint32_t>(CTL_Bits::CKMEN), Clear,
+            static_cast<uint32_t>(CTL_Bits::PLLEN), Clear,
+            static_cast<uint32_t>(CTL_Bits::HXTALBPS), Clear);
     // Reset CFG0 register
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::AHBPSC), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::APB1PSC), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::APB2PSC), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLSEL), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PREDV0), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), Clear);
-
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::CKOUT0SEL), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_5), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), Clear);
-
-    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CKMIC), Set);
-    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CLEAR_ALL), Set);
-
-    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Clear);
-    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), Clear);
+    write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), Clear,
+            static_cast<uint32_t>(CFG0_Bits::AHBPSC), Clear,
+            static_cast<uint32_t>(CFG0_Bits::APB1PSC), Clear,
+            static_cast<uint32_t>(CFG0_Bits::APB2PSC), Clear,
+            static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear,
+            static_cast<uint32_t>(CFG0_Bits::PLLSEL), Clear,
+            static_cast<uint32_t>(CFG0_Bits::PREDV0), Clear,
+            static_cast<uint32_t>(CFG0_Bits::PLLMF), Clear,
+            static_cast<uint32_t>(CFG0_Bits::USBDPSC), Clear,
+            static_cast<uint32_t>(CFG0_Bits::CKOUT0SEL), Clear,
+            static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear,
+            static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Clear,
+            static_cast<uint32_t>(CFG0_Bits::PLLMF_5), Clear,
+            static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), Clear);
+    write_bits(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CKMIC), Set,
+            static_cast<uint32_t>(INTR_Bits::CLEAR_ALL), Set);
+    write_bits(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Clear,
+            static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), Clear);
 }
 
 // Enable or disable peripheral clock
@@ -136,13 +130,13 @@ void RCU::set_pll_config(PLL_Source source, PLLMF_Select multiplier) {
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), static_cast<uint32_t>(multiplier));
     } else if (multiplier <= PLLMF_Select::PLL_MUL31) {
         // Set the PLLMF_4 bit and adjust PLLMF value based on multiplier
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set);
         uint32_t pllmf_val = static_cast<uint32_t>(multiplier) - 16;
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), pllmf_val);
+        write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Set,
+                static_cast<uint32_t>(CFG0_Bits::PLLMF), pllmf_val);
     } else {
         // Default configuration
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), 18);  // Default to 72MHz
+        write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF_4), Clear,
+                static_cast<uint32_t>(CFG0_Bits::PLLMF), 18);  // Default to 72MHz
     }
 }
 
@@ -187,8 +181,8 @@ void RCU::set_predv0_config(uint32_t div)
 void RCU::set_adc_prescaler(ADC_Prescaler prescaler)
 {
     // Reset prescaler
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Clear);
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
+    write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Clear,
+            static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
     write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), Clear);
 
     // Set the prescaler
@@ -200,12 +194,12 @@ void RCU::set_adc_prescaler(ADC_Prescaler prescaler)
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), static_cast<uint32_t>(prescaler));
         break;
     case ADC_Prescaler::CKAPB2_DIV12:
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Set);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
+        write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Set,
+                static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
         break;
     case ADC_Prescaler::CKAPB2_DIV16:
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 3);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
+        write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), 3,
+                static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), Set);
         break;
     case ADC_Prescaler::CKAHB_DIV5:
         write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::ADCPSC), Clear);
@@ -247,8 +241,8 @@ void RCU::set_usb_prescaler(USB_Prescaler prescaler)
         default:
             break;
         }
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), real_bit_value);
-        write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), Set);
+        write_bits(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::USBDPSC), real_bit_value,
+                static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), Set);
     }
 }
 
@@ -496,6 +490,9 @@ void RCU::clocks_init()
     while (is_osci_stable(OSCI_Select::HXTAL) == false) {
     }
 
+    // Enable PMU clock
+    write_bit(*this, RCU_Regs::APB1EN, static_cast<uint32_t>(APB1EN_Bits::PMUEN), Set);
+
     // TODO: Make this a configurable setting
     //  Note:
     //  According to the manual, this can only be set while main PLL
@@ -514,9 +511,6 @@ void RCU::clocks_init()
     //PMU_DEVICE.set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_MID);
     //PMU_DEVICE.set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_HIGH);
 
-    // Enable PMU clock
-    write_bit(*this, RCU_Regs::APB1EN, static_cast<uint32_t>(APB1EN_Bits::PMUEN), Set);
-
     // AHB = SYSCLK
     set_ahb_prescaler(AHB_Prescaler::CKSYS_DIV1);
     set_apb2_prescaler(APB_Prescaler::CKAHB_DIV1);
@@ -534,7 +528,7 @@ void RCU::clocks_init()
     }
 
     // Enable high-drive for high clock frequency
-    PMU_DEVICE.high_driver_enable();
+    PMU_DEVICE.set_high_driver_enable(true);
     // Select high-drive mode
     PMU_DEVICE.high_driver_switch(true);
 

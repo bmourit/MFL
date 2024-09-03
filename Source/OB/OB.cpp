@@ -29,13 +29,13 @@ FMC_State OB::ob_erase()
     }
 
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Set);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
+        write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Set,
+                static_cast<uint32_t>(CTL0_Bits::START), Set);
         // Wait until ready
         state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
+            write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear,
+                    static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
             write_bit(*this, OB_Regs::SPC, static_cast<uint32_t>(SPC_Bits::SPC), value);
             // Wait until ready
             state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
@@ -103,13 +103,13 @@ FMC_State OB::set_ob_security_protection(OB_Security_Type type)
     FMC_State state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
 
     if (state == FMC_State::READY) {
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Set);
-        write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::START), Set);
+        write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Set,
+                static_cast<uint32_t>(CTL0_Bits::START), Set);
         // Wait until ready
         state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);
         if (state == FMC_State::READY) {
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear);
-            write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
+            write_bits(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBER), Clear,
+                    static_cast<uint32_t>(CTL0_Bits::OBPG), Set);
             write_bit(*this, OB_Regs::SPC, static_cast<uint32_t>(SPC_Bits::SPC), static_cast<uint32_t>(type));
             // Wait until ready
             state = ob_ready_wait_bank0(FMC_TIMEOUT_COUNT);

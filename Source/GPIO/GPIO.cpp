@@ -9,7 +9,7 @@ bool gpio::GPIO::is_clock_enabled = false;
 
 namespace gpio {
 
-constexpr uint32_t LockValue = 0x00010000;
+constexpr uint32_t LockValue = 0x0001'0000;
 
 void GPIO::init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed)
 {

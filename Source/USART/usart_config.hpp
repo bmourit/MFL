@@ -23,7 +23,7 @@ enum class USART_Base {
     UART4_BASE,
 };
 
-static constexpr unsigned int USART_baseAddress[] = {
+static constexpr uint32_t USART_baseAddress[] = {
     0x40013800,	// USART0
     0x40004400, // USART1
     0x40004800, // USART2

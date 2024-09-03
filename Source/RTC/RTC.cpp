@@ -6,16 +6,6 @@
 
 namespace rtc {
 
-void RTC::interrupt_enable(Interrupt_Type type)
-{
-    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), Set);
-}
-
-void RTC::interrupt_disable(Interrupt_Type type)
-{
-    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), Clear);
-}
-
 void RTC::start_configuration()
 {
     write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CMF), Set);
@@ -90,6 +80,11 @@ bool RTC::get_flag(Status_Flags flag)
 void RTC::clear_flag(Status_Flags flag)
 {
     write_bit(*this, RTC_Regs::CTL, static_cast<uint32_t>(flag), Clear);
+}
+
+void RTC::set_interrupt_enable(Interrupt_Type type, bool enable)
+{
+    write_bit(*this, RTC_Regs::INTEN, static_cast<uint32_t>(type), enable ? Set : Clear);
 }
 
 } // namespace rtc

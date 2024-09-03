@@ -30,8 +30,8 @@ void WWDGT::update_counter(uint16_t value)
 void WWDGT::setup(uint16_t value, uint16_t window, Prescaler_Values prescaler)
 {
     write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CNT), static_cast<uint32_t>(value));
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::WIN), static_cast<uint32_t>(window));
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::PSC), static_cast<uint32_t>(prescaler));
+    write_bits(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::WIN), static_cast<uint32_t>(window),
+               static_cast<uint32_t>(CFG_Bits::PSC), static_cast<uint32_t>(prescaler));
 }
 
 bool WWDGT::get_flag()
@@ -44,14 +44,9 @@ void WWDGT::clear_flag()
     write_register(WWDGT_Regs::STAT, Clear);
 }
 
-void WWDGT::interrupt_enable()
+void WWDGT::set_interrupt_enable(bool enable)
 {
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), Set);
-}
-
-void WWDGT::interrupt_disable()
-{
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), Clear);
+    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), enable ? Set : Clear);
 }
 
 } // namespace wwdgt

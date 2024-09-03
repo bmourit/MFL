@@ -23,12 +23,12 @@ void DMA::init(DMA_Channel channel)
     // Count
     write_register(DMA_Regs::CHXCNT, channel, config_.count & Lower16BitMask);
     // Set parameters
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PWIDTH), static_cast<uint32_t>(config_.peripheral_bit_width));
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(config_.memory_bit_width));
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config_.channel_priority));
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) ? Set : Clear);
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), config_.memory_increase == Increase_Mode::INCREASE_ENABLE ? Set : Clear);
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P) ? Set : Clear);
+    write_bits_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PWIDTH), static_cast<uint32_t>(config_.peripheral_bit_width),
+                       static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(config_.memory_bit_width),
+                       static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config_.channel_priority),
+                       static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE) ? Set : Clear,
+                       static_cast<uint32_t>(CHXCTL_Bits::MNAGA), config_.memory_increase == Increase_Mode::INCREASE_ENABLE ? Set : Clear,
+                       static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P) ? Set : Clear);
 }
 
 void DMA::reset(DMA_Channel channel)
@@ -68,28 +68,6 @@ void DMA::configure(DMA_Channel channel, DMA_Config *params)
     init(channel);
 }
 
-// DEPRECATED - use set_circulation_mode_enable
-void DMA::circular_mode_enable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::CMEN), Set);
-}
-
-// DEPRECATED - use set_circulation_mode_enable
-void DMA::circular_mode_disable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::CMEN), Clear);
-}
-
 // Enable of disable cirulation (circular) mode
 void DMA::set_circulation_mode_enable(DMA_Channel channel, bool enable)
 {
@@ -99,28 +77,6 @@ void DMA::set_circulation_mode_enable(DMA_Channel channel, bool enable)
     }
 
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::CMEN), enable ? Set : Clear);
-}
-
-// DEPRECATED - use set_memory_to_memory_enable
-void DMA::memory_to_memory_enable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::M2M), Set);
-}
-
-// DEPRECATED - use set_memory_to_memory_enable
-void DMA::memory_to_memory_disable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::M2M), Clear);
 }
 
 // Enable of disable M2M mode
@@ -134,28 +90,6 @@ void DMA::set_memory_to_memory_enable(DMA_Channel channel, bool enable)
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::M2M), enable ? Set : Clear);
 }
 
-// DEPRECATED - use set_channel_enable
-void DMA::channel_enable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::CHEN), Set);
-}
-
-// DEPRECATED - use set_channel_enable
-void DMA::channel_disable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::CHEN), Clear);
-}
-
 // Enable of disable DMA channel
 void DMA::set_channel_enable(DMA_Channel channel, bool enable)
 {
@@ -165,28 +99,6 @@ void DMA::set_channel_enable(DMA_Channel channel, bool enable)
     }
 
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::CHEN), enable ? Set : Clear);
-}
-
-// DEPRECATED - use set_data_address
-void DMA::set_peripheral_address(DMA_Channel channel, uint32_t address)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_register(DMA_Regs::CHXPADDR, channel, address);
-}
-
-// DEPRECATED - use set_data_address
-void DMA::set_memory_address(DMA_Channel channel, uint32_t address)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_register(DMA_Regs::CHXMADDR, channel, address);
 }
 
 // Set peripheral or memory data address
@@ -229,29 +141,6 @@ void DMA::set_channel_priority(DMA_Channel channel, Channel_Priority priority)
     write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(priority));
 }
 
-// DEPRICATED - use set_bit_width
-void DMA::set_memory_bit_width(DMA_Channel channel, Bit_Width width)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    // Set register
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(width));
-}
-
-// DEPRICATED - use set_bit_width
-void DMA::set_peripheral_bit_width(DMA_Channel channel, Bit_Width width)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PWIDTH), static_cast<uint32_t>(width));
-}
-
 // Set peripheral or memory bit width
 void DMA::set_bit_width(DMA_Channel channel, Data_Type type, Bit_Width width)
 {
@@ -264,50 +153,6 @@ void DMA::set_bit_width(DMA_Channel channel, Data_Type type, Bit_Width width)
                       static_cast<uint32_t>(CHXCTL_Bits::PWIDTH) :
                       static_cast<uint32_t>(CHXCTL_Bits::MWIDTH),
                       static_cast<uint32_t>(width));
-}
-
-// DEPRICATED - use set_increase_mode_enable
-void DMA::memory_incr_enable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), 1);
-}
-
-// DEPRICATED - use set_increase_mode_enable
-void DMA::memory_incr_disable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::MNAGA), Clear);
-}
-
-// DEPRICATED - use set_increase_mode_enable
-void DMA::peripheral_incr_enable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), 1);
-}
-
-// DEPRICATED - use set_increase_mode_enable
-void DMA::peripheral_incr_disable(DMA_Channel channel)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(CHXCTL_Bits::PNAGA), Clear);
 }
 
 // Enable or disable peripheral or memory increase mode
@@ -372,28 +217,6 @@ bool DMA::get_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
 void DMA::clear_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag)
 {
     write_bit_with_channel_offset(*this, DMA_Regs::INTC, static_cast<uint32_t>(flag), channel, Set);
-}
-
-// DEPRICATED - use set_interrupt_enable
-void DMA::interrupt_enable(DMA_Channel channel, Interrupt_Type type)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(type), Set);
-}
-
-// DEPRICATED - use set_interrupt_enable
-void DMA::interrupt_disable(DMA_Channel channel, Interrupt_Type type)
-{
-    if (channel_validity(channel) != true) {
-        return;
-        // TODO: Error handling
-    }
-
-    write_bit_channel(*this, DMA_Regs::CHXCTL, channel, static_cast<uint32_t>(type), Clear);
 }
 
 // Enable or disable interrupt

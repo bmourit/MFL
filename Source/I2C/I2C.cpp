@@ -81,8 +81,8 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
             clkc |= 1;
         }
 
-        write_bit(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::FAST), Set);
-        write_bit(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
+        write_bits(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::FAST), Set,
+                static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
 
     } else {
         // Fast mode plus, max SCL rise time is 120ns
@@ -96,8 +96,8 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
             write_bit(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::DTCY), static_cast<uint32_t>(Duty_Cycle::DTCY_16_9));
         }
 
-        write_bit(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::FAST), Set);
-        write_bit(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
+        write_bits(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::FAST), Set,
+                static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
 
         write_bit(*this, I2C_Regs::FMPCFG, static_cast<uint32_t>(FMPCFG_Bits::FMPEN), Set);
     }
@@ -108,8 +108,8 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
 void I2C::set_address_format(uint32_t address, Address_Format format, Bus_Mode mode) {
     address &= AddressMask;
     write_bit(*this, I2C_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SMBEN), static_cast<uint32_t>(mode));
-    write_bit(*this, I2C_Regs::SADDR0, static_cast<uint32_t>(SADDR0_Bits::ADDFORMAT), static_cast<uint32_t>(format));
-    write_bit(*this, I2C_Regs::SADDR0, static_cast<uint32_t>(SADDR0_Bits::ADDRESS_MASK), address);
+    write_bits(*this, I2C_Regs::SADDR0, static_cast<uint32_t>(SADDR0_Bits::ADDFORMAT), static_cast<uint32_t>(format),
+            static_cast<uint32_t>(SADDR0_Bits::ADDRESS_MASK), address);
 }
 
 void I2C::set_smbus_type(Bus_Type type) {

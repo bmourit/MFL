@@ -21,16 +21,10 @@ public:
     // Debug ID
     uint32_t get_debug_id();
     // Trace
-    void debug_with_trace_enable();
-    void debug_with_trace_disable();
     void set_debug_with_trace_enable(bool enable);
     // Peripheral
-    void peripheral_debug_enable(Debug_Peripheral peripheral);
-    void peripheral_debug_disable(Debug_Peripheral peripheral);
     void set_peripheral_debug_enable(Debug_Peripheral peripheral, bool enable);
     // Low power
-    void debug_during_low_power_enable(Low_Power_Debug type);
-    void debug_during_low_power_disable(Low_Power_Debug type);
     void set_debug_during_low_power_enable(Low_Power_Debug type, bool enable);
 
     // Base address
