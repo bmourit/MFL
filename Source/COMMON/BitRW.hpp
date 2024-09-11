@@ -6,6 +6,7 @@
 
 #include <limits>
 #include "dma_config.hpp"
+#include "exmc_config.hpp"
 
 constexpr uint32_t Clear = 0;
 constexpr uint32_t Set = 1;
@@ -16,6 +17,22 @@ inline uint32_t read_bit(const Instance& instance, RegType reg, uint32_t bits, b
         instance.ensure_clock_enabled();
     }
     uint32_t regval = *instance.reg_address(reg);
+
+    const uint32_t width = bits & 0xff;
+    const uint32_t bitno = bits >> 16;
+
+    regval >>= bitno;
+    regval &= ((1 << width) - 1);
+
+    return regval;
+}
+
+template <typename RegType, typename Block, typename Instance>
+inline uint32_t read_bit(const Instance& instance, RegType reg, Block block, uint32_t bits, bool check_clock = false) {
+    if (check_clock) {
+        instance.ensure_clock_enabled();
+    }
+    uint32_t regval = *instance.reg_address(reg, block);
 
     const uint32_t width = bits & 0xff;
     const uint32_t bitno = bits >> 16;
@@ -101,6 +118,23 @@ inline void write_bit(const Instance& instance, RegType reg, uint32_t bits, uint
     *instance.reg_address(reg) = regval;
 }
 
+template <typename RegType, typename Instance, typename Block>
+inline void write_bit(const Instance& instance, RegType reg, Block block, uint32_t bits, uint32_t value, bool check_clock = false)
+{
+    if (check_clock) {
+        instance.ensure_clock_enabled();
+    }
+    uint32_t regval = *instance.reg_address(reg, block);
+
+    const uint32_t width = bits & 0xff;
+    const uint32_t bitno = bits >> 16;
+
+    regval &= ~(((1 << width) - 1) << bitno);
+    regval |= value << bitno;
+
+    *instance.reg_address(reg, block) = regval;
+}
+
 template <typename RegType, typename Instance>
 inline void write_bit_extra(const Instance& instance, RegType reg, uint32_t bits, uint32_t value, uint32_t extra_offset)
 {
@@ -165,6 +199,26 @@ inline void write_bits(const Instance& instance, RegType reg, uint32_t bits, uin
     // Recursive call to handle the remaining arguments
     if constexpr (sizeof...(args) > 0) {
         write_bits(instance, reg, args...);
+    }
+}
+
+template <typename Block, typename Instance, typename... Args>
+inline void write_bits(const Instance& instance, exmc::EXMC_Base_Regs reg, Block block, uint32_t bits, uint32_t value, Args... args) {
+    instance.ensure_clock_enabled();
+
+    uint32_t regval = *instance.reg_address(reg, block);
+
+    const uint32_t width = bits & 0xff;
+    const uint32_t bitno = bits >> 16;
+
+    regval &= ~(((1 << width) - 1) << bitno);
+    regval |= (value << bitno);
+
+    *instance.reg_address(reg, block) = regval;
+
+    // Recursive call to handle the remaining arguments
+    if constexpr (sizeof...(args) > 0) {
+        write_bits(instance, reg, block, args...);
     }
 }
 
