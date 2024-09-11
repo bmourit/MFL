@@ -63,6 +63,9 @@ enum class BKP_Regs {
     DATA41 = 0xBC,
 };
 
+
+///////////////////////////// REGISTER BITS /////////////////////////////
+
 enum class DATA_Bits {
     DATAX = REG_BIT_DEF(0, 15),
 };
@@ -88,6 +91,9 @@ enum class TPCS_Bits {
     TEF = REG_BIT_DEF(8, 8),
     TIF = REG_BIT_DEF(9, 9),
 };
+
+
+///////////////////////////// ENUMS /////////////////////////////
 
 enum class Output_Pulse {
     ALARM_PULSE,

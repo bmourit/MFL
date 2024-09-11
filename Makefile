@@ -11,10 +11,10 @@ OUTDIR = build
 LINKER_SCRIPT = Linker/gd32f303re.ld
 
 # Source Sirectories
-SRC_DIRS = Source/ADC Source/AFIO Source/CEE Source/COMMON Source/CORTEX Source/CRC Source/DBG Source/DMA
-SRC_DIRS +=	Source/EXTI Source/FMC Source/FWDGT Source/GPIO Source/I2C Source/OB Source/PMU Source/RCU
-SRC_DIRS +=	Source/RTC Source/SDIO Source/SPI Source/STARTUP Source/TIMER Source/USART Source/WWDGT
-SRC_DIRS +=	CMSIS
+SRC_DIRS = Source/ADC Source/AFIO Source/BKP Source/CEE Source/COMMON Source/CORTEX Source/CRC Source/CTC
+SRC_DIRS +=	Source/DAC Source/DBG Source/DMA Source/EXTI Source/FMC Source/FWDGT Source/GPIO Source/I2C
+SRC_DIRS +=	Source/OB Source/PMU Source/RCU Source/RTC Source/SDIO Source/SPI Source/STARTUP Source/TIMER
+SRC_DIRS +=	Source/USART Source/WWDGT CMSIS
 
 # Include directories and files
 INCLUDES = $(foreach dir, $(SRC_DIRS), -I$(dir))
@@ -46,15 +46,19 @@ all: $(OUTDIR) $(TARGET).elf $(TARGET).bin
 
 library: $(OUTDIR) $(TARGET).a
 
+# Compile source files
 $(OUTDIR)/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Link main application
 $(TARGET).elf: $(OBJS)
 	$(LD) $(OBJS) $(LDFLAGS) -o $(OUTDIR)/$@
 
+# Link binary
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $(OUTDIR)/$< $(OUTDIR)/$@
 
+# Link static library
 $(TARGET).a: $(OBJS)
 	$(AR) rsc $(OUTDIR)/$@ $(OBJS)
 

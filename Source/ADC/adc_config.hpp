@@ -20,7 +20,7 @@ enum class ADC_Base {
     ADC2_BASE,
 };
 
-static constexpr unsigned int ADC_baseAddress[] = {
+static constexpr uintptr_t ADC_baseAddress[] = {
     0x40012400, // ADC0
     0x40012800, // ADC1
     0x40013C00, // ADC2
@@ -247,7 +247,7 @@ enum class Oversampling_Ratio {
     OVERSAMPLING_RATIO_MUL256
 };
 
-enum class Oversampling_Convertion {
+enum class Oversampling_Conversion {
     OVERSAMPLING_CONVERT_ALL,
     OVERSAMPLING_CONVERT_ONE
 };
@@ -287,21 +287,24 @@ enum class ADC_Channel {
     CHANNEL_17
 };
 
-enum class Interrupt_Type {
-    INTR_WDE,
-    INTR_EOC,
-    INTR_EOIC,
+enum class Status_Flags {
+    FLAG_WDE = REG_BIT_DEF(0, 0),
+    FLAG_EOC = REG_BIT_DEF(1, 1),
+    FLAG_EOIC = REG_BIT_DEF(2, 2),
+    FLAG_STIC = REG_BIT_DEF(3, 3),
+    FLAG_STRC = REG_BIT_DEF(4, 4),
 };
 
 enum class Interrupt_Flags {
-    INTR_FLAG_WDE,
-    INTR_FLAG_EOC,
-    INTR_FLAG_EOIC,
+    INTR_FLAG_WDE = REG_BIT_DEF(0, 0),
+    INTR_FLAG_EOC = REG_BIT_DEF(1, 1),
+    INTR_FLAG_EOIC = REG_BIT_DEF(2, 2),
 };
 
-enum class Bit_State {
-    BIT_DISABLE,
-    BIT_ENABLE
+enum class Interrupt_Type {
+    INTR_WDE = REG_BIT_DEF(5, 5),
+    INTR_EOC = REG_BIT_DEF(6, 6),
+    INTR_EOIC = REG_BIT_DEF(7, 7),
 };
 
 enum class ADC_Error_Type {

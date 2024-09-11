@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "wwdgt_config.hpp"
 
@@ -16,7 +16,6 @@ class WWDGT {
 public:
     explicit WWDGT() {}
 
-    void init();
     void reset();
     void enable();
     void update_counter(uint16_t value);
@@ -25,22 +24,21 @@ public:
     void clear_flag();
     void set_interrupt_enable(bool enable);
 
-    static constexpr uint32_t WWDGT_baseAddress = 0x40002C00;
+    static constexpr uintptr_t WWDGT_baseAddress = 0x40002C00;
 
     inline volatile uint32_t *reg_address(WWDGT_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(WWDGT_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(WWDGT_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
+    inline void ensure_clock_enabled() const {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_WWDGT, true);
+            is_clock_enabled = true;
+        }
     }
 
-    template<typename T>
-    inline void write_register(WWDGT_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+private:
+    static bool is_clock_enabled;
 };
 
 } // namespace wwdgt

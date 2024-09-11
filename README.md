@@ -3,7 +3,7 @@
 This is a C++ microcontroller firmware library for the GD32F303RE ARM Cortex-M4 microcontroller.
 Written from scratch by yours truly using the vendor manuals and datasheets.
 
-It is currently a work in progress and NOT tested. If you use this, you are doing sp at your own risk!
+It is currently a work in progress and NOT tested. If you use this, you are doing so at your own risk!
 I plan to eventually release the project under GPLv3 license, or some variant.
 
 There are still some functionality missing, for example no I2S support yet in the SPI peripheral library. Most major portions, however, are complete.

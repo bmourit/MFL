@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "GPIO.hpp"
@@ -43,16 +43,20 @@ public:
         }
     }
 
+    void init();
     void reset() {
         RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, true);
         RCU_DEVICE.set_pclk_reset_enable(USART_pclk_info_.reset_reg, false);
     }
-    void init();
-    void configure(USART_Config* config) {
-        if (config) {
-            config_ = *config;
-        }
+    void release();
+    void configure(USART_Config new_config) {
+        config_ = new_config;
         init();
+    }
+    void pin_config_init();
+    void pins_configure(USART_Pins pin_config) {
+        pin_config_ = pin_config;
+        pin_config_init();
     }
     inline void set_baudrate(uint32_t baudrate);
     void set_parity(Parity_Mode parity);
@@ -65,8 +69,8 @@ public:
     void set_inversion_method_enable(Inversion_Method method, bool enable);
     void set_rx_timeout_enable(bool enable);
     void set_rx_timeout_threshold(uint32_t timeout);
-    void send_data(uint16_t data);	// TX
-    uint16_t receive_data();        // RX
+    void send_data(uint16_t data);
+    uint16_t receive_data();
     void set_wakeup_address(uint8_t address);
     void mute_mode_enable(bool enable);
     void set_mute_mode_wakeup(Wakeup_Mode method);
@@ -103,6 +107,9 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
+
     USART_Base base_index_;
 
 private:
@@ -121,24 +128,13 @@ private:
     uint32_t base_address_;
     static bool is_clock_enabled;
 
-    // Default dummy config
-    USART_Config default_config = {};
-    USART_Config& config_ = default_config;
+    USART_Config config_;
+    USART_Pins pin_config_;
 
     template <USART_Base Base>
     static USART& get_instance_for_base() {
         static USART instance(Base);
         return instance;
-    }
-
-    template<typename T>
-    inline T read_register(USART_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(USART_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
 };
 

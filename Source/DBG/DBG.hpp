@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "dbg_config.hpp"
 
@@ -28,23 +28,15 @@ public:
     void set_debug_during_low_power_enable(Low_Power_Debug type, bool enable);
 
     // Base address
-    static constexpr unsigned int DBG_baseAddress = 0xE0042000;
+    static constexpr uintptr_t DBG_baseAddress = 0xE0042000;
 
     // Offset access
     inline volatile uint32_t *reg_address(DBG_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(DBG_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(DBG_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(DBG_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
 };
 
 } // namespace armdbg

@@ -8,12 +8,12 @@ namespace armdbg {
 
 void ARMDBG::reset()
 {
-    write_register(DBG_Regs::CTL0, Clear);
+    write_register(*this, DBG_Regs::CTL0, Clear);
 }
 
 uint32_t ARMDBG::get_debug_id()
 {
-    return read_register<uint32_t>(DBG_Regs::ID);
+    return read_register<uint32_t>(*this, DBG_Regs::ID);
 }
 
 void ARMDBG::set_debug_with_trace_enable(bool enable)

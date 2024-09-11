@@ -12,18 +12,6 @@ constexpr uint32_t SysTickMask = 0x00000004;
 constexpr uint32_t VectorTableOffsetMask = 0x1FFFFF80;
 constexpr uint32_t AIRCRRegisterMask = 0x00000700;
 
-// DEPRECATED - use set_low_power_mode_enable
-void CORTEX::set_system_low_power_mode(Low_Power_Mode mode)
-{
-    SCB->SCR |= static_cast<uint32_t>(1 << static_cast<uint32_t>(mode));
-}
-
-// DEPRECATED - use set_low_power_mode_enable
-void CORTEX::reset_system_low_power_mode(Low_Power_Mode mode)
-{
-    SCB->SCR &= (~(static_cast<uint32_t>(1 << static_cast<uint32_t>(mode))));
-}
-
 // Enable or disable low power mode
 void set_low_power_mode_enable(Low_Power_Mode mode, bool enable)
 {

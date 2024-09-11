@@ -23,7 +23,7 @@ enum class USART_Base {
     UART4_BASE,
 };
 
-static constexpr uint32_t USART_baseAddress[] = {
+static constexpr uintptr_t USART_baseAddress[] = {
     0x40013800,	// USART0
     0x40004400, // USART1
     0x40004800, // USART2
@@ -160,14 +160,14 @@ enum class Parity_Mode {
     PM_ODD,
 };
 
-enum class Wakeup_Mode {
-    WM_IDLE,
-    WM_ADDR,
-};
-
 enum class Word_Length {
     WL_8BITS,
     WL_9BITS,
+};
+
+enum class Wakeup_Mode {
+    WM_IDLE,
+    WM_ADDR,
 };
 
 enum class Break_Length {
@@ -330,9 +330,12 @@ struct USART_Pin_Config {
     gpio::Output_Speed speed;
 };
 
+struct USART_Pins {
+    USART_Pin_Config rx_pin; // Pass the expected config for rx gpio pin setup
+    USART_Pin_Config tx_pin; // Pass the expected config for tx gpio pin setup
+};
+
 struct USART_Config {
-    USART_Pin_Config rx_pin_config; // Pass the expected config for rx gpio pin setup
-    USART_Pin_Config tx_pin_config; // Pass the expected config for tx gpio pin setup
     USART_DMA_Config dma_pin_ops;   // DMA pin usage flag: off, RX pin, TX pin, or both pins
     uint32_t baudrate;              // Must never be 0
     Parity_Mode parity;

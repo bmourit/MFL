@@ -20,7 +20,7 @@ enum class SPI_Base {
     SPI2_BASE,
 };
 
-static constexpr unsigned int SPI_baseAddress[] = {
+static constexpr uintptr_t SPI_baseAddress[] = {
     0x40013000, // SPI0
     0x40003800, // SPI1
     0x40003C00, // SPI2
@@ -242,12 +242,15 @@ struct SPI_Pin_Config {
     gpio::Output_Speed speed;
 };
 
-struct SPI_Config {
+struct SPI_Pins {
     bool use_ssel_pin;
     SPI_Pin_Config mosi_pin;
     SPI_Pin_Config miso_pin;
     SPI_Pin_Config sclk_pin;
     SPI_Pin_Config ssel_pin;
+};
+
+struct SPI_Config {
     Operational_Mode operational_mode;
     Frame_Format frame_format;
     NSS_Type nss_type;

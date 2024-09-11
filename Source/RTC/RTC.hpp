@@ -6,7 +6,8 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
+#include "RCU.hpp"
 #include "rtc_config.hpp"
 
 namespace rtc {
@@ -28,22 +29,21 @@ public:
     void clear_flag(Status_Flags flag);
     void set_interrupt_enable(Interrupt_Type type, bool enable);
 
-    static constexpr uint32_t RTC_baseAddress = 0x40002800;
+    static constexpr uintptr_t RTC_baseAddress = 0x40002800;
 
     inline volatile uint32_t *reg_address(RTC_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(RTC_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(RTC_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
+    inline void ensure_clock_enabled() const {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_RTC, true);
+            is_clock_enabled = true;
+        }
     }
 
-    template<typename T>
-    inline void write_register(RTC_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+private:
+    static bool is_clock_enabled;
 };
 
 } // namespace rtc

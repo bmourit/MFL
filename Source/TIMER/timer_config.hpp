@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <cstdint>
 
+#include "GPIO.hpp"
 #include "CONFIG.hpp"
 
 namespace timer {
@@ -24,7 +25,7 @@ enum class TIMER_Base {
     TIMER7_BASE,
 };
 
-static constexpr unsigned int TIMER_baseAddress[] = {
+static constexpr uintptr_t TIMER_baseAddress[] = {
     0x40012C00, // TIMER0
     0x40000000, // TIMER1
     0x40000400, // TIMER2
@@ -575,6 +576,13 @@ static const TIMER_Clock_Config TIMER_pclk_index[] {
     {rcu::RCU_PCLK::PCLK_TIMER7, rcu::RCU_PCLK_Reset::PCLK_TIMER7RST},
 };
 
+struct TIMER_Pin_Config {
+    gpio::GPIO_Base gpio_port;
+    gpio::Pin_Number pin;
+    gpio::Pin_Mode mode;
+    gpio::Output_Speed speed;
+};
+
 struct TIMER_Break {
     Break_Input break_state;
     Break_Polarity break_polarity;
@@ -602,15 +610,12 @@ struct TIMER_Output_Compare {
 };
 
 struct TIMER_Config {
-    TIMER_Break break_params;
-    TIMER_Input_Capture input_params;
-    TIMER_Output_Compare output_params;
-    uint32_t prescaler = 0;
-    uint32_t period = 0xFFFF;
-    Division_Ratio divider = Division_Ratio::DIV1;
-    Center_Align align = Center_Align::EDGE;
-    Count_Direction counting_direction = Count_Direction::UP;
-    uint32_t repetition_count = 0;
+    uint32_t prescaler;
+    uint32_t period;
+    Division_Ratio divider;
+    Center_Align align;
+    Count_Direction counting_direction;
+    uint32_t repetition_count;
 };
 
 } // namespace timer

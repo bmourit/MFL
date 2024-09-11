@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "fwdgt_config.hpp"
 
@@ -26,22 +26,14 @@ public:
     void reload_counter();
     bool get_flag(Status_Flags flag);
 
-    static constexpr uint32_t FWDGT_baseAddress = 0x40003000;
+    static constexpr uintptr_t FWDGT_baseAddress = 0x40003000;
 
     inline volatile uint32_t *reg_address(FWDGT_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(FWDGT_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(FWDGT_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(FWDGT_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
 };
 
 } // namespace fwdgt

@@ -14,27 +14,27 @@ namespace i2c {
 //
 // Initialize the I2C gpio pins according to their set parameters
 //
-void I2C::init() {
-    auto configure_pin = [](gpio::GPIO& port, const I2C_PinOps& pinOps) {
-        port.init_pin(pinOps.pin, pinOps.mode, pinOps.speed);
+void I2C::pin_config_init() {
+    auto configure_pin = [](gpio::GPIO& port, const I2C_Pin_Config& pin_config) {
+        port.init_pin(pin_config.pin, pin_config.mode, pin_config.speed);
     };
 
-    auto sda_result = gpio::GPIO::get_instance(config_.sda_pin.gpio_port);
+    auto sda_result = gpio::GPIO::get_instance(pin_config_.sda_pin.gpio_port);
     if (sda_result.error() != gpio::GPIO_Error_Type::OK) {
         return;
     }
     gpio::GPIO& sda_port = sda_result.value();
-    configure_pin(sda_port, config_.sda_pin);
+    configure_pin(sda_port, pin_config_.sda_pin);
 
-    if (config_.sda_pin.gpio_port != config_.scl_pin.gpio_port) {
-        auto scl_result = gpio::GPIO::get_instance(config_.scl_pin.gpio_port);
+    if (pin_config_.sda_pin.gpio_port != pin_config_.scl_pin.gpio_port) {
+        auto scl_result = gpio::GPIO::get_instance(pin_config_.scl_pin.gpio_port);
         if (scl_result.error() != gpio::GPIO_Error_Type::OK) {
             return;
         }
         gpio::GPIO& scl_port = scl_result.value();
-        configure_pin(scl_port, config_.scl_pin);
+        configure_pin(scl_port, pin_config_.scl_pin);
     } else {
-        configure_pin(sda_port, config_.scl_pin);
+        configure_pin(sda_port, pin_config_.scl_pin);
     }
 }
 
@@ -59,7 +59,7 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
     if (speed <= 100'000) {
         // Standard mode, max SCL rise time is 1000ns
         rise_time = std::clamp(rise_time, MinimumClockSpeed, MaximumClockSpeed);
-        write_register(I2C_Regs::RT, rise_time);
+        write_register(*this, I2C_Regs::RT, rise_time);
 
         clkc = apb1_clock / (speed * 2);
         clkc = std::max(clkc, uint32_t{4});  // Standard mode, min is 4
@@ -67,7 +67,7 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
 
     } else if (speed <= 400'000) {
         // Fast mode, max SCL rise time is 300ns
-        write_register(I2C_Regs::RT, (frequency * 300) / 1000 + 1);
+        write_register(*this, I2C_Regs::RT, (frequency * 300) / 1000 + 1);
 
         if (duty == Duty_Cycle::DTCY_2) {
             clkc = apb1_clock / (speed * 3);
@@ -82,11 +82,11 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
         }
 
         write_bits(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::FAST), Set,
-                static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
+                   static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
 
     } else {
         // Fast mode plus, max SCL rise time is 120ns
-        write_register(I2C_Regs::RT, (frequency * 120) / 1000 + 1);
+        write_register(*this, I2C_Regs::RT, (frequency * 120) / 1000 + 1);
 
         if (duty == Duty_Cycle::DTCY_2) {
             clkc = (apb1_clock / (speed * 3));
@@ -97,7 +97,7 @@ I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
         }
 
         write_bits(*this, I2C_Regs::CKCFG, static_cast<uint32_t>(CKCFG_Bits::FAST), Set,
-                static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
+                   static_cast<uint32_t>(CKCFG_Bits::CLKC), clkc);
 
         write_bit(*this, I2C_Regs::FMPCFG, static_cast<uint32_t>(FMPCFG_Bits::FMPEN), Set);
     }
@@ -109,7 +109,7 @@ void I2C::set_address_format(uint32_t address, Address_Format format, Bus_Mode m
     address &= AddressMask;
     write_bit(*this, I2C_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SMBEN), static_cast<uint32_t>(mode));
     write_bits(*this, I2C_Regs::SADDR0, static_cast<uint32_t>(SADDR0_Bits::ADDFORMAT), static_cast<uint32_t>(format),
-            static_cast<uint32_t>(SADDR0_Bits::ADDRESS_MASK), address);
+               static_cast<uint32_t>(SADDR0_Bits::ADDRESS_MASK), address);
 }
 
 void I2C::set_smbus_type(Bus_Type type) {
@@ -130,7 +130,7 @@ void I2C::set_direction_address(Transfer_Direction direction, uint32_t address) 
     } else {
         address |= 0x00000001;  // Set LSB for receive
     }
-    write_register(I2C_Regs::DATA, address);
+    write_register(*this, I2C_Regs::DATA, address);
 }
 
 void I2C::set_dual_address_enable(uint32_t address, bool enable) {
@@ -209,8 +209,8 @@ bool I2C::get_flag(Status_Flags flag) {
 void I2C::clear_flag(Clear_Flags flag) {
     if (flag == Clear_Flags::FLAG_ADDSEND) {
         // Read STAT0 and STAT1 to clear
-        read_register<uint32_t>(I2C_Regs::STAT0);
-        read_register<uint32_t>(I2C_Regs::STAT1);
+        read_register<uint32_t>(*this, I2C_Regs::STAT0);
+        read_register<uint32_t>(*this, I2C_Regs::STAT1);
     } else {
         const auto& info = clear_flag_index[static_cast<size_t>(flag)];
         write_bit(*this, info.register_offset, info.bit_info, Clear);
@@ -224,8 +224,8 @@ bool I2C::get_interrupt_flag(Interrupt_Flags flag) {
 void I2C::clear_interrupt_flag(Clear_Flags flag) {
     if (flag == Clear_Flags::FLAG_ADDSEND) {
         // Read STAT0 and STAT1 to clear
-        read_register<uint32_t>(I2C_Regs::STAT0);
-        read_register<uint32_t>(I2C_Regs::STAT1);
+        read_register<uint32_t>(*this, I2C_Regs::STAT0);
+        read_register<uint32_t>(*this, I2C_Regs::STAT1);
     } else {
         const auto& info = clear_flag_index[static_cast<size_t>(flag)];
         write_bit(*this, info.register_offset, info.bit_info, Clear);

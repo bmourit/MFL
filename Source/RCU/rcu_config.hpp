@@ -12,6 +12,7 @@
 
 namespace rcu {
 
+
 ///////////////////////////// REGISTER OFFSETS /////////////////////////////
 
 enum class RCU_Regs {
@@ -58,7 +59,7 @@ static const unsigned char AHBPrescaler[] = {
 
 ///////////////////////////// REGISTER BITS /////////////////////////////
 
-enum class CTL_Bits : uint32_t {
+enum class CTL_Bits {
     IRC8MEN = REG_BIT_DEF(0, 0),
     IRC8MSTB = REG_BIT_DEF(1, 1),
     IRC8MADJ = REG_BIT_DEF(3, 7),
@@ -71,7 +72,7 @@ enum class CTL_Bits : uint32_t {
     PLLSTB = REG_BIT_DEF(25, 25),
 };
 
-enum class CFG0_Bits : uint32_t {
+enum class CFG0_Bits {
     SCS = REG_BIT_DEF(0, 1),
     SCSS = REG_BIT_DEF(2, 3),
     AHBPSC = REG_BIT_DEF(4, 7),
@@ -89,7 +90,7 @@ enum class CFG0_Bits : uint32_t {
     USBDPSC_2 = REG_BIT_DEF(31, 31),
 };
 
-enum class INTR_Bits : uint32_t {
+enum class INTR_Bits {
     IRC40KSTBIF = REG_BIT_DEF(0, 0),
     LXTALSTBIF = REG_BIT_DEF(1, 1),
     IRC8MSTBIF = REG_BIT_DEF(2, 2),
@@ -110,7 +111,7 @@ enum class INTR_Bits : uint32_t {
     CLEAR_ALL = REG_BIT_DEF(16, 20),
 };
 
-enum class APB2RST_Bits : uint32_t {
+enum class APB2RST_Bits {
     AFRST = REG_BIT_DEF(0, 0),
     PARST = REG_BIT_DEF(2, 2),
     PBRST = REG_BIT_DEF(3, 3),
@@ -128,7 +129,7 @@ enum class APB2RST_Bits : uint32_t {
     ADC2RST = REG_BIT_DEF(15, 15),
 };
 
-enum class APB1RST_Bits : uint32_t {
+enum class APB1RST_Bits {
     TIMER1RST = REG_BIT_DEF(0, 0),
     TIMER2RST = REG_BIT_DEF(1, 1),
     TIMER3RST = REG_BIT_DEF(2, 2),
@@ -151,7 +152,7 @@ enum class APB1RST_Bits : uint32_t {
     DACRST = REG_BIT_DEF(29, 29),
 };
 
-enum class AHBEN_bit : uint32_t {
+enum class AHBEN_bit {
     DMA0EN = REG_BIT_DEF(0, 0),
     DMA1EN = REG_BIT_DEF(1, 1),
     SRAMSPEN = REG_BIT_DEF(2, 2),
@@ -161,7 +162,7 @@ enum class AHBEN_bit : uint32_t {
     SDIOEN = REG_BIT_DEF(10, 10),
 };
 
-enum class APB2EN_Bits : uint32_t {
+enum class APB2EN_Bits {
     AFEN = REG_BIT_DEF(0, 0),
     PAEN = REG_BIT_DEF(2, 2),
     PBEN = REG_BIT_DEF(3, 3),
@@ -179,7 +180,7 @@ enum class APB2EN_Bits : uint32_t {
     ADC2EN = REG_BIT_DEF(15, 15),
 };
 
-enum class APB1EN_Bits : uint32_t {
+enum class APB1EN_Bits {
     TIMER1EN = REG_BIT_DEF(0, 0),
     TIMER2EN = REG_BIT_DEF(1, 1),
     TIMER3EN = REG_BIT_DEF(2, 2),
@@ -202,7 +203,7 @@ enum class APB1EN_Bits : uint32_t {
     DACEN = REG_BIT_DEF(29, 29),
 };
 
-enum class BDCTL_Bits : uint32_t {
+enum class BDCTL_Bits {
     LXTALEN = REG_BIT_DEF(0, 0),
     LXTALSTB = REG_BIT_DEF(1, 1),
     LXTALBPS = REG_BIT_DEF(2, 2),
@@ -212,7 +213,7 @@ enum class BDCTL_Bits : uint32_t {
     BKPRST = REG_BIT_DEF(16, 16),
 };
 
-enum class RSTSCK_Bits : uint32_t {
+enum class RSTSCK_Bits {
     IRC40KEN = REG_BIT_DEF(0, 0),
     IRC40KSTB = REG_BIT_DEF(1, 1),
     RSTFC = REG_BIT_DEF(24, 24),
@@ -224,24 +225,24 @@ enum class RSTSCK_Bits : uint32_t {
     LPRSTF = REG_BIT_DEF(31, 31),
 };
 
-enum class DSV_Bits : uint32_t {
+enum class DSV_Bits {
     DSLPVS = REG_BIT_DEF(0, 2),
 };
 
-enum class ADDCTL_Bits : uint32_t {
+enum class ADDCTL_Bits {
     CK48MSEL = REG_BIT_DEF(0, 0),
     IRC48MEN = REG_BIT_DEF(16, 16),
     IRC48MSTB = REG_BIT_DEF(17, 17),
     IRC48MCAL = REG_BIT_DEF(24, 31),
 };
 
-enum class ADDINTR_Bits : uint32_t {
+enum class ADDINTR_Bits {
     IRC48MSTBIF = REG_BIT_DEF(6, 6),
     IRC48MSTBIE = REG_BIT_DEF(14, 14),
     IRC48MSTBIC = REG_BIT_DEF(22, 22),
 };
 
-enum class CFG1_Bits : uint32_t {
+enum class CFG1_Bits {
     PREDV0 = REG_BIT_DEF(0, 3),
     PREDV1 = REG_BIT_DEF(4, 7),
     PLL1MF = REG_BIT_DEF(8, 11),
@@ -300,7 +301,6 @@ enum class RCU_PCLK {
     PCLK_TIMER7,
     PCLK_USART0,
     PCLK_ADC2,
-    PCLK_LAST
 };
 
 struct index_to_bits {
@@ -392,7 +392,6 @@ enum class RCU_PCLK_Reset {
     PCLK_TIMER7RST,
     PCLK_USART0RST,
     PCLK_ADC2RST,
-    PCLK_RST_LAST,
 };
 
 static const index_to_bits pclk_reset_index[] = {
@@ -440,7 +439,6 @@ static const index_to_bits pclk_reset_index[] = {
 enum class RCU_PCLK_Sleep {
     PCLK_SLEEP_SRAM,
     PCLK_SLEEP_FMC,
-    PCLK_SLEEP_LAST,
 };
 
 static const index_to_bits pclk_sleep_index[] = {
@@ -464,7 +462,6 @@ enum class Status_Flags {
     FLAG_FWDGTRST,
     FLAG_WWDGTRST,
     FLAG_LPRST,
-    FLAG_LAST,
 };
 
 static const index_to_bits status_flag_index[] = {
@@ -490,7 +487,6 @@ enum class Interrupt_Flags {
     INTR_FLAG_PLLSTB,
     INTR_FLAG_CKM,
     INTR_FLAG_IRC48MSTB,
-    INTR_FLAG_LAST,
 };
 
 static const index_to_bits interrupt_flag_index[] = {
@@ -511,7 +507,6 @@ enum class Clear_Flags {
     INTR_FLAG_PLLSTB_CLR,
     INTR_FLAG_CKM_CLR,
     INTR_FLAG_IRC48MSTB_CLR,
-    INTR_FLAG_CLR_LAST,
 };
 
 static const index_to_bits clear_flag_index[] = {
@@ -531,7 +526,6 @@ enum class Interrupt_Type {
     INTR_HXTALSTB,
     INTR_PLLSTB,
     INTR_IRC48MSTB,
-    INTR_ENABLE_LAST,
 };
 
 static const index_to_bits interrupt_type_index[] = {
@@ -552,7 +546,6 @@ enum class OSCI_Select {
     IRC48M,
     IRC40K,
     PLL_CK,
-    LAST,
 };
 
 static const index_to_bits osci_select_index[] = {
@@ -580,7 +573,6 @@ enum class System_Clock_Source {
     SOURCE_HXTAL,
     SOURCE_PLL,
     SOURCE_INVALID,
-    SOURCE_LAST,
 };
 
 struct System_Clock_Source_Mapping {
@@ -596,7 +588,7 @@ static const System_Clock_Source_Mapping source_mapping[] = {
 
 ///////////////////////////// AHB?APB1/APB2 BUSES /////////////////////////////
 
-enum class AHB_Prescaler : uint32_t {
+enum class AHB_Prescaler {
     CKSYS_DIV1 = 0,
     CKSYS_DIV2 = 8,
     CKSYS_DIV4 = 9,
@@ -609,7 +601,7 @@ enum class AHB_Prescaler : uint32_t {
 };
 
 // APB1 and APB2
-enum class APB_Prescaler : uint32_t {
+enum class APB_Prescaler {
     CKAHB_DIV1 = 0,
     CKAHB_DIV2 = 4,
     CKAHB_DIV4 = 5,
@@ -620,27 +612,26 @@ enum class APB_Prescaler : uint32_t {
 
 ///////////////////////////// ADC /////////////////////////////
 
-enum class ADC_Prescaler : uint32_t {
-    CKAPB2_DIV2 = 0x0,
-    CKAPB2_DIV4 = 0x1,
-    CKAPB2_DIV6 = 0x2,
-    CKAPB2_DIV8 = 0x3,
-    CKAPB2_DIV12 = 0x5,
-    CKAPB2_DIV16 = 0x7,
-    CKAHB_DIV5 = 0x8,
-    CKAHB_DIV6 = 0x9,
-    CKAHB_DIV10 = 0xA,
-    CKAHB_DIV20 = 0xB,
+enum class ADC_Prescaler {
+    CKAPB2_DIV2 = 0,
+    CKAPB2_DIV4 = 1,
+    CKAPB2_DIV6 = 2,
+    CKAPB2_DIV8 = 3,
+    CKAPB2_DIV12 = 5,
+    CKAPB2_DIV16 = 7,
+    CKAHB_DIV5 = 8,
+    CKAHB_DIV6 = 9,
+    CKAHB_DIV10 = 10,
+    CKAHB_DIV20 = 11,
 };
 
 
 ///////////////////////////// PLL /////////////////////////////
 
-enum class PLL_Source : int32_t {
+enum class PLL_Source {
     PLLSRC_IRC8M_DIV2,
     PLLSRC_HXTAL_IRC48M,
     PLLSRC_INVALID,
-    PLLSRC_LAST,
 };
 
 struct PLL_Source_Mapping {
@@ -684,14 +675,13 @@ enum class PLLMF_Select {
     PLL_MUL29,
     PLL_MUL30,
     PLL_MUL31,
-    PLL_MUL32
+    PLL_MUL32,
 };
 
 enum class PLL_Presel {
     PLLPRESRC_HXTAL,
     PLLPRESRC_IRC48M,
     PLLPRESRC_INVALID,
-    PLLPRESRC_LAST,
 };
 
 struct PLL_Presel_Mapping {
@@ -714,7 +704,7 @@ enum class USB_Prescaler {
     DIV2,
     DIV3,
     DIV3_5,
-    DIV4
+    DIV4,
 };
 
 
@@ -725,7 +715,7 @@ enum class CKOUT0_Source {
     CKOUT0SRC_CKSYS = 4,
     CKOUT0SRC_IRC8M = 5,
     CKOUT0SRC_HXTAL = 6,
-    CKOUT0SRC_CKPLL_DIV2 = 7
+    CKOUT0SRC_CKPLL_DIV2 = 7,
 };
 
 
@@ -735,7 +725,7 @@ enum class LXTAL_Drive {
     LXTAL_LOWDRI,
     LXTAL_MED_LOWDRI,
     LXTAL_MED_HIGHDRI,
-    LXTAL_HIGHDRI
+    LXTAL_HIGHDRI,
 };
 
 
@@ -745,7 +735,7 @@ enum class RTC_Source {
     RTCSRC_NONE,
     RTCSRC_LXTAL,
     RTCSRC_IRC40K,
-    RTCSRC_HXTAL_DIV_128
+    RTCSRC_HXTAL_DIV_128,
 };
 
 
@@ -755,7 +745,7 @@ enum class DeepSleep_Voltage {
     DEEPSLEEP_V_0,
     DEEPSLEEP_V_1,
     DEEPSLEEP_V_2,
-    DEEPSLEEP_V_3
+    DEEPSLEEP_V_3,
 };
 
 
@@ -763,20 +753,24 @@ enum class DeepSleep_Voltage {
 
 enum class CK48M_Source {
     CK48MSRC_CKPLL,
-    CK48MSRC_IRC48M
+    CK48MSRC_IRC48M,
 };
 
 
 ///////////////////////////// CONSTANTS /////////////////////////////
 
-static const unsigned int HXTAL_VALUE = 8000000;
-static const unsigned int IRC8M_VALUE = 8000000;
-static const unsigned int IRC48M_VALUE = 48000000;
-static const unsigned int IRC40K_VALUE = 40000;
-static const unsigned int LXTAL_VALUE = 32768;
-static const unsigned int OSC_STARTUP_TIMEOUT = 65535;
-static const unsigned int HXTAL_STARTUP_TIMEOUT = 65535;
-static const unsigned int LXTAL_STARTUP_TIMEOUT = 65535;
-static const unsigned int IRC8M_STARTUP_TIMEOUT = 1280;
+constexpr uint32_t HXTAL_VALUE = 8000000;
+constexpr uint32_t IRC8M_VALUE = 8000000;
+constexpr uint32_t IRC48M_VALUE = 48000000;
+constexpr uint32_t IRC40K_VALUE = 40000;
+constexpr uint32_t LXTAL_VALUE = 32768;
+constexpr uint32_t OSC_STARTUP_TIMEOUT = 65535;
+constexpr uint32_t HXTAL_STARTUP_TIMEOUT = 65535;
+constexpr uint32_t LXTAL_STARTUP_TIMEOUT = 65535;
+constexpr uint32_t IRC8M_STARTUP_TIMEOUT = 1280;
+
+constexpr uint8_t AHB_EXP[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
+constexpr uint8_t APB1_EXP[8] = {0, 0, 0, 0, 1, 2, 3, 4};
+constexpr uint8_t APB2_EXP[8] = {0, 0, 0, 0, 1, 2, 3, 4};
 
 } // namespace rcu

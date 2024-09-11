@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "bkp_config.hpp"
 
@@ -41,13 +41,12 @@ public:
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Clear_Flags flag);
 
-    static constexpr uint32_t BKP_baseAddress = 0x40006C00;
+    static constexpr uintptr_t BKP_baseAddress = 0x40006C00;
 
     inline volatile uint32_t *reg_address(BKP_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(BKP_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
     inline void ensure_clock_enabled() const {
         if (!is_clock_enabled) {
             RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_PMU, true);
@@ -55,18 +54,7 @@ private:
         }
     }
 
-    template<typename T>
-    inline T read_register(BKP_Regs reg) const {
-        ensure_clock_enabled();
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(BKP_Regs reg, T value) {
-        ensure_clock_enabled();
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
-
+private:
     static bool is_clock_enabled;
 };
 

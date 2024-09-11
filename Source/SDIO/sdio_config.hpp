@@ -578,19 +578,20 @@ struct SDIO_Pin_Config {
     gpio::GPIO_Base gpio_port;
     gpio::Pin_Number pin;
     gpio::Pin_Mode mode;
+    gpio::Output_Speed speed;
 };
 
-struct SDIO_Config {
-    SDIO_Pin_Config *CMD_Pin;
-    SDIO_Pin_Config *CK_Pin;
-    SDIO_Pin_Config *D0_Pin;
-    SDIO_Pin_Config *D1_Pin;
-    SDIO_Pin_Config *D2_Pin;
-    SDIO_Pin_Config *D3_Pin;
-    SDIO_Pin_Config *D4_Pin;
-    SDIO_Pin_Config *D5_Pin;
-    SDIO_Pin_Config *D6_Pin;
-    SDIO_Pin_Config *D7_Pin;
+struct SDIO_Pins {
+    SDIO_Pin_Config cmd_pin;
+    SDIO_Pin_Config ck_pin;
+    SDIO_Pin_Config d0_pin;
+    SDIO_Pin_Config d1_pin;
+    SDIO_Pin_Config d2_pin;
+    SDIO_Pin_Config d3_pin;
+    SDIO_Pin_Config d4_pin;
+    SDIO_Pin_Config d5_pin;
+    SDIO_Pin_Config d6_pin;
+    SDIO_Pin_Config d7_pin;
 };
 
 static constexpr uint32_t Check_Pattern = 0x000001AA;
@@ -622,15 +623,5 @@ constexpr uint32_t SEND_DATA = 4;
 constexpr uint32_t RECEIVE_DATA = 5;
 constexpr uint32_t PROGRAMMING = 6;
 constexpr uint32_t DISCONNECTED = 7;
-//constexpr uint32_t IDENTIFICATION;
-
-// Parameters for ACMD41 (voltage validation)
-//#define SD_HIGH_CAPACITY                    ((uint32_t)0x40000000U)    /* high capacity SD memory card */
-//#define SD_STD_CAPACITY                     ((uint32_t)0x00000000U)    /* standard capacity SD memory card */
-//#define SD_SWITCH_1_8V_CAPACITY             ((uint32_t)0x01000000U)
-
-//#define SDIO_FIFO_ADDR                      ((uint32_t)SDIO + 0x80U)	/* address of SDIO_FIFO */
-//#define SD_FIFOHALF_WORDS                   ((uint32_t)0x00000008U)		/* words of FIFO half full/empty */
-//#define SD_FIFOHALF_BYTES                   ((uint32_t)0x00000020U)		/* bytes of FIFO half full/empty */
 
 } // namespace sdio

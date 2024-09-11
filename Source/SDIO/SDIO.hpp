@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "GPIO.hpp"
@@ -18,16 +18,13 @@ class SDIO {
 public:
     SDIO() {}
 
-    // Initialize
-    void init();
     // Reset
     void reset();
-    // Configure
-    void configure(SDIO_Config *config) {
-        if (config) {
-            config_ = *config;
-        }
-        init();
+    // Initialize pins
+    void pin_config_init();
+    void pin_configure(SDIO_Pins pin_config) {
+        pin_config_ = pin_config;
+        pin_config_init();
     }
     // Clock configure
     void clock_configure(Clock_Edge edge, bool bypass, bool low_power, uint16_t divider);
@@ -90,26 +87,23 @@ public:
     // Interrupts
     void set_interrupt_enable(Interrupt_Type type, bool enable);
 
-    static constexpr uint32_t SDIO_baseAddress = 0x40018000;
+    static constexpr uintptr_t SDIO_baseAddress = 0x40018000;
 
     inline volatile uint32_t *reg_address(SDIO_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(SDIO_baseAddress + static_cast<uint32_t>(reg));
     }
 
+    inline void ensure_clock_enabled() const {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_SDIO, true);
+            is_clock_enabled = true;
+        }
+    }
+
 private:
-    // Default dummy pin config
-    SDIO_Config default_config = {};
-    SDIO_Config& config_ = default_config;
+    SDIO_Pins pin_config_;
 
-    template<typename T>
-    inline T read_register(SDIO_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(SDIO_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+    static bool is_clock_enabled;
 };
 
 } // namespace sdio

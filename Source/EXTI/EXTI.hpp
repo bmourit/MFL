@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "exti_config.hpp"
 
@@ -20,36 +20,24 @@ public:
     void init(EXTI_Line line, EXTI_Mode mode, EXTI_Trigger trigger);
     // Reset
     void reset();
-    // Flags
-    bool get_flag(EXTI_Line line);
-    void clear_flag(EXTI_Line line);
-    // Interrupt flags
-    bool get_interrupt_flag(EXTI_Line line);
-    void clear_interrupt_flag(EXTI_Line line);
     // Events
     void set_event_enable(EXTI_Line line, bool enable);
-    // Software interrupts
+    // Interrupts and flags
+    bool get_flag(EXTI_Line line);
+    void clear_flag(EXTI_Line line);
+    bool get_interrupt_flag(EXTI_Line line);
+    void clear_interrupt_flag(EXTI_Line line);
     void set_software_interrupt_enable(EXTI_Line line, bool enable);
-    // Interrupts
     void set_interrupt_enable(EXTI_Line line, bool enable);
 
-    static constexpr uint32_t EXTI_baseAddress = 0x40010400;
+    static constexpr uintptr_t EXTI_baseAddress = 0x40010400;
 
     inline volatile uint32_t *reg_address(EXTI_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(EXTI_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(EXTI_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(EXTI_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-
-    }
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
 };
 
 } // namespace exti

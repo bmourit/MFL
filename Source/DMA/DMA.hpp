@@ -6,10 +6,9 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
-#include "dma_config.hpp"
 
 namespace dma {
 
@@ -34,7 +33,10 @@ public:
     void init(DMA_Channel channel);
     // Reset
     void reset(DMA_Channel channel);
-    void configure(DMA_Channel channel, DMA_Config* update);
+    void configure(DMA_Channel channel, DMA_Config new_config) {
+        config_ = new_config;
+        init(channel);
+    }
     // Circulation mode
     void set_circulation_mode_enable(DMA_Channel channel, bool enable);
     // M2M
@@ -62,8 +64,6 @@ public:
     void clear_interrupt_flag(DMA_Channel channel, Interrupt_Flags flag);
     // Interrupts
     void set_interrupt_enable(DMA_Channel channel, Interrupt_Type type, bool enable);
-    // Validity
-    inline bool channel_validity(DMA_Channel channel);
 
     // Register address
     volatile uint32_t *reg_address(DMA_Regs reg) const {
@@ -72,6 +72,9 @@ public:
     volatile uint32_t *reg_address(DMA_Regs reg, DMA_Channel channel) const {
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(channel) * 0x14U + static_cast<uint32_t>(reg));
     }
+
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
 
     DMA_Base dma_base_index_;
 
@@ -101,7 +104,7 @@ private:
         .channel_priority = dma::Channel_Priority::LOW_PRIORITY,
         .direction = dma::Transfer_Direction::P2M,
     };
-    DMA_Config& config_ = default_config;
+    DMA_Config config_ = default_config;
 
     template <DMA_Base Base>
     static DMA& get_instance_for_base() {
@@ -109,25 +112,7 @@ private:
         return instance;
     }
 
-    template<typename T>
-    inline T read_register(DMA_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline T read_register(DMA_Regs reg, DMA_Channel channel) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg, channel));
-    }
-
-    template<typename T>
-    inline void write_register(DMA_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
-
-    template<typename T>
-    inline void write_register(DMA_Regs reg, DMA_Channel channel, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg, channel)) = value;
-    }
+    inline bool channel_validity(DMA_Channel channel);
 };
 
 } // namespace dma

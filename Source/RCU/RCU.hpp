@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "rcu_config.hpp"
 
 namespace rcu {
@@ -17,11 +17,11 @@ public:
 
     // Reset
     void reset();
-    // Set peripheral clock
+    // Peripheral clocks
     void set_pclk_enable(RCU_PCLK pclk, bool enable);
-    // Set peripheral clock sleep
+    // peripheral clock sleep
     void set_pclk_sleep_enable(RCU_PCLK_Sleep pclk, bool enable);
-    // Set peripheral clock reset
+    // peripheral clock reset
     void set_pclk_reset_enable(RCU_PCLK_Reset pclk, bool enable);
     // Backup clock reset
     void set_backup_reset_enable(bool enable);
@@ -41,8 +41,9 @@ public:
     PLL_Presel get_pll_presel();
     // PREDV0
     void set_predv0_config(uint32_t div);
-    // ADC/USB prescaler
+    // ADC prescaler
     void set_adc_prescaler(ADC_Prescaler prescaler);
+    // USB prescaler
     void set_usb_prescaler(USB_Prescaler prescaler);
     // RTC source
     void set_rtc_source(RTC_Source source);
@@ -54,54 +55,43 @@ public:
     void set_osci_enable(OSCI_Select osci, bool enable);
     bool is_osci_stable(OSCI_Select osci);
     // Clock frequency
+    inline uint32_t get_clock_source_frequency(System_Clock_Source source);
+    uint32_t calculate_pll_frequency();
+    inline uint32_t get_pll_multiplier();
     uint32_t get_clock_frequency(Clock_Frequency clock);
     // Bypass
-    void bypass_mode_enable(OSCI_Select osci);
-    void bypass_mode_disable(OSCI_Select osci);
+    void set_bypass_mode_enable(OSCI_Select osci, bool enable);
     // Adjust
     void set_irc8m_adjustment_value(uint32_t value);
     // Monitor
-    void hxtal_monitor_enable();
-    void hxtal_monitor_disable();
+    void set_hxtal_monitor_enable(bool enable);
     // Deep sleep
     void set_deep_sleep_voltage(DeepSleep_Voltage voltage);
-    // Flags
+    // Interrupts and flags
     bool get_flag(Status_Flags flag);
     void clear_all_reset_flags();
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Clear_Flags flag);
-    // Interrupts
     void set_interrupt_enable(Interrupt_Type type, bool enable);
-
-    // System startup functionality
+    // Update global variable
     void update_system_clock();
-    inline uint32_t calculate_pll_clock();
-    virtual void clocks_init();
-    // Optional
-    virtual void mfl_init() {};
-    virtual void device_init() {};
 
-    static constexpr uint32_t RCU_baseAddress = 0x40021000;
+    static constexpr uintptr_t RCU_baseAddress = 0x40021000;
 
     inline volatile uint32_t *reg_address(RCU_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(RCU_baseAddress + static_cast<uint32_t>(reg));
     }
 
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
+
+    uint32_t SystemCoreClock = IRC8M_VALUE;
+
 private:
-    template<typename T>
-    inline T read_register(RCU_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(RCU_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
-
     // Get value helpers
     bool get_value(Status_Flags flag) const {
-        const auto &info = status_flag_index[static_cast<size_t>(flag)];
-        uint32_t reg_value = read_register<uint32_t>(info.register_offset);
+        const auto& info = status_flag_index[static_cast<int>(flag)];
+        uint32_t reg_value = read_register<uint32_t>(*this, info.register_offset);
 
         const uint32_t width = info.bit_info & 0xFF;
         const uint32_t bitno = info.bit_info >> 16;
@@ -113,8 +103,8 @@ private:
     }
 
     bool get_value(Interrupt_Flags flag) const {
-        const auto &info = interrupt_type_index[static_cast<size_t>(flag)];
-        uint32_t reg_value = read_register<uint32_t>(info.register_offset);
+        const auto& info = interrupt_type_index[static_cast<int>(flag)];
+        uint32_t reg_value = read_register<uint32_t>(*this, info.register_offset);
 
         const uint32_t width = info.bit_info & 0xFF;
         const uint32_t bitno = info.bit_info >> 16;
@@ -127,7 +117,5 @@ private:
 };
 
 } // namespace rcu
-
-extern unsigned int SystemCoreClock;
 
 extern rcu::RCU RCU_DEVICE;

@@ -1945,7 +1945,7 @@ void Card::dma_transfer_configure(uint32_t *buf, uint32_t size)
     }
     dma::DMA& dma_instance = result.value();
 
-    dma::DMA_Config config = {};
+    dma::DMA_Config config;
 
     dma_instance.clear_flag(dma::DMA_Channel::CHANNEL3, dma::Status_Flags::FLAG_GIF);
     dma_instance.clear_flag(dma::DMA_Channel::CHANNEL3, dma::Status_Flags::FLAG_FTFIF);
@@ -1965,7 +1965,7 @@ void Card::dma_transfer_configure(uint32_t *buf, uint32_t size)
     config.channel_priority = dma::Channel_Priority::ULTRA_HIGH_PRIORITY;
     config.direction = dma::Transfer_Direction::M2P;
 
-    dma_instance.configure(dma::DMA_Channel::CHANNEL3, &config);
+    dma_instance.configure(dma::DMA_Channel::CHANNEL3, config);
     dma_instance.set_circulation_mode_enable(dma::DMA_Channel::CHANNEL3, false);
     dma_instance.set_channel_enable(dma::DMA_Channel::CHANNEL3, true);
 }
@@ -1981,7 +1981,7 @@ void Card::dma_receive_configure(uint32_t *buf, uint32_t size)
     }
     dma::DMA& dma_instance = result.value();
 
-    dma::DMA_Config config = {};
+    dma::DMA_Config config;
 
     dma_instance.clear_flag(dma::DMA_Channel::CHANNEL3, dma::Status_Flags::FLAG_GIF);
     dma_instance.clear_flag(dma::DMA_Channel::CHANNEL3, dma::Status_Flags::FLAG_FTFIF);
@@ -2001,7 +2001,7 @@ void Card::dma_receive_configure(uint32_t *buf, uint32_t size)
     config.channel_priority = dma::Channel_Priority::ULTRA_HIGH_PRIORITY;
     config.direction = dma::Transfer_Direction::P2M;
 
-    dma_instance.configure(dma::DMA_Channel::CHANNEL3, &config);
+    dma_instance.configure(dma::DMA_Channel::CHANNEL3, config);
     dma_instance.set_circulation_mode_enable(dma::DMA_Channel::CHANNEL3, false);
     dma_instance.set_channel_enable(dma::DMA_Channel::CHANNEL3, true);
 }

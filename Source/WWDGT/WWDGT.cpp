@@ -4,12 +4,10 @@
 
 #include "WWDGT.hpp"
 
-namespace wwdgt {
+// Initialize the static member
+bool wwdgt::WWDGT::is_clock_enabled = false;
 
-void WWDGT::init()
-{
-    RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_WWDGT, true);
-}
+namespace wwdgt {
 
 void WWDGT::reset()
 {
@@ -19,34 +17,34 @@ void WWDGT::reset()
 
 void WWDGT::enable()
 {
-    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::WDGTEN), Set);
+    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::WDGTEN), Set, true);
 }
 
 void WWDGT::update_counter(uint16_t value)
 {
-    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CNT), static_cast<uint32_t>(value));
+    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CNT), static_cast<uint32_t>(value), true);
 }
 
 void WWDGT::setup(uint16_t value, uint16_t window, Prescaler_Values prescaler)
 {
-    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CNT), static_cast<uint32_t>(value));
+    write_bit(*this, WWDGT_Regs::CTL, static_cast<uint32_t>(CTL_Bits::CNT), static_cast<uint32_t>(value), true);
     write_bits(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::WIN), static_cast<uint32_t>(window),
                static_cast<uint32_t>(CFG_Bits::PSC), static_cast<uint32_t>(prescaler));
 }
 
 bool WWDGT::get_flag()
 {
-    return (read_bit(*this, WWDGT_Regs::STAT, static_cast<uint32_t>(STAT_Bits::EWIF) != Clear));
+    return (read_bit(*this, WWDGT_Regs::STAT, static_cast<uint32_t>(STAT_Bits::EWIF) != Clear), true);
 }
 
 void WWDGT::clear_flag()
 {
-    write_register(WWDGT_Regs::STAT, Clear);
+    write_register(*this, WWDGT_Regs::STAT, Clear, true);
 }
 
 void WWDGT::set_interrupt_enable(bool enable)
 {
-    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), enable ? Set : Clear);
+    write_bit(*this, WWDGT_Regs::CFG, static_cast<uint32_t>(CFG_Bits::EWIE), enable ? Set : Clear, true);
 }
 
 } // namespace wwdgt

@@ -11,33 +11,28 @@ constexpr uint32_t WriteEnable = 0x00005555;
 constexpr uint32_t TimeoutValue = 0x000FFFFF;
 constexpr uint32_t ReloadValue = 0x0000AAAA;
 
-void FWDGT::enable()
-{
-    write_register(FWDGT_Regs::CTL, EnableValue);
+void FWDGT::enable() {
+    write_register(*this, FWDGT_Regs::CTL, EnableValue);
 }
 
-void FWDGT::write_enable()
-{
-    write_register(FWDGT_Regs::CTL, WriteEnable);
+void FWDGT::write_enable() {
+    write_register(*this, FWDGT_Regs::CTL, WriteEnable);
 }
 
-void FWDGT::write_disable()
-{
-    write_register(FWDGT_Regs::CTL, Clear);
+void FWDGT::write_disable() {
+    write_register(*this, FWDGT_Regs::CTL, Clear);
 }
 
-void FWDGT::set_write_enable(bool enable)
-{
-    write_register(FWDGT_Regs::CTL, enable ? WriteEnable : Clear);
+void FWDGT::set_write_enable(bool enable) {
+    write_register(*this, FWDGT_Regs::CTL, enable ? WriteEnable : Clear);
 }
 
-bool FWDGT::set_prescaler(Prescaler_Values value)
-{
+bool FWDGT::set_prescaler(Prescaler_Values value) {
     uint32_t timeout = TimeoutValue;
     uint32_t status = Clear;
 
     // Enable write access
-    write_register(FWDGT_Regs::CTL, WriteEnable);
+    write_register(*this, FWDGT_Regs::CTL, WriteEnable);
 
     // Wait for PUD flag cleaar
     do {
@@ -47,20 +42,18 @@ bool FWDGT::set_prescaler(Prescaler_Values value)
     if (status != Clear) {
         return true;
     }
-
     // Set the prescaler
-    write_register(FWDGT_Regs::PSC, value);
+    write_register(*this, FWDGT_Regs::PSC, static_cast<uint32_t>(value));
 
     return false;
 }
 
-bool FWDGT::set_reload_prescaler(uint16_t reload, Prescaler_Values prescaler)
-{
+bool FWDGT::set_reload_prescaler(uint16_t reload, Prescaler_Values prescaler) {
     uint32_t timeout = TimeoutValue;
     uint32_t status = Clear;
 
     // Enable write access
-    write_register(FWDGT_Regs::CTL, WriteEnable);
+    write_register(*this, FWDGT_Regs::CTL, WriteEnable);
 
     do {
         status = read_bit(*this, FWDGT_Regs::STAT, static_cast<uint32_t>(STAT_Bits::PUD));
@@ -69,9 +62,8 @@ bool FWDGT::set_reload_prescaler(uint16_t reload, Prescaler_Values prescaler)
     if (status != Clear) {
         return true;
     }
-
     // Initialize prescaler
-    write_register(FWDGT_Regs::PSC, prescaler);
+    write_register(*this, FWDGT_Regs::PSC, static_cast<uint32_t>(prescaler));
 
     timeout = TimeoutValue;
     do {
@@ -81,22 +73,20 @@ bool FWDGT::set_reload_prescaler(uint16_t reload, Prescaler_Values prescaler)
     if (status != Clear) {
         return true;
     }
-
     write_bit(*this, FWDGT_Regs::RLD, static_cast<uint32_t>(RLD_Bits::RLD), static_cast<uint32_t>(reload));
 
     // counter reload
-    write_register(FWDGT_Regs::CTL, ReloadValue);
+    write_register(*this, FWDGT_Regs::CTL, ReloadValue);
 
     return false;
 }
 
-bool FWDGT::set_reload(uint16_t reload)
-{
+bool FWDGT::set_reload(uint16_t reload) {
     uint32_t timeout = TimeoutValue;
     uint32_t status = Clear;
 
     // Enable write access
-    write_register(FWDGT_Regs::CTL, WriteEnable);
+    write_register(*this, FWDGT_Regs::CTL, WriteEnable);
 
     // Wait for RUD flag to clear
     do {
@@ -106,21 +96,17 @@ bool FWDGT::set_reload(uint16_t reload)
     if (status != Clear) {
         return true;
     }
-
     write_bit(*this, FWDGT_Regs::RLD, static_cast<uint32_t>(RLD_Bits::RLD), static_cast<uint32_t>(reload));
 
     return false;
 }
 
-void FWDGT::reload_counter()
-{
-    write_register(FWDGT_Regs::CTL, ReloadValue);
+void FWDGT::reload_counter() {
+    write_register(*this, FWDGT_Regs::CTL, ReloadValue);
 }
 
-bool FWDGT::get_flag(Status_Flags flag)
-{
+bool FWDGT::get_flag(Status_Flags flag) {
     return (read_bit(*this, FWDGT_Regs::STAT, static_cast<uint32_t>(flag)) != Clear);
-
 }
 
 } // namespace fwdgt

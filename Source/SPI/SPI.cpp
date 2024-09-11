@@ -10,53 +10,6 @@ bool spi::SPI::is_clock_enabled = false;
 namespace spi {
 
 void SPI::init() {
-    auto configure_pin = [](gpio::GPIO& port, const SPI_Pin_Config& pin_config) {
-        port.init_pin(pin_config.pin, pin_config.mode, pin_config.speed);
-    };
-
-    auto mosi_result = gpio::GPIO::get_instance(config_.mosi_pin.gpio_port);
-    if (mosi_result.error() != gpio::GPIO_Error_Type::OK) {
-        return;
-    }
-
-    gpio::GPIO& mosi_port = mosi_result.value();
-    configure_pin(mosi_port, config_.mosi_pin);
-
-    if (config_.miso_pin.gpio_port != config_.mosi_pin.gpio_port) {
-        auto miso_result = gpio::GPIO::get_instance(config_.miso_pin.gpio_port);
-        if (miso_result.error() != gpio::GPIO_Error_Type::OK) {
-            return;
-        }
-        gpio::GPIO& miso_port = miso_result.value();
-        configure_pin(miso_port, config_.miso_pin);
-    } else {
-        configure_pin(mosi_port, config_.miso_pin);
-    }
-
-    if (config_.sclk_pin.gpio_port == config_.mosi_pin.gpio_port) {
-        configure_pin(mosi_port, config_.sclk_pin);
-    } else {
-        auto sclk_result = gpio::GPIO::get_instance(config_.sclk_pin.gpio_port);
-        if (sclk_result.error() != gpio::GPIO_Error_Type::OK) {
-            return;
-        }
-        gpio::GPIO& sclk_port = sclk_result.value();
-        configure_pin(sclk_port, config_.sclk_pin);
-    }
-
-    if (config_.use_ssel_pin == true) {
-        if (config_.ssel_pin.gpio_port == config_.mosi_pin.gpio_port) {
-            configure_pin(mosi_port, config_.ssel_pin);
-        } else {
-            auto ssel_result = gpio::GPIO::get_instance(config_.ssel_pin.gpio_port);
-            if (ssel_result.error() != gpio::GPIO_Error_Type::OK) {
-                return;
-            }
-            gpio::GPIO& ssel_port = ssel_result.value();
-            configure_pin(ssel_port, config_.ssel_pin);
-        }
-    }
-
     // Frame format
     if (config_.frame_format == Frame_Format::FF_16BIT) {
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::FF16), Set);
@@ -120,6 +73,55 @@ void SPI::init() {
     }
 }
 
+void SPI::pin_config_init() {
+    auto configure_pin = [](gpio::GPIO& port, const SPI_Pin_Config& pin_config) {
+        port.init_pin(pin_config.pin, pin_config.mode, pin_config.speed);
+    };
+
+    auto mosi_result = gpio::GPIO::get_instance(pin_config_.mosi_pin.gpio_port);
+    if (mosi_result.error() != gpio::GPIO_Error_Type::OK) {
+        return;
+    }
+
+    gpio::GPIO& mosi_port = mosi_result.value();
+    configure_pin(mosi_port, pin_config_.mosi_pin);
+
+    if (pin_config_.miso_pin.gpio_port != pin_config_.mosi_pin.gpio_port) {
+        auto miso_result = gpio::GPIO::get_instance(pin_config_.miso_pin.gpio_port);
+        if (miso_result.error() != gpio::GPIO_Error_Type::OK) {
+            return;
+        }
+        gpio::GPIO& miso_port = miso_result.value();
+        configure_pin(miso_port, pin_config_.miso_pin);
+    } else {
+        configure_pin(mosi_port, pin_config_.miso_pin);
+    }
+
+    if (pin_config_.sclk_pin.gpio_port == pin_config_.mosi_pin.gpio_port) {
+        configure_pin(mosi_port, pin_config_.sclk_pin);
+    } else {
+        auto sclk_result = gpio::GPIO::get_instance(pin_config_.sclk_pin.gpio_port);
+        if (sclk_result.error() != gpio::GPIO_Error_Type::OK) {
+            return;
+        }
+        gpio::GPIO& sclk_port = sclk_result.value();
+        configure_pin(sclk_port, pin_config_.sclk_pin);
+    }
+
+    if (pin_config_.use_ssel_pin == true) {
+        if (pin_config_.ssel_pin.gpio_port == pin_config_.mosi_pin.gpio_port) {
+            configure_pin(mosi_port, pin_config_.ssel_pin);
+        } else {
+            auto ssel_result = gpio::GPIO::get_instance(pin_config_.ssel_pin.gpio_port);
+            if (ssel_result.error() != gpio::GPIO_Error_Type::OK) {
+                return;
+            }
+            gpio::GPIO& ssel_port = ssel_result.value();
+            configure_pin(ssel_port, pin_config_.ssel_pin);
+        }
+    }
+}
+
 void SPI::enable() {
     write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SPIEN), Set);
 }
@@ -153,11 +155,11 @@ void SPI::data_frame_format_config(Frame_Format frame_format) {
 }
 
 void SPI::data_transmit(uint16_t data) {
-    write_register(SPI_Regs::DATA, static_cast<uint32_t>(data));
+    write_register(*this, SPI_Regs::DATA, static_cast<uint32_t>(data));
 }
 
 uint16_t SPI::data_receive() {
-    uint32_t value = read_register<uint32_t>(SPI_Regs::DATA);
+    uint32_t value = read_register<uint32_t>(*this, SPI_Regs::DATA);
     return static_cast<uint16_t>(value);
 }
 
@@ -174,11 +176,11 @@ void SPI::bidirectional_transfer_config(Direction_Mode transfer_direction) {
 }
 
 void SPI::set_crc_polynomial(uint16_t crc_poly) {
-    write_register(SPI_Regs::CRCPOLY, static_cast<uint32_t>(crc_poly));
+    write_register(*this, SPI_Regs::CRCPOLY, static_cast<uint32_t>(crc_poly));
 }
 
 uint16_t SPI::get_crc_polynomial() {
-    uint32_t value = read_register<uint32_t>(SPI_Regs::CRCPOLY);
+    uint32_t value = read_register<uint32_t>(*this, SPI_Regs::CRCPOLY);
     return static_cast<uint16_t>(value);
 }
 
@@ -193,10 +195,10 @@ void SPI::set_crc_next() {
 uint16_t SPI::get_crc(CRC_Direction crc) {
     uint32_t value = 0;
     if (crc == CRC_Direction::CRC_TX) {
-        value = read_register<uint32_t>(SPI_Regs::TCRC);
+        value = read_register<uint32_t>(*this, SPI_Regs::TCRC);
         return static_cast<uint16_t>(value);
     } else {
-        value = read_register<uint32_t>(SPI_Regs::RCRC);
+        value = read_register<uint32_t>(*this, SPI_Regs::RCRC);
         return static_cast<uint16_t>(value);
     }
 }
@@ -230,8 +232,8 @@ bool SPI::get_flag(Status_Flags flag) {
 }
 
 bool SPI::get_interrupt_flag(Interrupt_Flags flag) {
-    uint32_t stat = read_register<uint32_t>(SPI_Regs::STAT);
-    uint32_t ctl = read_register<uint32_t>(SPI_Regs::CTL1);
+    uint32_t stat = read_register<uint32_t>(*this, SPI_Regs::STAT);
+    uint32_t ctl = read_register<uint32_t>(*this, SPI_Regs::CTL1);
 
     switch (flag) {
     case Interrupt_Flags::INTR_FLAG_TBE:

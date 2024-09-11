@@ -14,8 +14,6 @@ class CORTEX {
 public:
     CORTEX() {}
 
-    void set_system_low_power_mode(Low_Power_Mode mode);        // DEPRECATED - use set_low_power_mode_enable
-    void reset_system_low_power_mode(Low_Power_Mode mode);      // DEPRECATED - use set_low_power_mode_enable
     void set_low_power_mode_enable(Low_Power_Mode mode, bool enable);
     // SysTick
     void set_systick_source(Systick_Source source);

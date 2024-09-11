@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "gpio_config.hpp"
@@ -39,7 +39,11 @@ public:
     }
 
     // Initialize
-    void init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed);
+    void init_pin(Pin_Number pin, Pin_Mode mode, Output_Speed speed = Output_Speed::SPEED_50MHZ);
+    void reset() {
+        RCU_DEVICE.set_pclk_reset_enable(GPIO_pclk_info_.reset_reg, true);
+        RCU_DEVICE.set_pclk_reset_enable(GPIO_pclk_info_.reset_reg, false);
+    }
     // Pin pull
     void set_pin_high(Pin_Bit_Mask pin);
     void set_pin_low(Pin_Bit_Mask pin);
@@ -64,6 +68,9 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
+
 private:
     GPIO(GPIO_Base Base) : GPIO_pclk_info_(GPIO_pclk_index[static_cast<int>(Base)]),
         base_address_(GPIO_baseAddress[static_cast<int>(Base)]),
@@ -85,16 +92,6 @@ private:
     static GPIO& get_instance_for_base() {
         static GPIO instance(Base);
         return instance;
-    }
-
-    template<typename T>
-    inline T read_register(GPIO_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(GPIO_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
 };
 

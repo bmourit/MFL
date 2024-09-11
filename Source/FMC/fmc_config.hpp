@@ -118,32 +118,72 @@ enum class WPX_Bits {
 
 ///////////////////////////// ENUMS /////////////////////////////
 
-enum class Interrupt_Types {
-    INTR_BANK0_END,		// CTL0 ENDIE
-    INTR_BANK0_ERR,		// CTL0 ERRIE
-    INTR_BANK1_END,		// CTL1 ENDIE
-    INTR_BANK1_ERR		// CTL1 ERRIE
+struct index_to_bits {
+    FMC_Regs register_offset;
+    uint32_t bit_info;
 };
 
 enum class Status_Flags {
-    FLAG_BANK0_BUSY,	// STAT0 BUSY
-    FLAG_BANK0_PGERR, 	// STAT0 PGERR
-    FLAG_BANK0_WPERR,	// STAT0 WPERR
-    FLAG_BANK0_END,		// STAT0 ENDF
-    FLAG_OBERR,			// OBSTAT OBERR
-    FLAG_BANK1_BUSY,	// STAT1 BUSY
-    FLAG_BANK1_PGERR,	// STAT1 PGERR
-    FLAG_BANK1_WPERR,	// STAT1 WPERR
-    FLAG_BANK1_END    	// STAT1 ENDF
+    FLAG_BANK0_BUSY,
+    FLAG_BANK0_PGERR,
+    FLAG_BANK0_WPERR,
+    FLAG_BANK0_END,
+    FLAG_OBERR,
+    FLAG_BANK1_BUSY,
+    FLAG_BANK1_PGERR,
+    FLAG_BANK1_WPERR,
+    FLAG_BANK1_END,
+};
+
+static const index_to_bits status_flag_index[] = {
+    {FMC_Regs::STAT0, REG_BIT_DEF(0, 0)},
+    {FMC_Regs::STAT0, REG_BIT_DEF(2, 2)},
+    {FMC_Regs::STAT0, REG_BIT_DEF(4, 4)},
+    {FMC_Regs::STAT0, REG_BIT_DEF(5, 5)},
+    {FMC_Regs::OBSTAT, REG_BIT_DEF(0, 0)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(0, 0)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(2, 2)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(4, 4)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(5, 5)},
+};
+
+struct index_to_reg_bits {
+    FMC_Regs flag_register_offset;
+    uint32_t flag_bit_info;
+    FMC_Regs interrupt_register_offset;
+    uint32_t interrupt_bit_info;
 };
 
 enum class Interrupt_Flags {
-    INTR_FLAG_BANK0_PGERR,  // FMC_STAT0 PGERR, CTL0 ERRIE
-    INTR_FLAG_BANK0_WPERR,  // FMC_STAT0 WPERR, CTL0 ERRIE
-    INTR_FLAG_BANK0_END,    // FMC_STAT0 ENDF, CTL0 ENDIE
-    INTR_FLAG_BANK1_PGERR,  // FMC_STAT1 PGERR, CTL1 ERRIE
-    INTR_FLAG_BANK1_WPERR,  // FMC_STAT1 WPERR, CTL1 ERRIE
-    INTR_FLAG_BANK1_END,    // FMC_STAT1 ENDF, CTL1 ENDIE
+    INTR_FLAG_BANK0_PGERR,
+    INTR_FLAG_BANK0_WPERR,
+    INTR_FLAG_BANK0_END,
+    INTR_FLAG_BANK1_PGERR,
+    INTR_FLAG_BANK1_WPERR,
+    INTR_FLAG_BANK1_END,
+};
+
+static const index_to_reg_bits interrupt_flag_index[] = {
+    {FMC_Regs::STAT0, REG_BIT_DEF(2, 2), FMC_Regs::CTL0, REG_BIT_DEF(10, 10)},
+    {FMC_Regs::STAT0, REG_BIT_DEF(4, 4), FMC_Regs::CTL0, REG_BIT_DEF(10, 10)},
+    {FMC_Regs::STAT0, REG_BIT_DEF(5, 5), FMC_Regs::CTL0, REG_BIT_DEF(12, 12)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(2, 2), FMC_Regs::CTL1, REG_BIT_DEF(10, 10)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(4, 4), FMC_Regs::CTL1, REG_BIT_DEF(10, 10)},
+    {FMC_Regs::STAT1, REG_BIT_DEF(5, 5), FMC_Regs::CTL1, REG_BIT_DEF(12, 12)},
+};
+
+enum class Interrupt_Types {
+    INTR_BANK0_END,
+    INTR_BANK0_ERR,
+    INTR_BANK1_END,
+    INTR_BANK1_ERR,
+};
+
+static const index_to_bits interrupt_type_index[] = {
+    {FMC_Regs::CTL0, REG_BIT_DEF(12, 12)},
+    {FMC_Regs::CTL0, REG_BIT_DEF(10, 10)},
+    {FMC_Regs::CTL1, REG_BIT_DEF(12, 12)},
+    {FMC_Regs::CTL1, REG_BIT_DEF(10, 10)},
 };
 
 enum class Wait_State {
@@ -214,10 +254,9 @@ enum class WP_Sector {
     OB_WP_29 = (1 << 29),
     OB_WP_30 = (1 << 30),
     OB_WP_31 = (1 << 31),
-    //OB_WP_ALL = 0xFFFFFFFF,
 };
 
-enum class FMC_State {
+enum class FMC_Error_Type {
     READY,
     BUSY,
     PG_ERROR,
@@ -228,16 +267,12 @@ enum class FMC_State {
 
 ///////////////////////////// CONSTANTS /////////////////////////////
 
-// Keys
-static const unsigned int UNLOCK_KEY0 = 0x45670123;
-static const unsigned int UNLOCK_KEY1 = 0xCDEF89AB;
+constexpr uint32_t Unlock_Key0 = 0x45670123;
+constexpr uint32_t Unlock_Key1 = 0xCDEF89AB;
+constexpr uint32_t Timeout_Count = 0x0FFF0000;
 
-// Timeout
-static const unsigned int FMC_TIMEOUT_COUNT = 0x0FFF0000;
-
-// Bank
-static const unsigned int BANK0_END_ADDRESS = 0x0807FFFF;
-static const unsigned int BANK0_SIZE = 0x00000200;
-static const volatile uint16_t *const MAX_SIZE = reinterpret_cast<const volatile uint16_t*>(0x1FFFF7E0U);
+constexpr uint32_t Bank0_End_Address = 0x0807FFFF;
+constexpr uint32_t Bank0_Size = 0x00000200;
+constexpr uintptr_t Flash_Size_Addess = 0x1FFFF7E0;
 
 } // namespace fmc

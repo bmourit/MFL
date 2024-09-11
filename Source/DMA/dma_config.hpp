@@ -20,7 +20,7 @@ enum class DMA_Base {
     DMA1_BASE,
 };
 
-static constexpr unsigned int DMA_baseAddress[] = {
+static constexpr uintptr_t DMA_baseAddress[] = {
     0x40020000,
     0x40020400,
 };

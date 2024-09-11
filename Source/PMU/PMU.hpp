@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "pmu_config.hpp"
 
@@ -14,13 +14,14 @@ namespace pmu {
 
 class PMU {
 public:
-    PMU();
+    PMU() {}
 
     // Reset
-    void reset();
-    // Clock
-    void set_pclk_enable(bool enable);
-    // Low volatage detection
+    void reset() {
+        RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, true);
+        RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, false);
+    }
+    // Low voltage detection
     void lvd_enable(LVD_Threshold threshold);
     void lvd_disable();
     // Output voltage
@@ -51,22 +52,21 @@ public:
     bool get_flag(Status_Flags flag);
     void clear_flag(Clear_Flags flag);
 
-    static constexpr uint32_t PMU_baseAddress = 0x40007000;
+    static constexpr uintptr_t PMU_baseAddress = 0x40007000;
 
     inline volatile uint32_t *reg_address(PMU_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(PMU_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(PMU_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
+    inline void ensure_clock_enabled() const {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_PMU, true);
+            is_clock_enabled = true;
+        }
     }
 
-    template<typename T>
-    inline void write_register(PMU_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+private:
+    static bool is_clock_enabled;
 };
 
 } // namespace pmu

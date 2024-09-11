@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "gpio_config.hpp"
 
@@ -14,10 +14,12 @@ namespace gpio {
 
 class AFIO {
 public:
-    AFIO();
+    AFIO() {}
 
-    void reset();
-    void set_pclk_enable(bool enable);
+    void reset() {
+        RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_AFRST, true);
+        RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_AFRST, false);
+    }
     void set_remap(Pin_Remap_Select remap);
     void set_exti_source(Source_Port port, Pin_Number pin);
     void set_output_event(Event_Port port, Pin_Number pin);
@@ -25,22 +27,21 @@ public:
     void set_compensation(bool enable);
     bool get_compensation();
 
-    static constexpr uint32_t AFIO_baseAddress = 0x40010000;
+    static constexpr uintptr_t AFIO_baseAddress = 0x40010000;
 
     inline volatile uint32_t *reg_address(AFIO_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(AFIO_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
-    template<typename T>
-    inline T read_register(AFIO_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
+    inline void ensure_clock_enabled() const {
+        if (!is_clock_enabled) {
+            RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_AF, true);
+            is_clock_enabled = true;
+        }
     }
 
-    template<typename T>
-    inline void write_register(AFIO_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+private:
+    static bool is_clock_enabled;
 };
 
 } // namespace gpio

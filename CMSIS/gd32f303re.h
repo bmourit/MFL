@@ -12,11 +12,11 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////////////////////////
 
 // Cortex-M4 processor and peripherals configuration
-#define __CM4_REV                 0x0001	// Core revision r0p1
-#define __MPU_PRESENT             0			// GD32F30x provide MPU
-#define __NVIC_PRIO_BITS          4			// GD32F30x uses 4 bits for the priority levels
-#define __Vendor_SysTickConfig    0			// set to 1 if different SysTick config is used
-#define __FPU_PRESENT		  1
+#define __CM4_REV                 0x0001    // Core revision r0p1
+#define __MPU_PRESENT             0         // GD32F30x provide MPU
+#define __NVIC_PRIO_BITS          4         // GD32F30x uses 4 bits for the priority levels
+#define __Vendor_SysTickConfig    0         // set to 1 if different SysTick config is used
+#define __FPU_PRESENT             1
 
 // IRQs
 typedef enum IRQn {
@@ -90,13 +90,11 @@ typedef enum IRQn {
     DMA1_Channel0_IRQn           = 56,
     DMA1_Channel1_IRQn           = 57,
     DMA1_Channel2_IRQn           = 58,
-    DMA1_Channel3_Channel4_IRQn  = 59
+    DMA1_Channel3_Channel4_IRQn  = 59,
 } IRQn_Type;
 
 #include "core_cm4.h"
 #include <stdint.h>
-
-extern void system_startup();
 
 #ifdef __cplusplus
 }

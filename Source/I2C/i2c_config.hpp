@@ -19,7 +19,7 @@ enum class I2C_Base {
     I2C1_BASE,
 };
 
-static constexpr unsigned int I2C_baseAddress[] = {
+static constexpr uintptr_t I2C_baseAddress[] = {
     0x40005400, // I2C0
     0x40005800, // I2C1
 };
@@ -316,16 +316,16 @@ static const I2C_Clock_Config I2C_pclk_index[] = {
     {rcu::RCU_PCLK::PCLK_I2C1, rcu::RCU_PCLK_Reset::PCLK_I2C1RST},
 };
 
-struct I2C_PinOps {
+struct I2C_Pin_Config {
     gpio::GPIO_Base gpio_port;
     gpio::Pin_Number pin;
     gpio::Pin_Mode mode;
     gpio::Output_Speed speed;
 };
 
-struct I2C_Config {
-    I2C_PinOps sda_pin;
-    I2C_PinOps scl_pin;
+struct I2C_Pins {
+    I2C_Pin_Config sda_pin;
+    I2C_Pin_Config scl_pin;
 };
 
 

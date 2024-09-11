@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "RCU.hpp"
 #include "dac_config.hpp"
 
@@ -38,13 +38,12 @@ public:
     void set_dual_output_buffer_enable(bool enable);
     void set_dual_data(Data_Align align, uint16_t data0, uint16_t data1);
 
-    static constexpr uint32_t DAC_baseAddress = 0x40007400;
+    static constexpr uintptr_t DAC_baseAddress = 0x40007400;
 
     inline volatile uint32_t *reg_address(DAC_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(DAC_baseAddress + static_cast<uint32_t>(reg));
     }
 
-private:
     inline void ensure_clock_enabled() const {
         if (!is_clock_enabled) {
             RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_DAC, true);
@@ -54,18 +53,7 @@ private:
         }
     }
 
-    template<typename T>
-    inline T read_register(DAC_Regs reg) const {
-        ensure_clock_enabled();
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(DAC_Regs reg, T value) {
-        ensure_clock_enabled();
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
-
+private:
     static bool is_clock_enabled;
 };
 

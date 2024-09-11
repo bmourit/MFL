@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "adc_config.hpp"
@@ -64,15 +64,13 @@ public:
     void watchdog_disable();
     void set_watchdog_threshold(uint16_t low, uint16_t high);
     // Oversample
-    void set_oversampling_configuration(Oversampling_Convertion mode, Oversampling_Shift shift, Oversampling_Ratio ratio);
+    void set_oversampling_configuration(Oversampling_Conversion mode, Oversampling_Shift shift, Oversampling_Ratio ratio);
     void set_oversampling_enable(bool enable);
-    // Flags
-    bool get_flag(STAT_Bits flag);
-    void clear_flag(STAT_Bits flag);
-    // Interrupt flags
+    // Interrupts and flags
+    bool get_flag(Status_Flags flag);
+    void clear_flag(Status_Flags flag);
     bool get_interrupt_flag(Interrupt_Flags flag);
     void clear_interrupt_flag(Interrupt_Flags flag);
-    // Interrupts
     void set_interrupt_enable(Interrupt_Type type, bool enable);
 
     inline volatile uint32_t *reg_address(ADC_Regs reg) const {
@@ -82,6 +80,9 @@ public:
     inline volatile uint32_t *reg_address(ADC_Regs reg, uint32_t extra_offset) const {
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg) + extra_offset);
     }
+
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
 
 private:
     ADC(ADC_Base Base) : ADC_pclk_info_(ADC_pclk_index[static_cast<int>(Base)]),
@@ -104,15 +105,10 @@ private:
         return instance;
     }
 
-    template<typename T>
-    inline T read_register(ADC_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(ADC_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
+    void set_sampling_time(ADC_Channel channel, ADC_Sample_Time sample_time);
+    void configure_channel(uint32_t reg, uint8_t rank, ADC_Channel channel);
+    void toggle_special_function(ADC_Regs reg, uint32_t bit, bool enable);
+    void set_discontinuous_mode_bits(Channel_Group_Type channel_group, uint8_t length);
 };
 
 }  // namespace adc

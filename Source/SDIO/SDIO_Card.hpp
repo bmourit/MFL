@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <functional>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "SDIO.hpp"
 #include "DMA.hpp"
 #include "sdio_config.hpp"
@@ -63,11 +63,13 @@ public:
     void dma_transfer_configure(uint32_t *buf, uint32_t size);
     void dma_receive_configure(uint32_t *buf, uint32_t size);
 
-    static constexpr uint32_t SDIO_baseAddress = 0x40018000;
+    static constexpr uintptr_t SDIO_baseAddress = 0x40018000;
 
     inline volatile uint32_t *reg_address(SDIO_Regs reg) const {
         return reinterpret_cast<volatile uint32_t *>(SDIO_baseAddress + static_cast<uint32_t>(reg));
     }
+
+    inline void ensure_clock_enabled() const {}
 
 private:
     SDIO& sdio_;
@@ -86,16 +88,6 @@ private:
 
     volatile uint32_t transfer_end_;
     volatile uint32_t count_;
-
-    template<typename T>
-    inline T read_register(SDIO_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(SDIO_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
-    }
 };
 
 } // namespace sdio

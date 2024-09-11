@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "GPIO.hpp"
@@ -31,19 +31,17 @@ public:
         }
     }
 
-    // Initialize
-    void init();
     // Reset
     void reset() {
         RCU_DEVICE.set_pclk_reset_enable(I2C_pclk_info_.reset_reg, true);
         RCU_DEVICE.set_pclk_reset_enable(I2C_pclk_info_.reset_reg, false);
     }
+    // Initialize pins
+    void pin_config_init();
     // Configure
-    void configure(I2C_Config* config) {
-        if (config) {
-            config_ = *config;
-        }
-        init();
+    void pins_configure(I2C_Pins pin_config) {
+        pin_config_ = pin_config;
+        pin_config_init();
     }
     I2C_Error_Type set_clock_speed_duty(uint32_t speed, Duty_Cycle duty);
     void set_address_format(uint32_t address, Address_Format format, Bus_Mode mode);
@@ -80,6 +78,9 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
+
 private:
     I2C(I2C_Base Base) : I2C_pclk_info_(I2C_pclk_index[static_cast<int>(Base)]),
         base_address_(I2C_baseAddress[static_cast<int>(Base)]) {
@@ -95,23 +96,12 @@ private:
     uint32_t base_address_;
     static bool is_clock_enabled;
 
-    I2C_Config default_config = {};
-    I2C_Config config_ = default_config;
+    I2C_Pins pin_config_;
 
     template <I2C_Base Base>
     static I2C& get_instance_for_base() {
         static I2C instance(Base);
         return instance;
-    }
-
-    template<typename T>
-    inline T read_register(I2C_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(I2C_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
 
     bool get_value(Status_Flags flag) const {

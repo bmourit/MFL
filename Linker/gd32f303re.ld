@@ -7,8 +7,8 @@ _Min_Stack_Size = 0x400;     /* required amount of stack */
 /* memory map */
 MEMORY
 {
+  FLASH (rx) : ORIGIN = 0x08007000, LENGTH = 512K - 0x7000
   RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 64K - 40
-  FLASH (rx) : ORIGIN = 0x08000000 + 0x7000, LENGTH = 512K - 0x7000
 }
 
 SECTIONS
@@ -19,9 +19,8 @@ SECTIONS
   {
     . = ALIGN(4);
     KEEP(*(.isr_vector)) /* Startup code */
-    KEEP(*(.vector_table))
     . = ALIGN(4);
-  } >FLASH
+  } >FLASH AT> FLASH
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :
@@ -36,10 +35,10 @@ SECTIONS
     KEEP (*(.fini))
     . = ALIGN(4);
     _etext = .;     /* define a global symbols at end of code */
-  } >FLASH
+  } >FLASH AT> FLASH
 
   /* Constant data into "FLASH" Rom type memory */
-  .rodata :
+  .rodata (READONLY) :
   {
     . = ALIGN(4);
     *(.rodata)      /* .rodata sections (constants, strings, etc.) */
@@ -47,13 +46,13 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .ARM.extab : {
+  .ARM.extab (READONLY) : {
     . = ALIGN(4);
     *(.ARM.extab* .gnu.linkonce.armextab.*)
     . = ALIGN(4);
   } >FLASH
 
-  .ARM : {
+  .ARM (READONLY) : {
     . = ALIGN(4);
     __exidx_start = .;
     *(.ARM.exidx*)
@@ -61,7 +60,7 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .preinit_array :
+  .preinit_array (READONLY) :
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__preinit_array_start = .);
@@ -70,7 +69,7 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .init_array :
+  .init_array (READONLY) :
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__init_array_start = .);
@@ -80,7 +79,7 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .fini_array :
+  .fini_array (READONLY) :
   {
     . = ALIGN(4);
     PROVIDE_HIDDEN (__fini_array_start = .);

@@ -6,50 +6,34 @@
 #include "PMU.hpp"
 #include "PMU_C.h"
 
+// Initialize the static member
+bool pmu::PMU::is_clock_enabled = false;
+
 namespace pmu {
-
-PMU::PMU() {
-    RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_PMU, true);
-    RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, true);
-    RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, false);
-}
-
-// Reset PMU
-void PMU::reset()
-{
-    RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, true);
-    RCU_DEVICE.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_PMURST, false);
-}
-
-// Enable PMU pclk
-void PMU::set_pclk_enable(bool enable)
-{
-    RCU_DEVICE.set_pclk_enable(rcu::RCU_PCLK::PCLK_PMU, enable);
-}
 
 // Enable low voltage detection (LVD)
 void PMU::lvd_enable(LVD_Threshold threshold)
 {
     // Reset
     write_bits(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LVDEN), Clear,
-            static_cast<uint32_t>(CTL_Bits::LVDT), Clear,
-            static_cast<uint32_t>(CTL_Bits::LVDT), static_cast<uint32_t>(threshold),
-            static_cast<uint32_t>(CTL_Bits::LVDEN), Set);
+               static_cast<uint32_t>(CTL_Bits::LVDT), Clear,
+               static_cast<uint32_t>(CTL_Bits::LVDT), static_cast<uint32_t>(threshold),
+               static_cast<uint32_t>(CTL_Bits::LVDEN), Set);
 }
 
 void PMU::lvd_disable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LVDEN), Clear);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LVDEN), Clear, true);
 }
 
 void PMU::set_ldo_output(Output_Voltage level)
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDOVS), static_cast<uint32_t>(level));
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDOVS), static_cast<uint32_t>(level), true);
 }
 
 void PMU::high_driver_switch(bool enable)
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDS), enable ? Set : Clear);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDS), enable ? Set : Clear, true);
     while (get_flag(Status_Flags::HDSR_FLAG) == false) {
         // Just wait
     }
@@ -57,7 +41,7 @@ void PMU::high_driver_switch(bool enable)
 
 void PMU::high_driver_enable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDEN), Set);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDEN), Set, true);
     while (get_flag(Status_Flags::HDR_FLAG) == false) {
         // Just wait
     }
@@ -65,25 +49,25 @@ void PMU::high_driver_enable()
 
 void PMU::high_driver_disable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDEN), Clear);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDEN), Clear, true);
 }
 
 // Enable or disable high driver mode
 void PMU::set_high_driver_enable(bool enable)
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDEN), enable ? Set : Clear);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::HDEN), enable ? Set : Clear, true);
 }
 
 // Enable low driver for deep sleep
 void PMU::low_driver_on_deep_sleep_enable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), 3);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), 3, true);
 }
 
 // Disable low driver for deep sleep
 void PMU::low_driver_on_deep_sleep_disable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), Clear);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), Clear, true);
 }
 
 // Enable or disable low driver for deep sleep
@@ -92,7 +76,7 @@ void PMU::low_driver_on_deep_sleep_disable()
 //      LOW_DRIVER_DEEP_SLEEP_ENABLE
 void PMU::set_low_driver_on_deep_sleep(Low_Driver mode)
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), static_cast<uint32_t>(mode));
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), static_cast<uint32_t>(mode), true);
 }
 
 // Set driver for low power
@@ -101,7 +85,7 @@ void PMU::set_low_driver_on_deep_sleep(Low_Driver mode)
 //      LOW_DRIVER
 void PMU::set_driver_on_low_power(Power_Driver driver)
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDLP), static_cast<uint32_t>(driver));
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDLP), static_cast<uint32_t>(driver), true);
 }
 
 // Set driver for normal power
@@ -110,13 +94,13 @@ void PMU::set_driver_on_low_power(Power_Driver driver)
 //      LOW_DRIVER
 void PMU::set_driver_on_normal_power(Power_Driver driver)
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDNP), static_cast<uint32_t>(driver));
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDNP), static_cast<uint32_t>(driver), true);
 }
 
 void PMU::set_standby_enable()
 {
     write_bits(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::STBMOD), Set,
-            static_cast<uint32_t>(CTL_Bits::WURST), Set);
+               static_cast<uint32_t>(CTL_Bits::WURST), Set);
 
     set_standby_mode();
 }
@@ -146,19 +130,19 @@ void PMU::set_deep_sleep_enable(Power_Driver driver, PMU_Commands cmd, bool enab
     }
 
     write_bits(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::STBMOD), Clear,
-            static_cast<uint32_t>(CTL_Bits::LDOLP), Clear,
-            static_cast<uint32_t>(CTL_Bits::LDEN), Clear,
-            static_cast<uint32_t>(CTL_Bits::LDNP), Clear,
-            static_cast<uint32_t>(CTL_Bits::LDLP), Clear,
-            static_cast<uint32_t>(CTL_Bits::LDOLP), static_cast<uint32_t>(driver));
+               static_cast<uint32_t>(CTL_Bits::LDOLP), Clear,
+               static_cast<uint32_t>(CTL_Bits::LDEN), Clear,
+               static_cast<uint32_t>(CTL_Bits::LDNP), Clear,
+               static_cast<uint32_t>(CTL_Bits::LDLP), Clear,
+               static_cast<uint32_t>(CTL_Bits::LDOLP), static_cast<uint32_t>(driver));
     // low drive mode config in deep-sleep mode
     if (enable) {
         if (driver == Power_Driver::NORMAL_DRIVER) {
             write_bits(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDNP), Set,
-                static_cast<uint32_t>(CTL_Bits::LDEN), Set);
+                       static_cast<uint32_t>(CTL_Bits::LDEN), Set);
         } else {
             write_bits(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDLP), Set,
-                static_cast<uint32_t>(CTL_Bits::LDEN), Set);
+                       static_cast<uint32_t>(CTL_Bits::LDEN), Set);
         }
     }
 
@@ -167,36 +151,36 @@ void PMU::set_deep_sleep_enable(Power_Driver driver, PMU_Commands cmd, bool enab
 
 void PMU::wakeup_pin_enable()
 {
-    write_bit(*this, PMU_Regs::CS, static_cast<uint32_t>(CS_Bits::WUPEN), Set);
+    write_bit(*this, PMU_Regs::CS, static_cast<uint32_t>(CS_Bits::WUPEN), Set, true);
 }
 
 void PMU::wakeup_pin_disable()
 {
-    write_bit(*this, PMU_Regs::CS, static_cast<uint32_t>(CS_Bits::WUPEN), Clear);
+    write_bit(*this, PMU_Regs::CS, static_cast<uint32_t>(CS_Bits::WUPEN), Clear, true);
 }
 
 void PMU::backup_write_enable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::BKPWEN), Set);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::BKPWEN), Set, true);
 }
 
 void PMU::backup_write_disable()
 {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::BKPWEN), Clear);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::BKPWEN), Clear, true);
 }
 
 bool PMU::get_flag(Status_Flags flag)
 {
-    uint32_t value = read_bit(*this, PMU_Regs::CS, static_cast<uint32_t>(flag));
+    uint32_t value = read_bit(*this, PMU_Regs::CS, static_cast<uint32_t>(flag), true);
     return (value != Clear);
 }
 
 void PMU::clear_flag(Clear_Flags flag)
 {
     if (flag == Clear_Flags::RESET_WAKEUP_FLAG) {
-        write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::WURST), Set);
+        write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::WURST), Set, true);
     } else if (flag == Clear_Flags::RESET_STANDBY_FLAG) {
-        write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::STBRST), Set);
+        write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::STBRST), Set, true);
     } else {
         //TODO: Handle invalid flag
     }

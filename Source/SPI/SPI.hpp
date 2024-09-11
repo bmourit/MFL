@@ -6,7 +6,7 @@
 
 #include <cstdlib>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "GPIO.hpp"
@@ -43,11 +43,15 @@ public:
         RCU_DEVICE.set_pclk_reset_enable(SPI_pclk_info_.reset_reg, false);
     }
     // Configure
-    void configure(SPI_Config* config) {
-        if (config) {
-            config_ = *config;
-        }
+    void configure(SPI_Config new_config) {
+        config_ = new_config;
         init();
+    }
+    // Initialize pins
+    void pin_config_init();
+    void pins_configure(SPI_Pins pin_config) {
+        pin_config_ = pin_config;
+        pin_config_init();
     }
     // Enable
     void enable();
@@ -87,6 +91,9 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
+
 private:
     SPI(SPI_Base Base) : SPI_pclk_info_(SPI_pclk_index[static_cast<int>(Base)]),
         base_address_(SPI_baseAddress[static_cast<int>(Base)]) {
@@ -102,9 +109,6 @@ private:
     uint32_t base_address_;
     static bool is_clock_enabled;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-
     SPI_Config default_config = {
         .operational_mode = Operational_Mode::SFD_MODE,
         .frame_format = Frame_Format::FF_8BIT,
@@ -114,24 +118,14 @@ private:
         .polarity_pull = Clock_Polarity::PULL_LOW,
         .clock_phase = Clock_Phase::PHASE_FIRST_EDGE,
     };
-    SPI_Config& config_ = default_config;
 
-#pragma GCC diagnostic pop
+    SPI_Config config_ = default_config;
+    SPI_Pins pin_config_;
 
     template <SPI_Base Base>
     static SPI& get_instance_for_base() {
         static SPI instance(Base);
         return instance;
-    }
-
-    template<typename T>
-    inline T read_register(SPI_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(SPI_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
 };
 

@@ -11,8 +11,10 @@ constexpr uint32_t Clear = 0;
 constexpr uint32_t Set = 1;
 
 template <typename RegType, typename Instance>
-inline uint32_t read_bit(const Instance& instance, RegType reg, uint32_t bits)
-{
+inline uint32_t read_bit(const Instance& instance, RegType reg, uint32_t bits, bool check_clock = false) {
+    if (check_clock) {
+        instance.ensure_clock_enabled();
+    }
     uint32_t regval = *instance.reg_address(reg);
 
     const uint32_t width = bits & 0xff;
@@ -25,8 +27,10 @@ inline uint32_t read_bit(const Instance& instance, RegType reg, uint32_t bits)
 }
 
 template <typename RegType, typename Instance>
-inline uint16_t read_bit16(const Instance& instance, RegType reg, uint32_t bits)
-{
+inline uint16_t read_bit16(const Instance& instance, RegType reg, uint32_t bits, bool check_clock = false) {
+    if (check_clock) {
+        instance.ensure_clock_enabled();
+    }
     uint32_t value = read_bit(instance, reg, bits);
 
     if (value > std::numeric_limits<unsigned short>::max()) {
@@ -38,8 +42,10 @@ inline uint16_t read_bit16(const Instance& instance, RegType reg, uint32_t bits)
 }
 
 template <typename RegType, typename Instance>
-inline uint8_t read_bit8(const Instance& instance, RegType reg, uint32_t bits)
-{
+inline uint8_t read_bit8(const Instance& instance, RegType reg, uint32_t bits, bool check_clock = false) {
+    if (check_clock) {
+        instance.ensure_clock_enabled();
+    }
     uint32_t value = read_bit(instance, reg, bits);
 
     if (value > std::numeric_limits<unsigned char>::max()) {
@@ -79,8 +85,11 @@ inline uint32_t read_bit_channel(const Instance& instance, RegType reg, dma::DMA
 }
 
 template <typename RegType, typename Instance>
-inline void write_bit(const Instance& instance, RegType reg, uint32_t bits, uint32_t value)
+inline void write_bit(const Instance& instance, RegType reg, uint32_t bits, uint32_t value, bool check_clock = false)
 {
+    if (check_clock) {
+        instance.ensure_clock_enabled();
+    }
     uint32_t regval = *instance.reg_address(reg);
 
     const uint32_t width = bits & 0xff;
@@ -141,6 +150,8 @@ inline void write_bits(const Instance& instance, RegType reg) {
 
 template <typename RegType, typename Instance, typename... Args>
 inline void write_bits(const Instance& instance, RegType reg, uint32_t bits, uint32_t value, Args... args) {
+    instance.ensure_clock_enabled();
+
     uint32_t regval = *instance.reg_address(reg);
 
     const uint32_t width = bits & 0xff;

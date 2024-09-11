@@ -33,7 +33,7 @@ enum class Priority_Group {
     PRIO_GROUP_PRE1SUB3,
     PRIO_GROUP_PRE2SUB2,
     PRIO_GROUP_PRE3SUB1,
-    PRIO_GROUP_PRE4SUB9,
+    PRIO_GROUP_PRE4SUB0,
 };
 
 enum class Vector_Table {

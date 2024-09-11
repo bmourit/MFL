@@ -24,27 +24,6 @@ namespace usart {
 // the same task.
 //
 void USART::init() {
-    // Set the rx/tx pin configuration
-    auto result = gpio::GPIO::get_instance(config_.rx_pin_config.gpio_port);
-    if (result.error() != gpio::GPIO_Error_Type::OK) {
-        return;
-    }
-    gpio::GPIO& port = result.value();
-    // Initialize GPIO pin
-    port.init_pin(config_.rx_pin_config.pin, config_.rx_pin_config.mode, config_.rx_pin_config.speed);
-    // Check if the tx pin needs a different port
-    if (config_.tx_pin_config.gpio_port != config_.rx_pin_config.gpio_port) {
-        auto result1 = gpio::GPIO::get_instance(config_.rx_pin_config.gpio_port);
-        if (result1.error() != gpio::GPIO_Error_Type::OK) {
-            return;
-        }
-        gpio::GPIO& tx_port = result1.value();
-        tx_port.init_pin(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
-    } else {
-        // Same port
-        port.init_pin(config_.tx_pin_config.pin, config_.tx_pin_config.mode, config_.tx_pin_config.speed);
-    }
-
     // Some bits cannot be written unless USART is disabled
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Clear);
 
@@ -56,6 +35,59 @@ void USART::init() {
     set_direction(config_.direction);
     set_baudrate(config_.baudrate);
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Set);
+}
+
+void USART::release() {
+    // Clear flags
+    write_bits(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PERR), Clear,
+               static_cast<uint32_t>(STAT0_Bits::FERR), Clear,
+               static_cast<uint32_t>(STAT0_Bits::NERR), Clear,
+               static_cast<uint32_t>(STAT0_Bits::ORERR), Clear,
+               static_cast<uint32_t>(STAT0_Bits::IDLEF), Clear,
+               static_cast<uint32_t>(STAT0_Bits::RBNE), Clear,
+               static_cast<uint32_t>(STAT0_Bits::TC), Clear,
+               static_cast<uint32_t>(STAT0_Bits::TBE), Clear,
+               static_cast<uint32_t>(STAT0_Bits::LBDF), Clear,
+               static_cast<uint32_t>(STAT0_Bits::CTSF), Clear);
+    write_bits(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::RTF), Clear,
+               static_cast<uint32_t>(STAT1_Bits::EBF), Clear,
+               static_cast<uint32_t>(STAT1_Bits::BSY), Clear);
+    // Disable interrupts
+    write_bits(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::PERRIE), Clear,
+               static_cast<uint32_t>(CTL0_Bits::TBEIE), Clear,
+               static_cast<uint32_t>(CTL0_Bits::TCIE), Clear,
+               static_cast<uint32_t>(CTL0_Bits::RBNEIE), Clear,
+               static_cast<uint32_t>(CTL0_Bits::IDLEIE), Clear);
+    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBDIE), Clear);
+    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::ERRIE), Clear);
+    write_bits(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::EBIE), Clear,
+               static_cast<uint32_t>(CTL3_Bits::RTIE), Clear);
+    // Disable usart
+    disable();
+}
+
+void USART::pin_config_init() {
+    auto configure_pin = [](gpio::GPIO& port, const USART_Pin_Config& pin_config) {
+        port.init_pin(pin_config.pin, pin_config.mode, pin_config.speed);
+    };
+
+    auto rx_result = gpio::GPIO::get_instance(pin_config_.rx_pin.gpio_port);
+    if (rx_result.error() != gpio::GPIO_Error_Type::OK) {
+        return;
+    }
+    gpio::GPIO& rx_port = rx_result.value();
+    configure_pin(rx_port, pin_config_.rx_pin);
+
+    if (pin_config_.tx_pin.gpio_port != pin_config_.rx_pin.gpio_port) {
+        auto tx_result = gpio::GPIO::get_instance(pin_config_.tx_pin.gpio_port);
+        if (tx_result.error() != gpio::GPIO_Error_Type::OK) {
+            return;
+        }
+        gpio::GPIO& tx_port = tx_result.value();
+        configure_pin(tx_port, pin_config_.tx_pin);
+    } else {
+        configure_pin(rx_port, pin_config_.tx_pin);
+    }
 }
 
 void inline USART::set_baudrate(uint32_t baudrate) {
@@ -74,10 +106,10 @@ void inline USART::set_baudrate(uint32_t baudrate) {
     }
 
     // Calculate the USARTDIV value
-    uint32_t usartdiv = (freq + (baudrate / 2)) / baudrate;
+    uint32_t usart_div = (freq + (baudrate / 2)) / baudrate;
 
     // Write to the baud rate register
-    write_register(USART_Regs::BAUD, usartdiv);
+    write_register<uint32_t>(*this, USART_Regs::BAUD, usart_div);
 }
 
 void USART::set_parity(Parity_Mode parity) {
@@ -93,11 +125,11 @@ void USART::set_stop_bits(Stop_Bits stop_bits) {
 }
 
 void USART::enable() {
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), 1);
+    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Set);
 }
 
 void USART::disable() {
-    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), 0);
+    write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), Clear);
 }
 
 inline void USART::set_direction(Direction_Mode direction) {
@@ -151,11 +183,11 @@ void USART::set_rx_timeout_threshold(uint32_t timeout) {
 }
 
 void USART::send_data(uint16_t data) {
-    write_bit(*this, USART_Regs::DATA, static_cast<uint32_t>(DATA_Bits::DATA), static_cast<uint32_t>(data));
+    write_register<uint32_t>(*this, USART_Regs::DATA, static_cast<uint32_t>(data));
 }
 
 uint16_t USART::receive_data() {
-    return read_bit16(*this, USART_Regs::DATA, static_cast<uint32_t>(DATA_Bits::DATA));
+    return static_cast<uint16_t>(read_register<uint32_t>(*this, USART_Regs::DATA));
 }
 
 void USART::set_wakeup_address(uint8_t address) {
@@ -297,43 +329,43 @@ bool USART::get_flag(Status_Flags flag) {
 void USART::clear_flag(Status_Flags flag) {
     switch (flag) {
     case Status_Flags::FLAG_PERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PERR), Clear);
         break;
     case Status_Flags::FLAG_FERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::FERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::FERR), Clear);
         break;
     case Status_Flags::FLAG_NERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::NERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::NERR), Clear);
         break;
     case Status_Flags::FLAG_ORERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ORERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ORERR), Clear);
         break;
     case Status_Flags::FLAG_IDLEF:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::IDLEF), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::IDLEF), Clear);
         break;
     case Status_Flags::FLAG_RBNE:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::RBNE), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::RBNE), Clear);
         break;
     case Status_Flags::FLAG_TC:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TC), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TC), Clear);
         break;
     case Status_Flags::FLAG_TBE:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TBE), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TBE), Clear);
         break;
     case Status_Flags::FLAG_LBDF:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::LBDF), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::LBDF), Clear);
         break;
     case Status_Flags::FLAG_CTSF:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::CTSF), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::CTSF), Clear);
         break;
     case Status_Flags::FLAG_RTF:
-        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::RTF), 0);
+        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::RTF), Clear);
         break;
     case Status_Flags::FLAG_EBF:
-        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::EBF), 0);
+        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::EBF), Clear);
         break;
     case Status_Flags::FLAG_BSY:
-        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::BSY), 0);
+        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::BSY), Clear);
         break;
     default:
         break;
@@ -407,43 +439,43 @@ bool USART::get_interrupt_flag(Interrupt_Flags flag) {
 void USART::clear_interrupt_flag(Interrupt_Flags flag) {
     switch (flag) {
     case Interrupt_Flags::INTR_FLAG_CTL0_PERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::PERR), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL0_TBE:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TBE), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TBE), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL0_TC:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TC), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::TC), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL0_RBNE:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::RBNE), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::RBNE), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL0_ORERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ORERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ORERR), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL0_IDLEF:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::IDLEF), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::IDLEF), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL1_LBDF:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::LBDF), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::LBDF), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL2_CTSF:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::CTSF), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::CTSF), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL2_ORERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ORERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::ORERR), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL2_NERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::NERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::NERR), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL2_FERR:
-        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::FERR), 0);
+        write_bit(*this, USART_Regs::STAT0, static_cast<uint32_t>(STAT0_Bits::FERR), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL3_EBF:
-        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::EBF), 0);
+        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::EBF), Clear);
         break;
     case Interrupt_Flags::INTR_FLAG_CTL3_RTF:
-        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::RTF), 0);
+        write_bit(*this, USART_Regs::STAT1, static_cast<uint32_t>(STAT1_Bits::RTF), Clear);
         break;
     default:
         break;

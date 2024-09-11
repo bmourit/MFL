@@ -6,7 +6,7 @@
 
 #include <cstdint>
 
-#include "BitRW.hpp"
+#include "RegRW.hpp"
 #include "ErrorTypes.hpp"
 #include "RCU.hpp"
 #include "timer_config.hpp"
@@ -56,15 +56,23 @@ public:
 
     // Initialization
     void init();
+    void reset() {
+        RCU_DEVICE.set_pclk_reset_enable(TIMER_pclk_info_.reset_reg, true);
+        RCU_DEVICE.set_pclk_reset_enable(TIMER_pclk_info_.reset_reg, false);
+    }
     // Enable
     void enable();
     void disable();
     // Configure
-    void configure(TIMER_Config* config) {
-        if (config) {
-            config_ = *config;
-        }
+    void configure(TIMER_Config new_config) {
+        config_ = new_config;
         init();
+    }
+    void pin_config_init();
+    // Pin configuration
+    void pin_configure(TIMER_Pin_Config pin_config) {
+        pin_config_ = pin_config;
+        pin_config_init();
     }
     // Events
     void update_event_enable();
@@ -92,8 +100,11 @@ public:
     void set_dma_request_source(DMA_Request request);
     void dma_transfer_config(DMA_Transfer_Address address, DMA_Burst_Length length);
     // Break
-    void break_configure(TIMER_Break *break_config);
     void break_init();
+    void break_configure(TIMER_Break break_config) {
+        break_config_ = break_config;
+        break_init();
+    }
     void break_enable();
     void break_disable();
     void set_break_enable(bool enable);
@@ -106,7 +117,10 @@ public:
     void channel_shadow_update_configure(Shadow_Update update);
     // Output compare
     void output_compare_init(Timer_Channel channel);
-    void output_compare_configure(Timer_Channel channel, TIMER_Output_Compare *output_compare);
+    void output_compare_configure(Timer_Channel channel, TIMER_Output_Compare output_compare) {
+        compare_config_ = output_compare;
+        output_compare_init(channel);
+    }
     void set_output_mode(Timer_Channel channel, Output_Compare_Mode mode);
     void set_output_pulse(Timer_Channel channel, uint32_t pulse);
     void set_output_shadow(Timer_Channel channel, Output_Compare_Shadow shadow);
@@ -118,9 +132,12 @@ public:
     void set_compliment_output_enable(Timer_Channel channel, bool enable);
     // Input capture
     void input_capture_init(Timer_Channel channel);
-    void input_capture_configure(Timer_Channel channel, TIMER_Input_Capture *input_capture);
+    void input_capture_configure(Timer_Channel channel, TIMER_Input_Capture input_capture) {
+        capture_config_ = input_capture;
+        input_capture_init(channel);
+    }
     void set_input_capture_prescaler(Timer_Channel channel, Input_Capture_Prescaler prescaler);
-    void input_pwm_capture_enable(Timer_Channel channel, TIMER_Input_Capture *pwm);
+    void input_pwm_capture_enable(Timer_Channel channel);
     // Hall
     void set_hall_mode_enable(bool enable);
     // Trigger
@@ -136,8 +153,8 @@ public:
     void quadrature_decoder_configure(Decode_Mode mode, Polarity_Select polarity1, Polarity_Select polarity2);
     // Clocks
     void set_internal_clock();
-    void set_internal_trigger_as_clock(Trigger_Select trigger);
-    void set_external_trigger_as_clock(Trigger_Select trigger, Polarity_Select polarity, uint32_t filter);
+    void set_clock_from_internal_trigger(Trigger_Select trigger);
+    void set_clock_from_external_trigger(Trigger_Select trigger, Polarity_Select polarity, uint32_t filter);
     void set_clock_mode0(External_Trigger_Prescaler prescaler, Polarity_Select polarity, uint32_t filter);
     void set_clock_mode1(External_Trigger_Prescaler prescaler, Polarity_Select polarity, uint32_t filter);
     void clock_mode1_disable();
@@ -157,6 +174,9 @@ public:
         return reinterpret_cast<volatile uint32_t *>(base_address_ + static_cast<uint32_t>(reg));
     }
 
+    // Function to keep compiler happy
+    inline void ensure_clock_enabled() const {}
+
 private:
     TIMER(TIMER_Base Base) : base_index_(Base),
         TIMER_pclk_info_(TIMER_pclk_index[static_cast<int>(Base)]),
@@ -174,24 +194,25 @@ private:
     uint32_t base_address_;
     static bool is_clock_enabled;
 
-    // Default dummy config
-    TIMER_Config default_config = {};
-    TIMER_Config& config_ = default_config;
+    TIMER_Config default_config = {
+        .prescaler = 0,
+        .period = 0xFFFF,
+        .divider = Division_Ratio::DIV1,
+        .align = Center_Align::EDGE,
+        .counting_direction = Count_Direction::UP,
+        .repetition_count = 0,
+    };
+
+    TIMER_Config config_ = default_config;
+    TIMER_Break break_config_;
+    TIMER_Input_Capture capture_config_;
+    TIMER_Output_Compare compare_config_;
+    TIMER_Pin_Config pin_config_;
 
     template <TIMER_Base Base>
     static TIMER& get_instance_for_base() {
         static TIMER instance(Base);
         return instance;
-    }
-
-    template<typename T>
-    inline T read_register(TIMER_Regs reg) const {
-        return *reinterpret_cast<volatile T *>(reg_address(reg));
-    }
-
-    template<typename T>
-    inline void write_register(TIMER_Regs reg, T value) {
-        *reinterpret_cast<volatile T *>(reg_address(reg)) = value;
     }
 };
 
