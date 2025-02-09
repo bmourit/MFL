@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x SDIO peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -421,7 +421,8 @@ enum class Lock_State : uint8_t {
 
 enum class Interface_Version : uint8_t {
     INTERFACE_V1_1,
-    INTERFACE_V2_0
+    INTERFACE_V2_0,
+    UNKNOWN
 };
 
 enum class Card_Type : uint8_t {
@@ -492,9 +493,16 @@ enum class R1_Status : uint32_t {
     OUT_OF_RANGE = (1U << 31U)
 };
 
+enum class Operational_State {
+    BUSY,
+    READY,
+    ERROR
+};
+
 enum class SDIO_Error_Type : uint8_t {
     OK,
     ERROR,
+    BUSY,
     UNSUPPORTED_FUNCTION,
     INVALID_OPERATION,
     INVALID_PARAMETER,
@@ -599,6 +607,17 @@ struct SDIO_Config {
     bool enable_hwclock;
 };
 
+//struct SDCard_Info {
+//    Card_Type card_type;
+//    Interface_Version sdio_version;
+//    uint32_t card_class;
+//    uint32_t capacity_blocks;
+//    uint32_t block_size;
+//    uint32_t logical_capacity_blocks;
+//    uint32_t logical_block_size;
+//    uint16_t relative_address;
+//};
+
 struct Card_Identification {
     volatile uint8_t manufacture_id;
     volatile uint16_t oem_id;
@@ -666,7 +685,7 @@ inline constexpr uint32_t Voltage_Window = 0x80100000U;         // Host 3.3V req
 inline constexpr uint32_t Max_Voltage_Checks = 0x0000FFFFU;     // Maximum number of voltage validation checks
 inline constexpr uint32_t Max_Data_Length = 0x01FFFFFFU;        // Maximum length of data
 inline constexpr uint32_t Data_Timeout = 0xFFFFFFFFU;           // Data timeout of the state machine
-inline constexpr uint32_t Default_Init_Clock = 300000U;         // Max init clock 400KHz but in practice is not stable, so use 300Khz
+inline constexpr uint32_t Default_Init_Clock = 400000U;         // Max init clock 400KHz
 inline constexpr uint32_t Default_Desired_Clock = 25000000U;    // Maximum possible clock speed
 inline constexpr uint32_t SDCARD_Standard = 0x00000000U;        // SDCard standard capacity
 inline constexpr uint32_t SDCARD_HCS = 0x40000000U;             // HCS bit = 1 for voltage validation
@@ -680,8 +699,6 @@ inline constexpr uint32_t FIFO_Half_Bytes = 0x00000020U;
 inline constexpr uint32_t PasswordKey1 = 0x01020600U;
 inline constexpr uint32_t PasswordKey2 = 0x03040506U;
 inline constexpr uint32_t CardStateMask = 0x0000000FU;
-inline constexpr uint32_t Clear_All_Cmd_Flags = 0x00C002F5U;
-inline constexpr uint32_t Clear_All_Dat_Flags = 0x00C0073AU;
 inline constexpr uint32_t R6_Error_Bits = 0x0000E000U;
 inline constexpr uint8_t RCA_Shift = 0x10U;
 

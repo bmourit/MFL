@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x I2C peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -41,7 +41,7 @@ Result<I2C, I2C_Error_Type> I2C::get_instance(I2C_Base Base) {
                );
     case I2C_Base::INVALID:
     default:
-        return RETURN_ERROR(I2C, I2C_Error_Type::INVALID_I2C);
+        return RETURN_RESULT(I2C, I2C_Error_Type::INVALID_I2C);
     }
 }
 
@@ -61,7 +61,8 @@ I2C::I2C(I2C_Base Base) :
 }
 
 /**
- * Resets the I2C peripheral by toggling its peripheral clock reset.
+ * @brief Resets the I2C peripheral by toggling its peripheral clock reset.
+ * 
  * This function enables the reset of the I2C peripheral by setting the
  * reset register, then disables the reset to complete the operation.
  */
@@ -76,12 +77,14 @@ void I2C::reset() {
 
 /**
  * @brief Sets the clock speed for the I2C peripheral and configures the prescaler duty cycle.
+ * 
  * @param speed The desired clock speed in Hz. The maximum clock speed is currently 1MHz.
  * @param duty The desired duty cycle for the prescaler to use. The duty cycle is either 2 or 16/9.
  * @return An error code representing the result of the operation.
+ * 
  * @note The maximum clock speed is currently 1MHz. Attempting to set a higher clock speed will
- * result in an error. Additionally, the I2C peripheral will be disabled if the clock speed is
- * set to 0.
+ *       result in an error. Additionally, the I2C peripheral will be disabled if the clock speed
+ *       is set to 0.
  */
 I2C_Error_Type I2C::set_clock_speed_duty(uint32_t speed, Duty_Cycle duty) {
     if (!speed) return I2C_Error_Type::INVALID_CLOCK_FREQUENCY;
@@ -511,20 +514,19 @@ bool I2C::get_interrupt_flag(Interrupt_Flags flag) {
  *
  * This function clears the specified interrupt flag within the I2C peripheral.
  * For the FLAG_SBSEND and FLAG_ADDSEND flags, it clears the flag by reading the
- * specified register. For other flags, it clears the flag by writing to the
+ * specified register(s0. For other flags, it clears the flag by writing to the
  * corresponding bit range in the appropriate register.
  *
  * @param flag The interrupt flag to clear. Must be a value from the
  *             Clear_Flags enumeration.
  */
 void I2C::clear_interrupt_flag(Clear_Flags flag) {
-    if (flag == Clear_Flags::FLAG_SBSEND) {
-        // Read STAT0 to clear
+    if ((flag == Clear_Flags::FLAG_SBSEND) || (flag == Clear_Flags::FLAG_ADDSEND)) {
         read_register<uint32_t>(*this, I2C_Regs::STAT0);
-    } else if (flag == Clear_Flags::FLAG_ADDSEND) {
-        // Read STAT0 and STAT1 to clear
-        read_register<uint32_t>(*this, I2C_Regs::STAT0);
-        read_register<uint32_t>(*this, I2C_Regs::STAT1);
+        if (flag == Clear_Flags::FLAG_ADDSEND) {
+            // ADDSEND must also read STAT1 to clear
+            read_register<uint32_t>(*this, I2C_Regs::STAT1);
+        }
     } else {
         const auto& info = clear_flag_index[static_cast<size_t>(flag)];
         write_bit_range(*this, info.register_offset, info.bit_info, Clear);
@@ -545,5 +547,6 @@ void I2C::set_interrupt_enable(Interrupt_Type type, bool enable) {
     const auto& info = interrupt_type_index[static_cast<size_t>(type)];
     write_bit_range(*this, info.register_offset, info.bit_info, enable ? Set : Clear);
 }
+
 
 } // namespace i2c

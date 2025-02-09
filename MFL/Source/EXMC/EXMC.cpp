@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x EXMC peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -74,18 +74,18 @@ void EXMC::nor_sram_reset(Block_Number block) {
 void EXMC::nor_sram_init() {
     EXMC_Regs reg_offset = get_snctl_offset(nor_sram_config_.block);
     
-    write_bits_ordered(*this, reg_offset,
-               static_cast<uint32_t>(SNCTLX_Bits::NRMUX), nor_sram_config_.address_mux ? true : false,
+    write_bits_sequence(*this, reg_offset,
+               static_cast<uint32_t>(SNCTLX_Bits::NRMUX), nor_sram_config_.address_mux,
                static_cast<uint32_t>(SNCTLX_Bits::NREN), false,
-               static_cast<uint32_t>(SNCTLX_Bits::SBRSTEN), nor_sram_config_.burst ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::NRWTPOL), nor_sram_config_.polarity == Signal_Polarity::HIGH ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::WRAPEN), nor_sram_config_.wrap ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::NRWTCFG), nor_sram_config_.nwait_active == NWAIT_Active::DURING ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::WREN), nor_sram_config_.memory_write ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::NRWTEN), nor_sram_config_.nwait_signal ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::EXMODEN), nor_sram_config_.extended_mode ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::ASYNCWAIT), nor_sram_config_.async_wait ? true : false,
-               static_cast<uint32_t>(SNCTLX_Bits::SYNCWR), nor_sram_config_.mode == Write_Mode::SYNC ? true : false);
+               static_cast<uint32_t>(SNCTLX_Bits::SBRSTEN), nor_sram_config_.burst,
+               static_cast<uint32_t>(SNCTLX_Bits::NRWTPOL), (nor_sram_config_.polarity == Signal_Polarity::HIGH),
+               static_cast<uint32_t>(SNCTLX_Bits::WRAPEN), nor_sram_config_.wrap,
+               static_cast<uint32_t>(SNCTLX_Bits::NRWTCFG), (nor_sram_config_.nwait_active == NWAIT_Active::DURING),
+               static_cast<uint32_t>(SNCTLX_Bits::WREN), nor_sram_config_.memory_write,
+               static_cast<uint32_t>(SNCTLX_Bits::NRWTEN), nor_sram_config_.nwait_signal,
+               static_cast<uint32_t>(SNCTLX_Bits::EXMODEN), nor_sram_config_.extended_mode,
+               static_cast<uint32_t>(SNCTLX_Bits::ASYNCWAIT), nor_sram_config_.async_wait,
+               static_cast<uint32_t>(SNCTLX_Bits::SYNCWR), (nor_sram_config_.mode == Write_Mode::SYNC));
     write_bit_ranges(*this, reg_offset,
                static_cast<uint32_t>(SNCTLX_Bits::NRTP), static_cast<uint32_t>(nor_sram_config_.type),
                static_cast<uint32_t>(SNCTLX_Bits::NRW), static_cast<uint32_t>(nor_sram_config_.width));
@@ -98,8 +98,7 @@ void EXMC::nor_sram_init() {
                static_cast<uint32_t>(SNTCFGX_Bits::CKDIV), static_cast<uint32_t>(nor_sram_config_.rw_timing->divider),
                static_cast<uint32_t>(SNTCFGX_Bits::DLAT), static_cast<uint32_t>(nor_sram_config_.rw_timing->sync_latency),
                static_cast<uint32_t>(SNTCFGX_Bits::ASYNCMOD), static_cast<uint32_t>(nor_sram_config_.rw_timing->async_access));
-
-    write_bit(*this, reg_offset, static_cast<uint32_t>(SNCTLX_Bits::NREN), (nor_sram_config_.type == Memory_Type::NOR) ? true : false);
+    write_bit(*this, reg_offset, static_cast<uint32_t>(SNCTLX_Bits::NREN), (nor_sram_config_.type == Memory_Type::NOR));
 
     if (nor_sram_config_.extended_mode == true) {
         write_bit_ranges(*this, reg_offset,
@@ -114,9 +113,14 @@ void EXMC::nor_sram_init() {
 }
 
 /**
- * \brief Enable or disable NOR/PSRAM block
- * \param block Which block to enable or disable
- * \param enable True to enable, false to disable
+ * @brief Enables or disables the NOR Flash block.
+ *
+ * This function enables or disables the NOR Flash block by setting the
+ * NRBKEN bit in the SNCTLX register. When enabled, the NOR Flash block
+ * is ready to receive commands, otherwise it will not respond.
+ *
+ * @param block The NOR Flash block to enable or disable.
+ * @param enable Set to true to enable the NOR Flash block, false to disable it.
  */
 void EXMC::set_nor_sram_enable(Block_Number block, bool enable) {
     EXMC_Regs snctl_offset = get_snctl_offset(block);
@@ -124,8 +128,13 @@ void EXMC::set_nor_sram_enable(Block_Number block, bool enable) {
 }
 
 /**
- * \brief Resets the NAND Flash block
- * \param block Which block to reset
+ * @brief Resets the NAND Flash block configuration registers.
+ *
+ * This function resets the NAND Flash block configuration registers
+ * to their default values. This function is used to initialize the
+ * NAND Flash block before a conversion is started.
+ *
+ * @param block The NAND Flash block to reset.
  */
 void EXMC::nand_reset(NPC_Block block) {
     EXMC_Regs npctl_offset = get_npctl_offset(block);
@@ -141,24 +150,18 @@ void EXMC::nand_reset(NPC_Block block) {
 
 /**
  * @brief Initializes the NAND Flash block configuration registers.
- * 
- * This function configures the NAND Flash block by setting up the NPCTL,
- * NPCTCFG, and NPATCFG registers based on the settings provided in the
- * `nand_config_` structure. It enables or disables features such as wait
- * signal and ECC, and configures timing parameters like databus width,
- * ECC size, counter latency, and attribute latency.
- * 
- * The function writes the timing parameters, control settings, and mode
- * configurations to the respective registers using helper functions to
- * manipulate individual bits and bit ranges.
+ *
+ * This function initializes the NAND Flash block configuration registers
+ * to the values specified in the NAND_Config object. This function is used
+ * to initialize the NAND Flash block before a conversion is started.
  */
 void EXMC::nand_init() {
     EXMC_Regs npctl_offset = get_npctl_offset(nand_config_.npc_block);
 
-    write_bits_ordered(*this, npctl_offset,
-               static_cast<uint32_t>(NPCTLX_Bits::NDWTEN), nand_config_.wait ? true : false,
+    write_bits_sequence(*this, npctl_offset,
+               static_cast<uint32_t>(NPCTLX_Bits::NDWTEN), nand_config_.wait,
                static_cast<uint32_t>(NPCTLX_Bits::NDTP), true,
-               static_cast<uint32_t>(NPCTLX_Bits::ECCEN), nand_config_.ecc ? true : false);
+               static_cast<uint32_t>(NPCTLX_Bits::ECCEN), nand_config_.ecc);
     write_bit_ranges(*this, npctl_offset,
                static_cast<uint32_t>(NPCTLX_Bits::NDW), static_cast<uint32_t>(nand_config_.databus_width),
                static_cast<uint32_t>(NPCTLX_Bits::ECCSZ), static_cast<uint32_t>(nand_config_.ecc_size),
@@ -197,7 +200,7 @@ void EXMC::set_nand_enable(NPC_Block npc_block, bool enable) {
 }
 
 /**
- * \brief Resets the PC Card block configuration registers.
+ * @brief Resets the PC Card block configuration registers.
  *
  * This function resets the PC Card block by writing the default reset values
  * to the NPCTL3, NPINTEN3, NPCTCFG3, NPATCFG3, and PIOTCFG3 registers.
@@ -222,7 +225,7 @@ void EXMC::pccard_reset() {
  */
 void EXMC::pccard_init() {
     write_bit(*this, EXMC_Regs::NPCTL3,
-               static_cast<uint32_t>(NPCTLX_Bits::NDWTEN), pccard_config_.wait ? true : false);
+               static_cast<uint32_t>(NPCTLX_Bits::NDWTEN), pccard_config_.wait);
 
     write_bit_ranges(*this, EXMC_Regs::NPCTL3,
                static_cast<uint32_t>(NPCTLX_Bits::NDW), static_cast<uint32_t>(Bus_Width::WIDTH_16BITS),

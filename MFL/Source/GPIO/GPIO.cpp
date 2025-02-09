@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x GPIO peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -16,7 +16,6 @@
 // You should have received a copy of the GNU Lesser General Public License along with MFL.
 // If not, see <https://www.gnu.org/licenses/>.
 //
-
 
 #include "GPIO.hpp"
 #include "RCU.hpp"
@@ -50,7 +49,7 @@ Result<GPIO, GPIO_Error_Type> GPIO::get_instance(GPIO_Base Base) {
                );
     case GPIO_Base::INVALID:
     default:
-        return RETURN_ERROR(GPIO, GPIO_Error_Type::INVALID_PORT);
+        return RETURN_RESULT(GPIO, GPIO_Error_Type::INVALID_PORT);
     }
 }
 
@@ -83,120 +82,14 @@ void GPIO::reset() {
 /**
  * @brief Configures the mode, speed, and initialization of a specified GPIO pin.
  *
- * This function sets the mode and speed for the given GPIO pin, and can optionally
- * utilize a fast initialization path. It supports various pin modes including 
- * analog, input (floating, pull-up, pull-down), and output (push-pull, open-drain).
- * If 'use_fast_init' is true, it leverages direct memory access for faster configuration.
+ * This function sets the mode and speed for the given GPIO pin.
+ * It supports various pin modes including analog, input (floating, pull-up, pull-down),
+ * output (push-pull, open-drain) and alternate function.
  *
  * @param pin The pin number to configure.
  * @param mode The desired pin mode (e.g., ANALOG, INPUT_FLOATING, OUTPUT_PUSHPULL).
  * @param speed The desired output speed (e.g., SPEED_50MHZ, SPEED_MAX).
- * @param use_fast_init If true, uses a faster initialization method.
  */
-/*
-void GPIO::set_pin_mode(Pin_Number pin, Pin_Mode mode, Output_Speed speed) {
-    if (pin == Pin_Number::INVALID || mode == Pin_Mode::INVALID) {
-        return;
-    }
-
-    if (speed == Output_Speed::INVALID) {
-        speed = Output_Speed::SPEED_MAX;
-    }
-
-    // Determine the correct register and bit position for the pin configuration
-    GPIO_Regs reg = (pin < Pin_Number::PIN_8) ? GPIO_Regs::CTL0 : GPIO_Regs::CTL1;
-    uint32_t shift = (static_cast<uint32_t>(pin) % 8) * 4U;
-
-    // Read the current register value
-    uint32_t ctl_value = read_register<uint32_t>(*this, reg);
-
-    // Clear the relevant bits for the pin
-    ctl_value &= ~(static_cast<uint32_t>(0xFU) << shift);
-
-    // Set the mode bits (MDx[0:1]) and configuration bits (CTLx[2:3])
-    uint32_t config_bits = 0U;
-    uint32_t mode_bits = 0U;
-    bool compensation_cell = false;
-
-    switch (mode) {
-    case Pin_Mode::ANALOG:
-        config_bits = 0U;    // Analog mode
-        mode_bits = 0U;      // Input mode (Analog)
-        break;
-    case Pin_Mode::INPUT_FLOATING:
-        config_bits = 1U;    // Floating input
-        mode_bits = 0U;      // Input mode
-        break;
-    case Pin_Mode::INPUT_PULLUP:
-        atomic_write_bit(*this, GPIO_Regs::BOP, static_cast<uint32_t>(pin), true);
-        config_bits = 2U;    // Input with pull-up/pull-down
-        mode_bits = 0U;      // Input mode
-        break;
-    case Pin_Mode::INPUT_PULLDOWN:
-        atomic_write_bit(*this, GPIO_Regs::BC, static_cast<uint32_t>(pin), true);
-        config_bits = 2U;    // Input with pull-up/pull-down
-        mode_bits = 0U;      // Input mode
-        break;
-    case Pin_Mode::OUTPUT_PUSHPULL:
-        config_bits = 0U;    // GPIO output with push-pull
-        if (speed == Output_Speed::SPEED_MAX) {
-            compensation_cell = true;
-            write_bit(*this, GPIO_Regs::SPD, static_cast<uint32_t>(pin), true);
-            mode_bits = 3U;  // Output mode max speed
-        } else {
-            mode_bits = static_cast<uint32_t>(speed);   // Output mode
-        }
-        break;
-    case Pin_Mode::OUTPUT_OPENDRAIN:
-        config_bits = 1U;    // GPIO output with open-drain
-        if (speed == Output_Speed::SPEED_MAX) {
-            compensation_cell = true;
-            write_bit(*this, GPIO_Regs::SPD, static_cast<uint32_t>(pin), true);
-            mode_bits = 3U;  // Output mode max speed
-        } else {
-            mode_bits = static_cast<uint32_t>(speed);   // Output mode
-        }
-        break;
-    case Pin_Mode::ALT_PUSHPULL:
-        config_bits = 2U;    // AFIO output with push-pull
-        if (speed == Output_Speed::SPEED_MAX) {
-            compensation_cell = true;
-            write_bit(*this, GPIO_Regs::SPD, static_cast<uint32_t>(pin), true);
-            mode_bits = 3U;  // Output mode max speed
-        } else {
-            mode_bits = static_cast<uint32_t>(speed);   // Output mode
-        }
-        break;
-    case Pin_Mode::ALT_OPENDRAIN:
-        config_bits = 3U;    // AFIO output with open-drain
-        if (speed == Output_Speed::SPEED_MAX) {
-            compensation_cell = true;
-            write_bit(*this, GPIO_Regs::SPD, static_cast<uint32_t>(pin), true);
-            mode_bits = 3U;  // Output mode max speed
-        } else {
-            mode_bits = static_cast<uint32_t>(speed);   // Output mode
-        }
-        break;
-    case Pin_Mode::INVALID:
-        break;
-    }
-
-    // Set IO compensation cell for speed over 50MHz
-    if (compensation_cell) {
-        AFIO_I.set_compensation(true);
-        while (!AFIO_I.get_compensation()) {
-            // Wait for ready
-        }
-    }
-
-    // Combine mode and configuration bits
-    ctl_value |= (static_cast<uint32_t>(config_bits) << (shift + 2U) | static_cast<uint32_t>(mode_bits) << shift);
-
-    // Write the updated value back to the register
-    write_register<uint32_t>(*this, reg, ctl_value);
-}
-*/
-
 void GPIO::set_pin_mode(Pin_Number pin, Pin_Mode mode, Output_Speed speed) {
     if ((pin == Pin_Number::INVALID) || (mode == Pin_Mode::INVALID)) return;
 
@@ -304,7 +197,7 @@ void GPIO::set_pin_low(Pin_Number pin) {
  * @param[in] pin The pin number to set.
  * @param[in] high If true, the pin is set to a high state. If false, the pin is set to a low state.
  */
-void GPIO::set_pin_pull(Pin_Number pin, bool high) {
+void GPIO::set_pin_level(Pin_Number pin, bool high) {
     if (pin == Pin_Number::INVALID) {
         return;
     }

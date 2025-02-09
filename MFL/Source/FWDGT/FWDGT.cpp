@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x FWDGT peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -30,7 +30,7 @@ FWDGT& FWDGT::get_instance() {
 FWDGT::FWDGT() {}
 
 /**
- * Enable watchdog
+ * @brief Enable watchdog
  *
  * Write magic value 0x0000CCCC to the Control Register (CTL) to enable the watchdog.
  *
@@ -41,7 +41,7 @@ void FWDGT::enable() {
 }
 
 /**
- * Enables write access to the FWDGT registers.
+ * @brief Enables write access to the FWDGT registers.
  *
  * Writes the magic value 0x00005555 to the Control Register (CTL)
  * to allow modification of the FWDGT configuration registers.
@@ -51,7 +51,7 @@ void FWDGT::write_enable() {
 }
 
 /**
- * Disables write access to the FWDGT registers.
+ * @brief Disables write access to the FWDGT registers.
  *
  * Writes the magic value 0x00000000 to the Control Register (CTL)
  * to disable modification of the FWDGT configuration registers.

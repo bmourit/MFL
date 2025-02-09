@@ -1,7 +1,7 @@
 //
 // MFL Template error handling mechanism
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -49,13 +49,13 @@ private:
 };
 
 // Macro update to return nullptr when an error occurs
-#define RETURN_ERROR(type, code) Result<type, decltype(code)>{ nullptr, code, __FILE__, __LINE__ }
+#define RETURN_RESULT(type, code) Result<type, decltype(code)>{ nullptr, code, __FILE__, __LINE__ }
 
 template<typename EnumClass, typename InstanceType, typename ErrorCode>
 Result<InstanceType, ErrorCode> get_enum_instance(EnumClass Base, EnumClass valid_base, InstanceType& instance) {
     if (Base == valid_base) {
         return { &instance, ErrorCode::OK, nullptr, 0 };
     } else {
-        return RETURN_ERROR(InstanceType, ErrorCode::INVALID_SELECTION);
+        return RETURN_RESULT(InstanceType, ErrorCode::INVALID_SELECTION);
     }
 }

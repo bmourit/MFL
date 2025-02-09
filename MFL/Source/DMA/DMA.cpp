@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x DMA peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -61,7 +61,7 @@ Result<DMA, DMA_Error_Type> DMA::get_instance(DMA_Base Base, DMA_Channel Channel
                    );
         case DMA_Channel::INVALID:
         default:
-            return RETURN_ERROR(DMA, DMA_Error_Type::INVALID_DMA);
+            return RETURN_RESULT(DMA, DMA_Error_Type::INVALID_DMA);
         }
     } else if (Base == DMA_Base::DMA1_BASE) {
         switch (Channel) {
@@ -87,10 +87,10 @@ Result<DMA, DMA_Error_Type> DMA::get_instance(DMA_Base Base, DMA_Channel Channel
                    );
         case DMA_Channel::INVALID:
         default:
-            return RETURN_ERROR(DMA, DMA_Error_Type::INVALID_DMA);
+            return RETURN_RESULT(DMA, DMA_Error_Type::INVALID_DMA);
         }
     }
-    return RETURN_ERROR(DMA, DMA_Error_Type::INVALID_DMA);
+    return RETURN_RESULT(DMA, DMA_Error_Type::INVALID_DMA);
 }
 
 std::array<bool, static_cast<size_t>(DMA_Base::INVALID)> DMA::clock_enabled_ = {false};
@@ -106,7 +106,9 @@ DMA::DMA(DMA_Base Base, DMA_Channel Channel) :
         RCU_I.set_pclk_enable(DMA_pclk_info_.clock_reg, true);
         clock_enabled_[static_cast<size_t>(Base)] = true;
     }
-    // Initialize default values
+    // Cache register offsets for faster access
+    cache_register_offsets();
+    // Initialize with default values
     init();
 }
 
@@ -114,44 +116,37 @@ DMA::DMA(DMA_Base Base, DMA_Channel Channel) :
  * @brief Initialize the DMA channel
  *
  * This function will set the registers for the DMA channel with the given configuration.
- * It will set the priority, memory and peripheral bit widths, memory and peripheral increase modes, and the direction of the transfer.
- * It will also set the memory and peripheral addresses, and the transfer count.
- * Finally, it will store the configuration in the object for later use.
+ * It will set the priority, memory and peripheral bit widths, memory and peripheral increase modes,
+ * and the direction of the transfer. It will also set the memory and peripheral addresses,
+ * and the transfer count. Finally, it will store the configuration in the object for later use.
  *
  * @param config The configuration for the DMA channel
  */
 void DMA::init(DMA_Config config) {
-    // Set parameters
-    DMA_Regs ctl_offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit_ranges(*this, ctl_offset,
-               static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config.channel_priority),
-               static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(config.memory_bit_width),
-               static_cast<uint32_t>(CHXCTL_Bits::PWIDTH), static_cast<uint32_t>(config.peripheral_bit_width));
-    write_bits_ordered(*this, ctl_offset,
-               static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config.peripheral_increase == Increase_Mode::INCREASE_ENABLE),
-               static_cast<uint32_t>(CHXCTL_Bits::MNAGA), (config.memory_increase == Increase_Mode::INCREASE_ENABLE),
-               static_cast<uint32_t>(CHXCTL_Bits::DIR), (config.direction == Transfer_Direction::M2P));
-
-    // Addresses
-    DMA_Regs maddr_offset = get_channel_offset_from_reg(Channel_Regs::CHXMADDR);
-    DMA_Regs paddr_offset = get_channel_offset_from_reg(Channel_Regs::CHXPADDR);
-    write_register(*this, maddr_offset, config.memory_address);
-    write_register(*this, paddr_offset, config.peripheral_address);
-
-    // Count
-    DMA_Regs cnt_offset = get_channel_offset_from_reg(Channel_Regs::CHXCNT);
-    write_register(*this, cnt_offset, config.count & Lower16BitMask);
-
-    // Circulation mode
-    DMA_Regs circular_offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, circular_offset, static_cast<uint32_t>(CHXCTL_Bits::CMEN), config.circular_mode);
-
-    // Memory to memory mode
-    DMA_Regs m2m_offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, m2m_offset, static_cast<uint32_t>(CHXCTL_Bits::M2M), config.memory_to_memory);
-
     // Store the new cofig
     config_ = config;
+
+    // Disable DMA channel
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::CHEN), false);
+    // Set parameters
+    write_bit_ranges(*this, cached_offsets_.ctl,
+               static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(config_.channel_priority),
+               static_cast<uint32_t>(CHXCTL_Bits::MWIDTH), static_cast<uint32_t>(config_.memory_bit_width),
+               static_cast<uint32_t>(CHXCTL_Bits::PWIDTH), static_cast<uint32_t>(config_.peripheral_bit_width));
+    write_bits_sequence(*this, cached_offsets_.ctl,
+               static_cast<uint32_t>(CHXCTL_Bits::PNAGA), (config_.peripheral_increase == Increase_Mode::INCREASE_ENABLE),
+               static_cast<uint32_t>(CHXCTL_Bits::MNAGA), (config_.memory_increase == Increase_Mode::INCREASE_ENABLE),
+               static_cast<uint32_t>(CHXCTL_Bits::DIR), (config_.direction == Transfer_Direction::M2P));
+
+    // Addresses
+    write_register(*this, cached_offsets_.maddr, config_.memory_address);
+    write_register(*this, cached_offsets_.paddr, config_.peripheral_address);
+    // Count
+    write_register(*this, cached_offsets_.cnt, config_.count & Lower16BitMask);
+    // Circulation mode
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::CMEN), config_.circular_mode);
+    // Memory to memory mode
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::M2M), config_.memory_to_memory);
 }
 
 /**
@@ -163,19 +158,13 @@ void DMA::init(DMA_Config config) {
  * Finally, it will load the default configuration into the object.
  */
 void DMA::reset() {
-    DMA_Regs ctl_offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    DMA_Regs cnt_offset = get_channel_offset_from_reg(Channel_Regs::CHXCNT);
-    DMA_Regs paddr_offset = get_channel_offset_from_reg(Channel_Regs::CHXPADDR);
-    DMA_Regs maddr_offset = get_channel_offset_from_reg(Channel_Regs::CHXMADDR);
-
     // Disable DMA channel
-    write_bit(*this, ctl_offset, static_cast<uint32_t>(CHXCTL_Bits::CHEN), false);
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::CHEN), false);
     // Set register to default reset value
-    write_register(*this, cnt_offset, Clear);
-    write_register(*this, paddr_offset, Clear);
-    write_register(*this, paddr_offset, Clear);
-    write_register(*this, maddr_offset, Clear);
-    write_register(*this, DMA_Regs::INTC, (0xFU << (static_cast<uint32_t>(channel_) * 4)));
+    write_register(*this, cached_offsets_.cnt, Clear);
+    write_register(*this, cached_offsets_.paddr, Clear);
+    write_register(*this, cached_offsets_.maddr, Clear);
+    write_register(*this, DMA_Regs::INTC, 0x0FFFFFFFU);
 
     // Load default config
     config_ = default_config;
@@ -192,8 +181,7 @@ void DMA::reset() {
  * @param enable Set to true to enable circulation mode, false to disable it.
  */
 void DMA::set_circulation_mode_enable(bool enable) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, offset, static_cast<uint32_t>(CHXCTL_Bits::CMEN), enable);
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::CMEN), enable);
 }
 
 /**
@@ -206,8 +194,7 @@ void DMA::set_circulation_mode_enable(bool enable) {
  * @param enable Set to true to enable memory-to-memory mode, false to disable it.
  */
 void DMA::set_memory_to_memory_enable(bool enable) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, offset, static_cast<uint32_t>(CHXCTL_Bits::M2M), enable);
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::M2M), enable);
 }
 
 /**
@@ -220,8 +207,7 @@ void DMA::set_memory_to_memory_enable(bool enable) {
  * @param enable Set to true to enable the DMA channel, false to disable it.
  */
 void DMA::set_channel_enable(bool enable) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, offset, static_cast<uint32_t>(CHXCTL_Bits::CHEN), enable);
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::CHEN), enable);
 }
 
 /**
@@ -235,8 +221,8 @@ void DMA::set_channel_enable(bool enable) {
  * @param address The peripheral or memory address to set.
  */
 void DMA::set_data_address(Data_Type type, uint32_t address) {
-    DMA_Regs offset = get_channel_offset_from_reg((type == Data_Type::PERIPHERAL_ADDRESS) ?
-           Channel_Regs::CHXPADDR : Channel_Regs::CHXMADDR);
+    DMA_Regs offset = (type == Data_Type::PERIPHERAL_ADDRESS) ?
+           cached_offsets_.paddr : cached_offsets_.maddr;
     write_register(*this, offset, address);
 }
 
@@ -252,8 +238,10 @@ void DMA::set_data_address(Data_Type type, uint32_t address) {
  * @param count The number of transfers to perform.
  */
 void DMA::set_transfer_count(uint32_t count) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCNT);
-    write_register(*this, offset, count & Lower16BitMask);
+    if (count > 0xFFFFU) {
+        count = 0xFFFFU;
+    }
+    write_register(*this, cached_offsets_.cnt, count);
 }
 
 /**
@@ -266,8 +254,7 @@ void DMA::set_transfer_count(uint32_t count) {
  * @return The current transfer count for the DMA channel.
  */
 uint32_t DMA::get_transfer_count() {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCNT);
-    return read_register<uint32_t>(*this, offset);
+    return read_register<uint32_t>(*this, cached_offsets_.cnt);
 }
 
 /**
@@ -281,8 +268,7 @@ uint32_t DMA::get_transfer_count() {
  * @param priority The priority value for the DMA channel.
  */
 void DMA::set_channel_priority(Channel_Priority priority) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit_range(*this, offset, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(priority));
+    write_bit_range(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::PRIO), static_cast<uint32_t>(priority));
 }
 
 /**
@@ -300,8 +286,7 @@ void DMA::set_channel_priority(Channel_Priority priority) {
  *              enumeration.
  */
 void DMA::set_bit_width(Data_Type type, Bit_Width width) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit_range(*this, offset, (type == Data_Type::PERIPHERAL_ADDRESS) ?
+    write_bit_range(*this, cached_offsets_.ctl, (type == Data_Type::PERIPHERAL_ADDRESS) ?
           static_cast<uint32_t>(CHXCTL_Bits::PWIDTH) : static_cast<uint32_t>(CHXCTL_Bits::MWIDTH),
           static_cast<uint32_t>(width));
 }
@@ -319,8 +304,7 @@ void DMA::set_bit_width(Data_Type type, Bit_Width width) {
  * @param enable True to enable increase mode, false to disable it.
  */
 void DMA::set_increase_mode_enable(Data_Type type, bool enable) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, offset, (type == Data_Type::PERIPHERAL_ADDRESS) ?
+    write_bit(*this, cached_offsets_.ctl, (type == Data_Type::PERIPHERAL_ADDRESS) ?
           static_cast<uint32_t>(CHXCTL_Bits::PNAGA) :
           static_cast<uint32_t>(CHXCTL_Bits::MNAGA),
           enable);
@@ -339,19 +323,39 @@ void DMA::set_increase_mode_enable(Data_Type type, bool enable) {
  *                  the Transfer_Direction enumeration.
  */
 void DMA::set_transfer_direction(Transfer_Direction direction) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, offset, static_cast<uint32_t>(CHXCTL_Bits::DIR),
-           (direction == Transfer_Direction::M2P) ? true : false);
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::DIR),
+           (direction == Transfer_Direction::M2P));
 }
 
 /**
- * @brief Clears the DMA channel by setting all the control register bits to
- *        zero. This function is useful for resetting the DMA channel to its
- *        default state after a transfer is complete.
+ * @brief Abandons the current DMA transfer and clears all flags and interrupts.
+ *
+ * This function disables interrupts, disables the channel, and clears all flags
+ * and interrupts. It should be used to abort a DMA transfer and clear up any
+ * pending interrupts.
+ */
+void DMA::set_transfer_abandon() {
+    // Disable interrupts
+    write_bits_sequence(*this, cached_offsets_.ctl,
+                   static_cast<uint32_t>(Interrupt_Type::INTR_FTFIE), false,
+                   static_cast<uint32_t>(Interrupt_Type::INTR_HTFIE), false,
+                   static_cast<uint32_t>(Interrupt_Type::INTR_ERRIE), false,
+                   static_cast<uint32_t>(CHXCTL_Bits::CHEN), false);
+    // Disable channel
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::CHEN), false);
+    // Clear all flags
+    write_register(*this, DMA_Regs::INTC, 0x0FFFFFFF);
+}
+
+/**
+ * @brief Clears all configuration and status for the DMA channel.
+ *
+ * This function clears the channel control register (CHXCTL) by writing
+ * a value of zero to it. This clears all configuration and status for the
+ * DMA channel. The channel is disabled and all interrupts are cleared.
  */
 void DMA::clear_channel() {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit_range(*this, offset, static_cast<uint32_t>(CHXCTL_Bits::ALL), Clear);
+    write_bit_range(*this, cached_offsets_.ctl, static_cast<uint32_t>(CHXCTL_Bits::ALL), Clear);
 }
 
 /**
@@ -367,41 +371,41 @@ void DMA::clear_channel() {
  */
 bool DMA::get_flag(Status_Flags flag) {
     INTF_Bits bits = get_channel_bits_from_flag(flag);
-    if (bits != INTF_Bits::INVALID) {
-        return read_bit(*this, DMA_Regs::INTF, static_cast<uint32_t>(bits));
+    if (bits == INTF_Bits::INVALID) {
+        return false;
     }
-    return false;
+    return read_bit(*this, DMA_Regs::INTF, static_cast<uint32_t>(bits));
 }
 
 /**
- * Clears the specified flag in the DMA channel.
+ * @brief Clears the specified flag in the DMA channel.
  *
  * This function clears the specified flag by writing a 1 to the
  * corresponding bit in the INTC register. The flag is cleared
  * regardless of whether or not the interrupt is enabled.
  *
- * @param flag The flag to clear, specified as a Status_Flags enumeration
- *             value.
+ * @param flag The flag to clear, specified as a Status_Flags enumeration value.
  */
 void DMA::clear_flag(Status_Flags flag) {
     INTF_Bits bits = get_channel_bits_from_flag(flag);
     if (bits == INTF_Bits::INVALID) {
         return;
     }
-    write_bit(*this, DMA_Regs::INTC, static_cast<uint32_t>(bits), true);
+    write_register(*this, DMA_Regs::INTC, (1U << static_cast<uint32_t>(bits)));
 }
 
+/**
+ * @brief Clears multiple flags in the DMA channel.
+ *
+ * This function clears the specified flags by writing a mask to the INTC register.
+ * Only the lower 28 bits of the flags parameter are used, allowing for multiple
+ * flags to be cleared simultaneously. The flags are cleared regardless of whether
+ * or not the interrupts are enabled.
+ *
+ * @param flags A bitmask representing the flags to clear.
+ */
 void DMA::clear_flags(uint32_t flags) {
-    uint32_t combined_bits = 0U;
-    for (uint32_t flag = 1U; flag != 0U; flag <<= 1U) {
-        if (flags & flag) {
-            INTF_Bits bits = get_channel_bits_from_flag(static_cast<Status_Flags>(flag));
-            if (bits != INTF_Bits::INVALID) {
-                combined_bits |= static_cast<uint32_t>(bits);
-            }
-        }
-    }
-    atomic_write_bits(*this, DMA_Regs::INTC, combined_bits);
+    write_register(*this, DMA_Regs::INTC, flags & 0x0FFFFFFF);
 }
 
 /**
@@ -416,28 +420,29 @@ void DMA::clear_flags(uint32_t flags) {
  * @return true if the flag is set, false otherwise.
  */
 bool DMA::get_interrupt_flag(Interrupt_Flags flag) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
     INTF_Bits bits = INTF_Bits::INVALID;
 
     switch (flag) {
+    case Interrupt_Flags::INTR_FLAG_GIF: bits = get_channel_bits_from_flag(Status_Flags::FLAG_GIF); break;
     case Interrupt_Flags::INTR_FLAG_FTFIF: bits = get_channel_bits_from_flag(Status_Flags::FLAG_FTFIF); break;
     case Interrupt_Flags::INTR_FLAG_HTFIF: bits = get_channel_bits_from_flag(Status_Flags::FLAG_HTFIF); break;
     case Interrupt_Flags::INTR_FLAG_ERRIF: bits = get_channel_bits_from_flag(Status_Flags::FLAG_ERRIF); break;
-    case Interrupt_Flags::INTR_FLAG_GIF: default: break;
+    default: break;
     }
 
-    if (offset == DMA_Regs::INVALID || bits == INTF_Bits::INVALID) {
+    if (cached_offsets_.ctl == DMA_Regs::INVALID || bits == INTF_Bits::INVALID) {
         return false;
     }
 
     bool intr_flag = read_bit(*this, DMA_Regs::INTF, static_cast<uint32_t>(bits));
-    bool intr_enable = read_bit(*this, offset, static_cast<uint32_t>(bits));
+    bool intr_enable = (flag != Interrupt_Flags::INTR_FLAG_GIF) ?
+               read_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(flag)) : false;
 
     return (intr_flag && intr_enable);
 }
 
 /**
- * Clears a specified interrupt flag for the DMA channel.
+ * @brief Clears a specified interrupt flag for the DMA channel.
  *
  * This function clears a specified interrupt flag for the DMA channel. If the
  * flag is not applicable to the channel, this function does nothing.
@@ -449,10 +454,11 @@ void DMA::clear_interrupt_flag(Interrupt_Flags flag) {
     Status_Flags status_flag = Status_Flags::INVALID;
 
     switch (flag) {
+    case Interrupt_Flags::INTR_FLAG_GIF: status_flag = Status_Flags::FLAG_GIF; break;
     case Interrupt_Flags::INTR_FLAG_FTFIF: status_flag = Status_Flags::FLAG_FTFIF; break;
     case Interrupt_Flags::INTR_FLAG_HTFIF: status_flag = Status_Flags::FLAG_HTFIF; break;
     case Interrupt_Flags::INTR_FLAG_ERRIF: status_flag = Status_Flags::FLAG_ERRIF; break;
-    case Interrupt_Flags::INTR_FLAG_GIF: default: break;
+    default: break;
     }
 
     INTF_Bits bits = get_channel_bits_from_flag(status_flag);
@@ -460,11 +466,11 @@ void DMA::clear_interrupt_flag(Interrupt_Flags flag) {
         return;
     }
 
-    return write_bit(*this, DMA_Regs::INTC, static_cast<uint32_t>(bits), true);
+    return write_register(*this, DMA_Regs::INTC, (1U << static_cast<uint32_t>(bits)));
 }
 
 /**
- * Enables or disables a specific DMA channel interrupt.
+ * @brief Enables or disables a specific DMA channel interrupt.
  *
  * This function configures the interrupt settings for the DMA channel by
  * enabling or disabling the specified interrupt type. It modifies the control
@@ -475,15 +481,20 @@ void DMA::clear_interrupt_flag(Interrupt_Flags flag) {
  * @param enable Set to true to enable the interrupt or false to disable it.
  */
 void DMA::set_interrupt_enable(Interrupt_Type type, bool enable) {
-    DMA_Regs offset = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
-    write_bit(*this, offset, static_cast<uint32_t>(type), enable);
+    write_bit(*this, cached_offsets_.ctl, static_cast<uint32_t>(type), enable);
 }
 
 /**
- * Converts a DMA channel status flag to its corresponding INTF flag.
+ * @brief Maps a Status_Flags value to the corresponding INTF_Bits value for this
+ *        channel.
  *
- * @param flag A Status_Flags value representing a DMA channel status flag.
- * @return The corresponding INTF flag for the given status flag.
+ * This function takes a Status_Flags value and returns the corresponding INTF_Bits
+ * value for this channel. For example, if the Status_Flags value is
+ * Status_Flags::FLAG_GIF and the channel is 0, the function will return
+ * INTF_Bits::GIF0.
+ *
+ * @param flag The Status_Flags value to map.
+ * @return The corresponding INTF_Bits value for this channel.
  */
 inline INTF_Bits DMA::get_channel_bits_from_flag(Status_Flags flag) {
     static const INTF_Bits gif_map[] = {
@@ -494,7 +505,7 @@ inline INTF_Bits DMA::get_channel_bits_from_flag(Status_Flags flag) {
     static const INTF_Bits ftfif_map[] = {
         INTF_Bits::FTFIF0, INTF_Bits::FTFIF1, INTF_Bits::FTFIF2,
         INTF_Bits::FTFIF3, INTF_Bits::FTFIF4, INTF_Bits::FTFIF5,
-        INTF_Bits::FTFIF5
+        INTF_Bits::FTFIF6
     };
     static const INTF_Bits htfif_map[] = {
         INTF_Bits::HTFIF0, INTF_Bits::HTFIF1, INTF_Bits::HTFIF2,
@@ -517,15 +528,20 @@ inline INTF_Bits DMA::get_channel_bits_from_flag(Status_Flags flag) {
 }
 
 /**
- * Converts a Channel_Regs enum value to the corresponding DMA register offset.
+ * @brief Given a Channel_Regs value, returns the corresponding DMA_Regs value
+ *        plus the channel offset.
  *
- * @param reg The Channel_Regs enum value to convert.
- * @return The corresponding DMA register offset.
+ * This function takes a Channel_Regs value and returns the corresponding
+ * DMA_Regs value plus the channel offset. The channel offset is determined
+ * by the channel_ member variable.
+ *
+ * @param reg The Channel_Regs value to map.
+ * @return The corresponding DMA_Regs value plus the channel offset.
  */
 inline DMA_Regs DMA::get_channel_offset_from_reg(Channel_Regs reg) {
     static const DMA_Regs chxctl_map[] = {
         DMA_Regs::CH0CTL, DMA_Regs::CH1CTL, DMA_Regs::CH2CTL,
-        DMA_Regs::CH3CTL, DMA_Regs::CH4CTL, DMA_Regs::CH6CTL,
+        DMA_Regs::CH3CTL, DMA_Regs::CH4CTL, DMA_Regs::CH5CTL,
         DMA_Regs::CH6CTL
     };
     static const DMA_Regs chxcnt_map[] = {
@@ -550,6 +566,19 @@ inline DMA_Regs DMA::get_channel_offset_from_reg(Channel_Regs reg) {
     case Channel_Regs::CHXMADDR: return chxmaddr_map[static_cast<size_t>(channel_)];
     case Channel_Regs::INVALID: default: return DMA_Regs::INVALID;
     }
+}
+
+/**
+ * @brief Caches the register offsets for the given channel.
+ *
+ * This function caches the register offsets for the given channel. The
+ * cached offsets are stored in the cached_offsets_ member variable.
+ */
+void DMA::cache_register_offsets() {
+    cached_offsets_.ctl = get_channel_offset_from_reg(Channel_Regs::CHXCTL);
+    cached_offsets_.cnt = get_channel_offset_from_reg(Channel_Regs::CHXCNT);
+    cached_offsets_.paddr = get_channel_offset_from_reg(Channel_Regs::CHXPADDR);
+    cached_offsets_.maddr = get_channel_offset_from_reg(Channel_Regs::CHXMADDR);
 }
 
 } // namespace dma

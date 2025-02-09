@@ -1,7 +1,7 @@
 //
 // MFL stubs to surpress compiler warnings
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //

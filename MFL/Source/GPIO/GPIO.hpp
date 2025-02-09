@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x GPIO peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -41,10 +41,10 @@ public:
     // Set and get pin mode
     void set_pin_mode(Pin_Number pin, Pin_Mode mode, Output_Speed speed = Output_Speed::SPEED_MAX);
     Pin_Mode get_pin_mode(Pin_Number pin);
-    // Pin pull
+    // Pin level
     void set_pin_high(Pin_Number pin);
     void set_pin_low(Pin_Number pin);
-    void set_pin_pull(Pin_Number pin, bool high);
+    void set_pin_level(Pin_Number pin, bool high);
     // Read/write
     void write_pin(Pin_Number pin, bool set);
     bool read_pin(Pin_Number pin);

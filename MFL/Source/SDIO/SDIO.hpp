@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x SDIO peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -130,7 +130,7 @@ private:
     SDIO& operator=(const SDIO&) = delete;
 
     SDIO_Config config_;
-    bool is_clock_enabled_;
+    mutable bool is_clock_enabled_;
 };
 
 

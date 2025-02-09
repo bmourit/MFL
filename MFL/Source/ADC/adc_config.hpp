@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x ADC peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -199,7 +199,7 @@ enum class Sync_Mode : uint8_t {
     SM_ITR		// Inserted trigger rotation mode only
 };
 
-enum class Special_Function : uint8_t {
+enum class Functional_Mode : uint8_t {
     SCAN_MODE,
     INSERTED_CH_MODE,
     CONTINUOUS_MODE,

@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x CORTEX peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -40,8 +40,8 @@ CORTEX::CORTEX() {}
  * parameter enable is true, the bit is set, and if it is false, the bit is
  * cleared.
  */
-void set_low_power_mode_enable(Low_Power_Mode mode, bool enable) {
-    enable ? (SCB->SCR |= 1U << static_cast<uint32_t>(mode)) : (SCB->SCR &= (~(1U << static_cast<uint32_t>(mode))));
+void CORTEX::set_low_power_mode_enable(Low_Power_Mode mode, bool enable) {
+    enable ? (SCB->SCR |= (1U << static_cast<uint32_t>(mode))) : (SCB->SCR &= (~(1U << static_cast<uint32_t>(mode))));
 }
 
 /**

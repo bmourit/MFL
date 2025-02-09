@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x STARTUP and clock initialization in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -76,10 +76,10 @@ void STARTUP::startup_init() {
     //  Since we need PLL off for this, we should make this a
     //  configurable setting for different user requirments.
     //  For now, if you need something different comment out the
-    //  default (LOW) and uncomment one of the other choices below.
-    pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_LOW);
-    //PMU_I.set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_MID);
-    //PMU_I.set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_HIGH);
+    //  default (HIGH) and uncomment one of the other choices below.
+    //pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_LOW);
+    //pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_MID);
+    pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_HIGH);
 
     // AHB = SYSCLK
     rcu::RCU::get_instance().set_ahb_prescaler(rcu::AHB_Prescaler::CKSYS_DIV1);

@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x CRC functionality in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -35,7 +35,7 @@ CRC::CRC() : is_clock_enabled_(false) {
 }
 
 /**
- * Resets the CRC registers to their default values.
+ * @brief Resets the CRC registers to their default values.
  *
  * This method performs the following actions:
  *  - Writes the default reset value to the DATA register.
@@ -49,7 +49,7 @@ void CRC::reset() {
 }
 
 /**
- * Resets the CRC calculation logic by setting the RST bit in the CTL register.
+ * @brief Resets the CRC calculation logic by setting the RST bit in the CTL register.
  *
  * This method effectively resets the data register to its default value.
  */
@@ -94,7 +94,7 @@ void CRC::set_free_data(uint8_t data) {
 }
 
 /**
- * Calculates the CRC of a given 32-bit data value and returns the result.
+ * @brief Calculates the CRC of a given 32-bit data value and returns the result.
  *
  * This method takes a 32-bit data value as an argument and calculates the
  * associated CRC value. The CRC calculation is performed by writing the
@@ -111,7 +111,7 @@ uint32_t CRC::calculate_data(uint32_t data) {
 }
 
 /**
- * Calculates the CRC for an array of 32-bit data values and returns the result.
+ * @brief Calculates the CRC for an array of 32-bit data values and returns the result.
  *
  * This method iterates over an array of 32-bit data values, writing each
  * value to the DATA register to compute the cumulative CRC. After processing

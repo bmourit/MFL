@@ -1,7 +1,7 @@
 //
 // MFL EXTI peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -68,7 +68,7 @@ void EXTI::init(EXTI_Line line, EXTI_Mode mode, EXTI_Trigger trigger) {
 }
 
 /**
- * Resets the EXTI peripheral registers to their default values.
+ * @brief Resets the EXTI peripheral registers to their default values.
  *
  * This function resets all EXTI registers, effectively disabling all EXTI lines
  * and clearing all pending interrupts and events. The function writes the default

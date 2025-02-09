@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x PMU peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -38,7 +38,8 @@ PMU::PMU() : is_clock_enabled_(false) {
 }
 
 /**
- * Resets the PMU peripheral by toggling the reset control.
+ * @brief Resets the PMU peripheral by toggling the reset control.
+ * 
  * This function enables the peripheral clock reset for the PMU,
  * then disables it, effectively resetting all registers to their
  * default values.
@@ -49,7 +50,7 @@ void PMU::reset() {
 }
 
 /**
- * Enables low voltage detection (LVD) for the PMU with the specified threshold.
+ * @brief Enables low voltage detection (LVD) for the PMU with the specified threshold.
  * 
  * @param threshold The LVD threshold level to be set, defined by the LVD_Threshold enum.
  * 
@@ -58,7 +59,7 @@ void PMU::reset() {
  */
 void PMU::lvd_enable(LVD_Threshold threshold) {
     // Reset
-    write_bits_ordered(*this, PMU_Regs::CTL,
+    write_bits_sequence(*this, PMU_Regs::CTL,
                static_cast<uint32_t>(CTL_Bits::LVDEN), false,
                static_cast<uint32_t>(CTL_Bits::LVDEN), true);
     write_bit_ranges(*this, PMU_Regs::CTL,
@@ -67,7 +68,7 @@ void PMU::lvd_enable(LVD_Threshold threshold) {
 }
 
 /**
- * Disables low voltage detection (LVD) for the PMU.
+ * @brief Disables low voltage detection (LVD) for the PMU.
  *
  * This function clears the LVDEN bit in the CTL register, disabling
  * the LVD feature. The LVDT bits remain unchanged.
@@ -77,7 +78,7 @@ void PMU::lvd_disable() {
 }
 
 /**
- * Sets the output voltage level for the low-dropout regulator (LDO).
+ * @brief Sets the output voltage level for the low-dropout regulator (LDO).
  * 
  * @param level The output voltage level to be set, defined by the Output_Voltage enum.
  * 
@@ -90,7 +91,7 @@ void PMU::set_ldo_output(Output_Voltage level) {
 }
 
 /**
- * Switches the high driver mode on or off.
+ * @brief Switches the high driver mode on or off.
  *
  * @param enable If true, enables high driver mode. If false, disables high driver mode.
  *
@@ -105,7 +106,7 @@ void PMU::high_driver_switch(bool enable) {
 }
 
 /**
- * Enables or disables high driver mode for the PMU.
+ * @brief Enables or disables high driver mode for the PMU.
  *
  * If `enable` is true, this function sets the HDEN bit in the CTL register to enable
  * high driver mode. It then waits for the HDR flag to become set, indicating that the
@@ -125,7 +126,7 @@ void PMU::set_high_driver_enable(bool enable) {
 }
 
 /**
- * Enables or disables low driver mode during deep sleep for the PMU.
+ * @brief Enables or disables low driver mode during deep sleep for the PMU.
  *
  * This function sets the LDEN bits in the CTL register to enable or disable
  * low driver mode when the system enters deep sleep. When enabled, the low
@@ -139,7 +140,7 @@ void PMU::set_low_driver_on_deep_sleep_enable(bool enable) {
 }
 
 /**
- * Configures the low driver mode during deep sleep.
+ * @brief Configures the low driver mode during deep sleep.
  *
  * This function sets the LDEN bits in the CTL register based on the provided
  * low driver mode. It allows for enabling or disabling low driver mode during
@@ -164,7 +165,7 @@ void PMU::set_low_driver_on_deep_sleep(Low_Driver mode) {
  *               normal driver mode is used.
  */
 void PMU::set_driver_on_low_power(Power_Driver driver) {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDLP), driver == Power_Driver::LOW_DRIVER ? true : false);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDLP), (driver == Power_Driver::LOW_DRIVER));
 }
 
 /**
@@ -179,7 +180,7 @@ void PMU::set_driver_on_low_power(Power_Driver driver) {
  *               normal driver mode is used.
  */
 void PMU::set_driver_on_normal_power(Power_Driver driver) {
-    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDNP), driver == Power_Driver::LOW_DRIVER ? true : false);
+    write_bit(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDNP), (driver == Power_Driver::LOW_DRIVER));
 }
 
 /**
@@ -191,7 +192,7 @@ void PMU::set_driver_on_normal_power(Power_Driver driver) {
  * event.
  */
 void PMU::set_standby_enable() {
-    write_bits_ordered(*this, PMU_Regs::CTL,
+    write_bits_sequence(*this, PMU_Regs::CTL,
                static_cast<uint32_t>(CTL_Bits::STBMOD), true,
                static_cast<uint32_t>(CTL_Bits::WURST), true);
 
@@ -234,12 +235,12 @@ void PMU::set_deep_sleep_enable(Power_Driver driver, PMU_Commands cmd, bool enab
     uint8_t value = (cmd == PMU_Commands::WFI_CMD) ? 1 : 2;
 
     write_bit_range(*this, PMU_Regs::CTL, static_cast<uint32_t>(CTL_Bits::LDEN), Clear);
-    write_bits_ordered(*this, PMU_Regs::CTL,
+    write_bits_sequence(*this, PMU_Regs::CTL,
                static_cast<uint32_t>(CTL_Bits::STBMOD), false,
                static_cast<uint32_t>(CTL_Bits::LDOLP), false,
                static_cast<uint32_t>(CTL_Bits::LDNP), false,
                static_cast<uint32_t>(CTL_Bits::LDLP), false,
-               static_cast<uint32_t>(CTL_Bits::LDOLP), driver == Power_Driver::LOW_DRIVER ? true : false);
+               static_cast<uint32_t>(CTL_Bits::LDOLP), (driver == Power_Driver::LOW_DRIVER));
     // low drive mode config in deep-sleep mode
     if (enable) {
         if (driver == Power_Driver::NORMAL_DRIVER) {

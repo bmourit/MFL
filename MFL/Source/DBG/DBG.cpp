@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x DBG debug in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -30,7 +30,7 @@ ARMDBG& ARMDBG::get_instance() {
 ARMDBG::ARMDBG() {}
 
 /**
- * Resets the DBG peripheral.
+ * @brief Resets the DBG peripheral.
  *
  * This function resets the DBG peripheral by writing '0's to the DBG_CTL0 register
  * and thus clearing all bits in the register. This is the same as performing a
@@ -41,7 +41,7 @@ void ARMDBG::reset() {
 }
 
 /**
- * Returns the debug ID of the DBG peripheral.
+ * @brief Returns the debug ID of the DBG peripheral.
  *
  * This function reads the DBG_ID register and returns its value as a uint32_t.
  *
@@ -52,7 +52,7 @@ uint32_t ARMDBG::get_debug_id() {
 }
 
 /**
- * Enables or disables debug with trace output.
+ * @brief Enables or disables debug with trace output.
  *
  * If the argument is true, this function enables debug with trace output. If the
  * argument is false, this function disables debug with trace output.
@@ -65,7 +65,7 @@ void ARMDBG::set_debug_trace_enable(bool enable) {
 }
 
 /**
- * Enables or disables debug for the specified peripheral.
+ * @brief Enables or disables debug for the specified peripheral.
  *
  * If the argument is true, this function enables debug for the specified
  * peripheral. If the argument is false, this function disables debug for the
@@ -80,7 +80,7 @@ void ARMDBG::set_peripheral_debug_enable(Debug_Peripheral peripheral, bool enabl
 }
 
 /**
- * Enables or disables debugging during low power modes.
+ * @brief Enables or disables debugging during low power modes.
  *
  * This function sets the debug configuration for specific low power modes
  * by enabling or disabling it based on the `enable` parameter. It modifies 
@@ -93,5 +93,6 @@ void ARMDBG::set_peripheral_debug_enable(Debug_Peripheral peripheral, bool enabl
 void ARMDBG::set_debug_low_power_enable(Low_Power_Debug type, bool enable) {
     write_bit(*this, DBG_Regs::CTL0, static_cast<uint32_t>(type), enable);
 }
+
 
 } // namespace armdbg

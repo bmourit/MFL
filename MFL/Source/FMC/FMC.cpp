@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x FMC peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -132,7 +132,7 @@ FMC_Error_Type FMC::mass_erase() {
     FMC_Error_Type state = ready_wait_bank0(timeout);
 
     if (state == FMC_Error_Type::READY) {
-        write_bits_ordered(*this, FMC_Regs::CTL0,
+        write_bits_sequence(*this, FMC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::MER), true,
                    static_cast<uint32_t>(CTL0_Bits::START), true);
         // Wait until ready
@@ -145,7 +145,7 @@ FMC_Error_Type FMC::mass_erase() {
         timeout = reinterpret_cast<uint32_t>(Timeout_Count);
         state = ready_wait_bank1(timeout);
         if (state == FMC_Error_Type::READY) {
-            write_bits_ordered(*this, FMC_Regs::CTL1,
+            write_bits_sequence(*this, FMC_Regs::CTL1,
                        static_cast<uint32_t>(CTL1_Bits::MER), true,
                        static_cast<uint32_t>(CTL1_Bits::START), true);
             // Wait until ready
@@ -203,7 +203,7 @@ FMC_Error_Type FMC::erase_bank0() {
 
     state = ready_wait_bank0(timeout);
     if (state == FMC_Error_Type::READY) {
-        write_bits_ordered(*this, FMC_Regs::CTL0,
+        write_bits_sequence(*this, FMC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::MER), true,
                    static_cast<uint32_t>(CTL0_Bits::START), true);
         // Wait until ready
@@ -230,7 +230,7 @@ FMC_Error_Type FMC::erase_bank1() {
 
     state = ready_wait_bank1(timeout);
     if (state == FMC_Error_Type::READY) {
-        write_bits_ordered(*this, FMC_Regs::CTL1,
+        write_bits_sequence(*this, FMC_Regs::CTL1,
                    static_cast<uint32_t>(CTL1_Bits::MER), true,
                    static_cast<uint32_t>(CTL1_Bits::START), true);
         // Wait until ready
@@ -468,7 +468,7 @@ bool FMC::get_flag(Status_Flags flag) {
 }
 
 /**
- * Clears a specified status flag in the FMC.
+ * @brief Clears a specified status flag in the FMC.
  *
  * This function clears a given status flag specified by the Status_Flags
  * enumeration. The flag is cleared by writing a 0 to the corresponding bit
@@ -497,7 +497,7 @@ bool FMC::get_interrupt_flag(Interrupt_Flags flag) {
 }
 
 /**
- * Clears a specified interrupt flag in the FMC.
+ * @brief Clears a specified interrupt flag in the FMC.
  *
  * This function clears a given interrupt flag specified by the Interrupt_Flags
  * enumeration. The flag is cleared by writing a 1 to the corresponding bit in
@@ -511,7 +511,7 @@ void FMC::clear_interrupt_flag(Interrupt_Flags flag) {
 }
 
 /**
- * Enables or disables a specified interrupt type in the FMC.
+ * @brief Enables or disables a specified interrupt type in the FMC.
  *
  * This function sets or clears a given interrupt type specified by the
  * Interrupt_Types enumeration. If the `enable` parameter is true, the
@@ -527,7 +527,7 @@ void FMC::set_interrupt_enable(Interrupt_Types type, bool enable) {
 }
 
 /**
- * Programs a word to a specified address in either bank 0 or bank 1 of the
+ * @brief Programs a word to a specified address in either bank 0 or bank 1 of the
  * FMC. The function waits for the programming operation to complete and
  * returns the resulting state of the FMC.
  *
@@ -579,7 +579,7 @@ FMC_Error_Type FMC::program_word_to_bank(uint32_t address, uint32_t data,
 }
 
 /**
- * Programs a halfword to a specified address in either bank 0 or bank 1 of the
+ * @brief Programs a halfword to a specified address in either bank 0 or bank 1 of the
  * FMC. The function waits for the programming operation to complete and
  * returns the resulting state of the FMC.
  *
@@ -631,7 +631,7 @@ FMC_Error_Type FMC::program_halfword_to_bank(uint32_t address, uint16_t data,
 }
 
 /**
- * Erases a word at a specified address in either bank 0 or bank 1 of the
+ * @brief Erases a word at a specified address in either bank 0 or bank 1 of the
  * FMC. The function waits for the erase operation to complete and
  * returns the resulting state of the FMC.
  *
@@ -660,11 +660,7 @@ FMC_Error_Type FMC::erase_word_bank(uint32_t address, uint32_t timeout,
                FMC_Regs control_reg, T erase_bit, T start_bit, FMC_Regs address_reg) {
     FMC_Error_Type state = FMC_Error_Type::READY;
 
-    if (control_reg == FMC_Regs::CTL0) {
-        state = ready_wait_bank0(timeout);
-    } else {
-        state = ready_wait_bank1(timeout);
-    }
+    state = (control_reg == FMC_Regs::CTL0) ? ready_wait_bank0(timeout) : ready_wait_bank1(timeout);
 
     if (state == FMC_Error_Type::READY) {
         // Set the programming bit
@@ -679,11 +675,7 @@ FMC_Error_Type FMC::erase_word_bank(uint32_t address, uint32_t timeout,
         write_bit(*this, control_reg, static_cast<uint32_t>(start_bit), true);
 
         // Wait until erase completes
-        if (control_reg == FMC_Regs::CTL0) {
-            state = ready_wait_bank0(timeout);
-        } else {
-            state = ready_wait_bank1(timeout);
-        }
+        state = (control_reg == FMC_Regs::CTL0) ? ready_wait_bank0(timeout) : ready_wait_bank1(timeout);
 
         // Clear the erase bit
         write_bit(*this, control_reg, static_cast<uint32_t>(erase_bit), false);

@@ -13,11 +13,11 @@ OUTDIR = build
 LINKER_SCRIPT = Linker/gd32f303re.ld
 
 # C++ compiler flags
-CXXFLAGS = -std=gnu++20 -mcpu=cortex-m4 -mthumb -Os -ggdb $(INCLUDES) #-flto
+CXXFLAGS = -std=gnu++23 -mcpu=cortex-m4 -mthumb -Os $(INCLUDES) #-flto
 CXXFLAGS += --specs=nosys.specs -Wall -Wextra -ffunction-sections -fdata-sections -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit -nostdlib --specs=nano.specs
 
 # Linker flags
-LDFLAGS	= -T$(LINKER_SCRIPT) -mcpu=cortex-m4 -mthumb -Os -ggdb #-flto
+LDFLAGS	= -T$(LINKER_SCRIPT) -mcpu=cortex-m4 -mthumb -Os #-flto
 LDFLAGS += --specs=nosys.specs -Wl,--gc-sections -Wl,--check-sections -Wl,--entry=Reset_Handler -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align --specs=nano.specs
 LDFLAGS += -lstdc++ -lgcc -lm -lc
 

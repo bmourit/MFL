@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x ADC peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -43,12 +43,12 @@ public:
     bool is_enabled();
     // Configuration
     void calibration_enable();
-    void dma_enable(bool enable);
+    void set_dma_enable(bool enable);
     void set_temperature_voltage_reference_enable(bool enable);
     void set_resolution(ADC_Resolution resolution);
     void set_group_channel_discontinuous_mode(Channel_Group_Type channel_group, uint8_t length);
     void set_mode(Sync_Mode mode);
-    void set_special_function(Special_Function function, bool enable);
+    void set_functional_mode(Functional_Mode function, bool enable);
     void set_data_alignment(Data_Alignment align);
     void set_channel_length(Channel_Group_Type channel_group, uint32_t length);
     void set_regular_channel_sequence(uint8_t rank, ADC_Channel channel, ADC_Sample_Time sample_time);
@@ -61,7 +61,7 @@ public:
     // Read data
     uint32_t get_regular_data();
     uint32_t get_inserted_data(Inserted_Channel inserted_channel);
-    uint32_t get_sync_mode_convert_value();
+    uint32_t get_sync_mode_data();
     // Watchdog
     void single_channel_watchdog_enable(ADC_Channel channel);
     void group_channel_watchdog_enable(Channel_Group_Type channel_group);
@@ -81,6 +81,7 @@ public:
     inline void setup_regular_conversion();
     inline void cleanup_regular_conversion();
     inline void calibration_delay();
+    inline uint32_t get_prescaler_value();
     uint32_t start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Time sample, ADC_Resolution resolution, bool calibrate = false);
 
     // Accessor methods
@@ -100,6 +101,7 @@ private:
     ADC_Base base_;
     ADC_Clock_Config ADC_pclk_info_;
     uint32_t base_address_;
+    uint32_t prescaler_;
 
     inline void set_sampling_time(ADC_Channel channel, ADC_Sample_Time sample_time);
     inline uint32_t configure_channel(uint32_t reg, uint8_t rank, ADC_Channel channel);

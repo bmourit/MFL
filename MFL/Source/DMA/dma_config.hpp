@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x DMA peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -97,7 +97,7 @@ enum class Channel_Regs : uint32_t {
 
 enum class INTF_Bits : uint8_t {
     GIF0 = 0,
-    FTFIF0 =1,
+    FTFIF0 = 1,
     HTFIF0 = 2,
     ERRIF0 = 3,
     GIF1 = 4,
@@ -190,8 +190,8 @@ enum class DMA_Channel : uint8_t {
 
 enum class Status_Flags : uint8_t {
     FLAG_GIF,
-    FLAG_FTFIF,     // Full transfer fifo is full
-    FLAG_HTFIF,     // Half transfer fifo is full
+    FLAG_FTFIF,     // Full transfer finished interrupt
+    FLAG_HTFIF,     // Half transfer finished interrupt
     FLAG_ERRIF,
     INVALID
 };

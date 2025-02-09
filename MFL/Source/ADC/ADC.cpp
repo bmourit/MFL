@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x ADC peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -44,7 +44,7 @@ Result<ADC, ADC_Error_Type> ADC::get_instance(ADC_Base Base) {
                );
     case ADC_Base::INVALID:
     default:
-        return RETURN_ERROR(ADC, ADC_Error_Type::INVALID_ADC);
+        return RETURN_RESULT(ADC, ADC_Error_Type::INVALID_ADC);
     }
 }
 
@@ -53,7 +53,8 @@ std::array<bool, static_cast<size_t>(ADC_Base::INVALID)> ADC::clock_enabled_ = {
 ADC::ADC(ADC_Base Base) :
     base_(Base),
     ADC_pclk_info_(ADC_pclk_index[static_cast<size_t>(Base)]),
-    base_address_(ADC_baseAddress[static_cast<size_t>(Base)])
+    base_address_(ADC_baseAddress[static_cast<size_t>(Base)]),
+    prescaler_(get_prescaler_value())
 {
     if (!clock_enabled_[static_cast<size_t>(Base)]) {
         RCU_I.set_pclk_enable(ADC_pclk_info_.clock_reg, true);
@@ -148,7 +149,7 @@ void ADC::calibration_enable() {
  *
  * @param enable Set to true to enable DMA, false to disable it.
  */
-void ADC::dma_enable(bool enable) {
+void ADC::set_dma_enable(bool enable) {
     write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DMA), enable);
 }
 
@@ -179,8 +180,7 @@ void ADC::set_temperature_voltage_reference_enable(bool enable) {
  * @param resolution The desired ADC resolution.
  */
 void ADC::set_resolution(ADC_Resolution resolution) {
-    write_bit_ranges(*this, ADC_Regs::OVSAMPCTL,
-               static_cast<uint32_t>(OVSAMPCTL_Bits::DRES), Clear,
+    write_bit_range(*this, ADC_Regs::OVSAMPCTL,
                static_cast<uint32_t>(OVSAMPCTL_Bits::DRES), static_cast<uint32_t>(resolution));
 }
 
@@ -196,15 +196,13 @@ void ADC::set_resolution(ADC_Resolution resolution) {
  *               Only applicable for the regular channel group.
  */
 void ADC::set_group_channel_discontinuous_mode(Channel_Group_Type channel_group, uint8_t length) {
-    write_bits_ordered(*this, ADC_Regs::CTL0,
+    write_bits_sequence(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::DISIC), false,
                static_cast<uint32_t>(CTL0_Bits::DISRC), false);
 
     switch (channel_group) {
     case Channel_Group_Type::REGULAR_CHANNEL:
-        write_bit_ranges(*this, ADC_Regs::CTL0,
-                   static_cast<uint32_t>(CTL0_Bits::DISNUM), Clear,
-                   static_cast<uint32_t>(CTL0_Bits::DISNUM), static_cast<uint32_t>(length - 1U));
+        write_bit_range(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISNUM), static_cast<uint32_t>(length - 1U));
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::DISRC), true);
         break;
     case Channel_Group_Type::INSERTED_CHANNEL:
@@ -228,9 +226,7 @@ void ADC::set_group_channel_discontinuous_mode(Channel_Group_Type channel_group,
  * @param mode The desired Sync_Mode enum class value.
  */
 void ADC::set_mode(Sync_Mode mode) {
-    write_bit_ranges(*this, ADC_Regs::CTL0,
-               static_cast<uint32_t>(CTL0_Bits::SYNCM), Clear,
-               static_cast<uint32_t>(CTL0_Bits::SYNCM), static_cast<uint32_t>(mode));
+    write_bit_range(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SYNCM), static_cast<uint32_t>(mode));
 }
 
 /**
@@ -248,33 +244,33 @@ void ADC::set_mode(Sync_Mode mode) {
  * @param enable Set to true to enable the specified functional mode,
  *               false to disable it.
  */
-void ADC::set_special_function(Special_Function function, bool enable) {
+void ADC::set_functional_mode(Functional_Mode function, bool enable) {
     switch (function) {
-    case Special_Function::SCAN_MODE:
+    case Functional_Mode::SCAN_MODE:
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SM), enable);
         break;
-    case Special_Function::INSERTED_CH_MODE:
+    case Functional_Mode::INSERTED_CH_MODE:
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ICA), enable);
         break;
-    case Special_Function::CONTINUOUS_MODE:
+    case Functional_Mode::CONTINUOUS_MODE:
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CTN), enable);
         break;
-    case Special_Function::SCAN_INSERTED:
-        write_bits_ordered(*this, ADC_Regs::CTL0,
+    case Functional_Mode::SCAN_INSERTED:
+        write_bits_sequence(*this, ADC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::SM), enable,
                    static_cast<uint32_t>(CTL0_Bits::ICA), enable);
         break;
-    case Special_Function::SCAN_CONTINUOUS:
+    case Functional_Mode::SCAN_CONTINUOUS:
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SM), enable);
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CTN), enable);
         break;
-    case Special_Function::SCAN_INSERTED_CONTINUOUS:
-        write_bits_ordered(*this, ADC_Regs::CTL0,
+    case Functional_Mode::SCAN_INSERTED_CONTINUOUS:
+        write_bits_sequence(*this, ADC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::SM), enable,
                    static_cast<uint32_t>(CTL0_Bits::ICA), enable);
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CTN), enable);
         break;
-    case Special_Function::INSERTED_CONTINUOUS:
+    case Functional_Mode::INSERTED_CONTINUOUS:
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::ICA), enable);
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::CTN), enable);
         break;
@@ -306,14 +302,10 @@ void ADC::set_data_alignment(Data_Alignment align) {
 void ADC::set_channel_length(Channel_Group_Type type, uint32_t length) {
     switch (type) {
     case Channel_Group_Type::REGULAR_CHANNEL:
-        write_bit_ranges(*this, ADC_Regs::RSQ0,
-                   static_cast<uint32_t>(RSQX_Bits::RL), Clear,
-                   static_cast<uint32_t>(RSQX_Bits::RL), length - 1U);
+        write_bit_range(*this, ADC_Regs::RSQ0, static_cast<uint32_t>(RSQX_Bits::RL), length - 1U);
         break;
     case Channel_Group_Type::INSERTED_CHANNEL:
-        write_bit_ranges(*this, ADC_Regs::ISQ,
-                   static_cast<uint32_t>(ISQ_Bits::IL), Clear,
-                   static_cast<uint32_t>(ISQ_Bits::IL), length - 1U);
+        write_bit_range(*this, ADC_Regs::ISQ, static_cast<uint32_t>(ISQ_Bits::IL), length - 1U);
         break;
     default:
         break;
@@ -421,7 +413,7 @@ void ADC::set_external_trigger_enable(Channel_Group_Type channel_group, bool ena
         write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETEIC), enable);
     }
     if (channel_group == Channel_Group_Type::REGULAR_INSERTED_CHANNEL) {
-        write_bits_ordered(*this, ADC_Regs::CTL1,
+        write_bits_sequence(*this, ADC_Regs::CTL1,
                    static_cast<uint32_t>(CTL1_Bits::ETERC), enable,
                    static_cast<uint32_t>(CTL1_Bits::ETEIC), enable);
     }
@@ -471,25 +463,6 @@ void ADC::set_software_trigger_group(Channel_Group_Type channel_group) {
     write_bits(*this, ADC_Regs::CTL1, bits, true);
 }
 
-/*
-    switch (channel_group) {
-    case Channel_Group_Type::REGULAR_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::SWRCST), true);
-        break;
-    case Channel_Group_Type::INSERTED_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::SWICST), true);
-        break;
-    case Channel_Group_Type::REGULAR_INSERTED_CHANNEL:
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::SWRCST), true); 
-        write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::SWICST), true);
-        break;
-    case Channel_Group_Type::CHANNEL_DISCON_DISABLE:
-    default:
-        break;
-    }
-}
-*/
-
 /**
  * @brief Retrieves the converted data from the regular channel group.
  *
@@ -524,7 +497,7 @@ uint32_t ADC::get_inserted_data(Inserted_Channel inserted_channel) {
 }
 
 /**
- * @brief Retrieves the ADC conversion result when in synchronization mode.
+ * @brief Retrieves the converted data when in synchronization mode.
  *
  * In synchronization mode, the ADC conversion result is always stored in the
  * RDATA register. This function is used to retrieve the conversion result in
@@ -532,7 +505,7 @@ uint32_t ADC::get_inserted_data(Inserted_Channel inserted_channel) {
  *
  * @return The 32-bit result of the ADC conversion in synchronization mode.
  */
-uint32_t ADC::get_sync_mode_convert_value(void) {
+uint32_t ADC::get_sync_mode_data() {
     return read_register<uint32_t>(*this, ADC_Regs::RDATA);
 }
 
@@ -550,14 +523,13 @@ void ADC::single_channel_watchdog_enable(ADC_Channel channel) {
     if (channel == ADC_Channel::INVALID) {
         return;
     }
-    write_bits_ordered(*this, ADC_Regs::CTL0,
+    write_bits_sequence(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::RWDEN), false,
                static_cast<uint32_t>(CTL0_Bits::IWDEN), false,
                static_cast<uint32_t>(CTL0_Bits::WDSC), false);
-    write_bit_ranges(*this, ADC_Regs::CTL0,
-               static_cast<uint32_t>(CTL0_Bits::WDCHSEL), Clear,
+    write_bit_range(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::WDCHSEL), static_cast<uint32_t>(channel));
-    write_bits_ordered(*this, ADC_Regs::CTL0,
+    write_bits_sequence(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::RWDEN), true,
                static_cast<uint32_t>(CTL0_Bits::IWDEN), true,
                static_cast<uint32_t>(CTL0_Bits::WDSC), true);
@@ -575,7 +547,7 @@ void ADC::single_channel_watchdog_enable(ADC_Channel channel) {
  *                      not be Channel_Group_Type::CHANNEL_DISCON_DISABLE.
  */
 void ADC::group_channel_watchdog_enable(Channel_Group_Type channel_group) {
-    write_bits_ordered(*this, ADC_Regs::CTL0,
+    write_bits_sequence(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::RWDEN), false,
                static_cast<uint32_t>(CTL0_Bits::IWDEN), false,
                static_cast<uint32_t>(CTL0_Bits::WDSC), false);
@@ -588,7 +560,7 @@ void ADC::group_channel_watchdog_enable(Channel_Group_Type channel_group) {
         write_bit(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::IWDEN), true);
         break;
     case Channel_Group_Type::REGULAR_INSERTED_CHANNEL:
-        write_bits_ordered(*this, ADC_Regs::CTL0,
+        write_bits_sequence(*this, ADC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::RWDEN), true,
                    static_cast<uint32_t>(CTL0_Bits::IWDEN), true);
         break;
@@ -607,7 +579,7 @@ void ADC::group_channel_watchdog_enable(Channel_Group_Type channel_group) {
  * power mode or when the watchdog is no longer needed.
  */
 void ADC::watchdog_disable() {
-    write_bits_ordered(*this, ADC_Regs::CTL0,
+    write_bits_sequence(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::IWDEN), false,
                static_cast<uint32_t>(CTL0_Bits::WDSC), false,
                static_cast<uint32_t>(CTL0_Bits::RWDEN), false);
@@ -649,10 +621,8 @@ void ADC::set_watchdog_threshold(uint16_t low, uint16_t high) {
  */
 void ADC::set_oversampling_configuration(Oversampling_Conversion mode, Oversampling_Shift shift, Oversampling_Ratio ratio) {
     write_bit(*this, ADC_Regs::OVSAMPCTL,
-               static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), mode == Oversampling_Conversion::OVERSAMPLING_CONVERT_ONE);
+               static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), (mode == Oversampling_Conversion::OVERSAMPLING_CONVERT_ONE));
     write_bit_ranges(*this, ADC_Regs::OVSAMPCTL,
-               static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), Clear,
-               static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), Clear,
                static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), static_cast<uint32_t>(shift),
                static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(ratio));
 }
@@ -789,7 +759,7 @@ inline void ADC::set_sampling_time(ADC_Channel channel, ADC_Sample_Time sample_t
     volatile uint32_t wait_count = 0U;
     if (channel == ADC_Channel::CHANNEL_16 || channel == ADC_Channel::CHANNEL_17) {
         set_temperature_voltage_reference_enable(true);
-        wait_count = (10U * (RCU_I.get_system_clock() / 1'000'000U));
+        wait_count = ((RCU_I.get_system_clock() / 1'000'000U) * 10U);
         while (wait_count != 0U) {
             wait_count = wait_count - 1U;
         }
@@ -835,7 +805,7 @@ inline void ADC::setup_regular_conversion() {
     // In single conversion mode length is forced to zero
     write_bit_range(*this, ADC_Regs::RSQ0, static_cast<uint32_t>(RSQX_Bits::RL), Clear);
     // Disable conflicting modes
-    write_bits_ordered(*this, ADC_Regs::CTL0,
+    write_bits_sequence(*this, ADC_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::DISRC), false,
                static_cast<uint32_t>(CTL0_Bits::SM), false);
     write_bit_range(*this, ADC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::SYNCM), Clear);
@@ -857,7 +827,7 @@ inline void ADC::cleanup_regular_conversion() {
     write_register(*this, ADC_Regs::SAMPT0, Clear);
     write_register(*this, ADC_Regs::SAMPT1, Clear);
     write_bit_range(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETSRC), Clear);
-    write_bits_ordered(*this, ADC_Regs::CTL1,
+    write_bits_sequence(*this, ADC_Regs::CTL1,
                static_cast<uint32_t>(CTL1_Bits::ETERC), false,
                static_cast<uint32_t>(CTL1_Bits::SWRCST), false);
 }
@@ -868,8 +838,7 @@ inline void ADC::cleanup_regular_conversion() {
  * Channels 0-15 ONLY!! No internal channels!!
  *
  * Handles register setup, starting, and retrieving the converted data.
- *
- * Cleanup is done after the conversion
+ * Cleanup is done after the conversion.
  *
  * @param channel The ADC channel to convert
  * @param sample The sample time to use for the channel
@@ -890,7 +859,19 @@ uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Ti
     write_bit_range(*this, ADC_Regs::RSQ2, static_cast<uint32_t>(RSQX_Bits::RSQ_0_6_12), static_cast<uint32_t>(channel));
     // Set the sample time
     set_sampling_time(channel, sample);
+    // Set resolution
     write_bit_range(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::DRES), static_cast<uint32_t>(resolution));
+
+    // Basic 16bit oversampling
+    write_bit_ranges(*this, ADC_Regs::OVSAMPCTL,
+               static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(Oversampling_Ratio::OVERSAMPLING_RATIO_MUL16),
+               static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), static_cast<uint32_t>(Oversampling_Shift::OVERSAMPLING_SHIFT_4BIT));
+    // Enable oversampling
+    write_bits_sequence(*this, ADC_Regs::OVSAMPCTL,
+               static_cast<uint32_t>(OVSAMPCTL_Bits::TOVS), false,
+               static_cast<uint32_t>(OVSAMPCTL_Bits::OVSEN), true);
+
+    // Set alignment
     write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::DAL), false);
 
     // Enable ADC
@@ -907,7 +888,7 @@ uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Ti
     // Set trigger and trigger source
     write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETERC), true);
     write_bit_range(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ETSRC), static_cast<uint32_t>(External_Trigger_Source::ADC0_1_REGULAR_SOFTWARE));
-    // Force generate software trigger
+    // Generate software trigger
     write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::SWRCST), true);
     // Wait for the flag to be set
     while (!get_flag(Status_Flags::FLAG_EOC));
@@ -931,53 +912,57 @@ uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Ti
  */
 inline void ADC::calibration_delay() {
     // Hardware requires delay before starting calibration
-    rcu::ADC_Prescaler adc_prescaler = RCU_I.get_adc_prescaler();
-    uint32_t prescaler_value = 0U;
-    switch (adc_prescaler) {
-    case rcu::ADC_Prescaler::CKAPB2_DIV2:
-    case rcu::ADC_Prescaler::CKAPB2_DIV2B:
-        prescaler_value = 2U;
-        break;
-    case rcu::ADC_Prescaler::CKAPB2_DIV4:
-        prescaler_value = 4U;
-        break;
-    case rcu::ADC_Prescaler::CKAPB2_DIV6:
-    case rcu::ADC_Prescaler::CKAHB_DIV6:
-        prescaler_value = 6U;
-        break;
-    case rcu::ADC_Prescaler::CKAPB2_DIV8:
-    case rcu::ADC_Prescaler::CKAPB2_DIV8B:
-        prescaler_value = 8U;
-        break;
-    case rcu::ADC_Prescaler::CKAPB2_DIV12:
-        prescaler_value = 12U;
-        break;
-    case rcu::ADC_Prescaler::CKAPB2_DIV16:
-        prescaler_value = 16U;
-        break;
-    case rcu::ADC_Prescaler::CKAHB_DIV5:
-        prescaler_value = 5U;
-        break;
-    case rcu::ADC_Prescaler::CKAHB_DIV10:
-        prescaler_value = 10U;
-        break;
-    case rcu::ADC_Prescaler::CKAHB_DIV20:
-        prescaler_value = 20U;
-        break;
-    case rcu::ADC_Prescaler::INVALID:
-        return;
-    }
-
-    if (prescaler_value == 0U) {
+    if (prescaler_ == 0U) {
         return;
     }
 
     volatile uint32_t wait_count = ((RCU_I.get_system_clock() /
-                   (RCU_I.get_clock_frequency(rcu::Clock_Frequency::CK_APB2) / prescaler_value))
+                   (RCU_I.get_clock_frequency(rcu::Clock_Frequency::CK_APB2) / prescaler_))
                    * Calibration_Delay_Cycles);
 
     while (wait_count != 0) {
         wait_count = wait_count - 1U;
+    }
+}
+
+/**
+ * @brief Gets the current ADC prescaler value.
+ *
+ * This function retrieves the current ADC prescaler value from the RCU
+ * interface and returns it as an unsigned 32-bit integer. The prescaler value
+ * determines the division factor applied to the clock signal provided to the
+ * ADC module.
+ *
+ * @return The current ADC prescaler value as an unsigned 32-bit integer.
+ */
+inline uint32_t ADC::get_prescaler_value() {
+    rcu::ADC_Prescaler adc_prescaler = RCU_I.get_adc_prescaler();
+
+    switch (adc_prescaler) {
+    case rcu::ADC_Prescaler::CKAPB2_DIV2:
+    case rcu::ADC_Prescaler::CKAPB2_DIV2B:
+        return 2U;
+    case rcu::ADC_Prescaler::CKAPB2_DIV4:
+        return 4U;
+    case rcu::ADC_Prescaler::CKAPB2_DIV6:
+    case rcu::ADC_Prescaler::CKAHB_DIV6:
+        return 6U;
+    case rcu::ADC_Prescaler::CKAPB2_DIV8:
+    case rcu::ADC_Prescaler::CKAPB2_DIV8B:
+        return 8U;
+    case rcu::ADC_Prescaler::CKAPB2_DIV12:
+        return 12U;
+    case rcu::ADC_Prescaler::CKAPB2_DIV16:
+        return 16U;
+    case rcu::ADC_Prescaler::CKAHB_DIV5:
+        return 5U;
+    case rcu::ADC_Prescaler::CKAHB_DIV10:
+        return 10U;
+    case rcu::ADC_Prescaler::CKAHB_DIV20:
+        return 20U;
+    case rcu::ADC_Prescaler::INVALID:
+    default:
+        return 0U;
     }
 }
 

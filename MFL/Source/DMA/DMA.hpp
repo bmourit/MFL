@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x DMA peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -57,6 +57,8 @@ public:
     void set_increase_mode_enable(Data_Type type, bool enable);
     // Direction
     void set_transfer_direction(Transfer_Direction direction);
+    // Abandon transfer
+    void set_transfer_abandon();
     // Clear channel
     void clear_channel();
     // Flags
@@ -89,8 +91,16 @@ private:
     uint32_t base_address_;
     DMA_Config config_;
 
+    struct CachedOffsets {
+        DMA_Regs ctl;
+        DMA_Regs cnt;
+        DMA_Regs paddr;
+        DMA_Regs maddr;
+    } cached_offsets_;
+
     inline INTF_Bits get_channel_bits_from_flag(Status_Flags flag);
     inline DMA_Regs get_channel_offset_from_reg(Channel_Regs reg);
+    void cache_register_offsets();
 
     template <DMA_Base Base, DMA_Channel Channel>
     friend DMA& get_instance_for_base();

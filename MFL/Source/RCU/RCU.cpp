@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x RCU peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -29,7 +29,7 @@ RCU& RCU::get_instance() {
 RCU::RCU() : SystemCoreClock(static_cast<uint32_t>(IRC8M_VALUE)) {}
 
 /**
- * Reset RCU to its initial state after power-on reset.
+ * @brief Reset RCU to its initial state after power-on reset.
  *
  * Resets all RCU registers to their initial state, except for the IRC8MEN bit in the CTL register
  * and the CKMIC bit in the INTR register, which are set to 1 (enabled). All oscillator sources are
@@ -46,7 +46,7 @@ void RCU::reset() {
     // Clear system clk source
     write_bit_range(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::SCS), Clear);
     // Reset CTL register
-    write_bits_ordered(*this, RCU_Regs::CTL,
+    write_bits_sequence(*this, RCU_Regs::CTL,
                static_cast<uint32_t>(CTL_Bits::HXTALEN), false,
                static_cast<uint32_t>(CTL_Bits::CKMEN), false,
                static_cast<uint32_t>(CTL_Bits::PLLEN), false,
@@ -61,22 +61,23 @@ void RCU::reset() {
                static_cast<uint32_t>(CFG0_Bits::PLLMF), Clear,
                static_cast<uint32_t>(CFG0_Bits::USBDPSC), Clear,
                static_cast<uint32_t>(CFG0_Bits::CKOUT0SEL), Clear);
-    write_bits_ordered(*this, RCU_Regs::CFG0,
+    write_bits_sequence(*this, RCU_Regs::CFG0,
                static_cast<uint32_t>(CFG0_Bits::PLLSEL), false,
                static_cast<uint32_t>(CFG0_Bits::PREDV0), false,
                static_cast<uint32_t>(CFG0_Bits::PLLMF_4), false,
                static_cast<uint32_t>(CFG0_Bits::ADCPSC_2), false,
                static_cast<uint32_t>(CFG0_Bits::PLLMF_5), false,
                static_cast<uint32_t>(CFG0_Bits::USBDPSC_2), false);
-    write_bit(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CKMIC), true);
-    write_bit_range(*this, RCU_Regs::INTR, static_cast<uint32_t>(INTR_Bits::CLEAR_ALL), Set);
-    write_bits_ordered(*this, RCU_Regs::CFG1,
+    write_register(*this, RCU_Regs::INTR,
+                static_cast<uint32_t>(INTR_Bits::CLEAR_ALL) |
+                (1U << static_cast<uint32_t>(INTR_Bits::CKMIC)));
+    write_bits_sequence(*this, RCU_Regs::CFG1,
                static_cast<uint32_t>(CFG1_Bits::ADCPSC_3), false,
                static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), false);
 }
 
 /**
- * Enable or disable peripheral clock.
+ * @brief Enable or disable peripheral clock.
  *
  * @param[in] pclk Peripheral clock identifier.
  * @param[in] enable If true, the peripheral clock is enabled. If false, the peripheral clock is disabled.
@@ -87,7 +88,7 @@ void RCU::set_pclk_enable(RCU_PCLK pclk, bool enable) {
 }
 
 /**
- * Check if peripheral clock is enabled.
+ * @brief Check if peripheral clock is enabled.
  *
  * @param[in] pclk Peripheral clock identifier.
  * @return true if the peripheral clock is enabled, false otherwise.
@@ -98,7 +99,7 @@ bool RCU::get_pclk(RCU_PCLK pclk) {
 }
 
 /**
- * Enable or disable peripheral clock sleep mode.
+ * @brief Enable or disable peripheral clock sleep mode.
  *
  * @param[in] pclk Peripheral clock sleep identifier.
  * @param[in] enable If true, the peripheral clock sleep mode is enabled. If false, it is disabled.
@@ -109,7 +110,7 @@ void RCU::set_pclk_sleep_enable(RCU_PCLK_Sleep pclk, bool enable) {
 }
 
 /**
- * Enable or disable peripheral clock reset.
+ * @brief Enable or disable peripheral clock reset.
  *
  * @param[in] pclk Peripheral clock reset identifier.
  * @param[in] enable If true, the peripheral clock reset is enabled. If false, the peripheral clock reset is disabled.
@@ -279,10 +280,10 @@ void RCU::set_ckout0_source(CKOUT0_Source source) {
 void RCU::set_pll_config(PLL_Source source, PLLMF_Select multiplier) {
     if (source == PLL_Source::PLLSRC_INVALID) { return; }
     // Set PLL source
-    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLSEL), source == PLL_Source::PLLSRC_HXTAL_IRC48M);
+    write_bit(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLSEL), (source == PLL_Source::PLLSRC_HXTAL_IRC48M));
     uint32_t bits = static_cast<uint32_t>(multiplier);
     write_bit_range(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::PLLMF), bits & 0xFU);
-    write_bits_ordered(*this, RCU_Regs::CFG0,
+    write_bits_sequence(*this, RCU_Regs::CFG0,
                static_cast<uint32_t>(CFG0_Bits::PLLMF_4), (bits & 0x10U) >> 4U == 1U,
                static_cast<uint32_t>(CFG0_Bits::PLLMF_5), (bits & 0x20U) >> 5U == 1U);
 }
@@ -318,7 +319,7 @@ PLL_Source RCU::get_pll_source() {
  */
 void RCU::set_pll_presel(PLL_Presel presel) {
     if (presel == PLL_Presel::PLLPRESRC_INVALID) { return; }
-    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), presel == PLL_Presel::PLLPRESRC_IRC48M);
+    write_bit(*this, RCU_Regs::CFG1, static_cast<uint32_t>(CFG1_Bits::PLLPRESEL), (presel == PLL_Presel::PLLPRESRC_IRC48M));
 }
 
 /**
@@ -446,7 +447,7 @@ void RCU::set_rtc_source(RTC_Source source) {
  *                   enumeration.
  */
 void RCU::set_ck48m_source(CK48M_Source source) {
-    write_bit(*this, RCU_Regs::ADDCTL, static_cast<uint32_t>(ADDCTL_Bits::CK48MSEL), source == CK48M_Source::CK48MSRC_IRC48M);
+    write_bit(*this, RCU_Regs::ADDCTL, static_cast<uint32_t>(ADDCTL_Bits::CK48MSEL), (source == CK48M_Source::CK48MSRC_IRC48M));
 }
 
 /**
@@ -604,8 +605,10 @@ uint32_t RCU::get_pll_multiplier() {
 
 /**
  * @brief Returns the frequency of the specified clock source.
+ * 
  * @param clock The clock source to return the frequency for.
  * @return The frequency of the specified clock source in Hz.
+ * 
  * @note The returned frequency is based on the current system clock source and its prescaler settings.
  * @note If the specified clock source is invalid (i.e. the clock source is not enabled), the function returns 0.
  */
@@ -705,7 +708,7 @@ void RCU::set_deep_sleep_voltage(DeepSleep_Voltage voltage) {
 }
 
 /**
- * Retrieves the status of a specified flag in the RCU.
+ * @brief Retrieves the status of a specified flag in the RCU.
  *
  * This function reads the flag from the corresponding register and returns its status.
  *
@@ -743,7 +746,7 @@ bool RCU::get_interrupt_flag(Interrupt_Flags flag) {
 }
 
 /**
- * Clears a specified interrupt flag in the RCU.
+ * @brief Clears a specified interrupt flag in the RCU.
  *
  * This function clears a given interrupt flag specified by the Clear_Flags enumeration.
  * The flag is cleared by writing a 1 to the corresponding bit in the register specified

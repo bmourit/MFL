@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x SPI peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -44,7 +44,7 @@ Result<SPI, SPI_Error_Type> SPI::get_instance(SPI_Base Base) {
                );
     case SPI_Base::INVALID:
     default:
-        return RETURN_ERROR(SPI, SPI_Error_Type::INVALID_SPI);
+        return RETURN_RESULT(SPI, SPI_Error_Type::INVALID_SPI);
     }
 }
 
@@ -119,18 +119,18 @@ void SPI::init(SPI_Config config) {
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::MSTMOD), true);
         break;
     case Operational_Mode::MRU_MODE:
-        write_bits_ordered(*this, SPI_Regs::CTL0,
+        write_bits_sequence(*this, SPI_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::MSTMOD), true,
                    static_cast<uint32_t>(CTL0_Bits::RO), true);
         break;
     case Operational_Mode::MTB_MODE:
-        write_bits_ordered(*this, SPI_Regs::CTL0,
+        write_bits_sequence(*this, SPI_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::MSTMOD), true,
                    static_cast<uint32_t>(CTL0_Bits::BDEN), true,
                    static_cast<uint32_t>(CTL0_Bits::BDOEN), true);
         break;
     case Operational_Mode::MRB_MODE:
-        write_bits_ordered(*this, SPI_Regs::CTL0,
+        write_bits_sequence(*this, SPI_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::MSTMOD), true,
                    static_cast<uint32_t>(CTL0_Bits::BDEN), true);
         break;
@@ -138,7 +138,7 @@ void SPI::init(SPI_Config config) {
         write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::RO), true);
         break;
     case Operational_Mode::STB_MODE:
-        write_bits_ordered(*this, SPI_Regs::CTL0,
+        write_bits_sequence(*this, SPI_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::BDEN), true,
                    static_cast<uint32_t>(CTL0_Bits::BDOEN), true);
         break;
@@ -282,12 +282,12 @@ uint16_t SPI::data_receive() {
 void SPI::bidirectional_transfer_config(Direction_Mode transfer_direction) {
     if (transfer_direction == Direction_Mode::BIDIRECTIONAL_TRANSMIT) {
         // Set bidirectional tx mode
-        write_bits_ordered(*this, SPI_Regs::CTL0,
+        write_bits_sequence(*this, SPI_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::BDOEN), true,
                    static_cast<uint32_t>(CTL0_Bits::BDEN), true);
     } else {
         // Set bidirectional rx mode
-        write_bits_ordered(*this, SPI_Regs::CTL0,
+        write_bits_sequence(*this, SPI_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::BDOEN), false,
                    static_cast<uint32_t>(CTL0_Bits::BDEN), true);
     }

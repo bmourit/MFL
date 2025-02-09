@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x CONFIG definitions
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -25,15 +25,15 @@
 
 /**
  * @brief Encodes register bit definitions.
- * 
+ *
  * Combines the start bit and width into a single uint32_t value.
- * 
+ *
  * @param start The starting bit position.
  * @param end The ending bit position.
  * @return uint32_t Encoded bit definition.
  */
 inline constexpr uint32_t REG_BIT_DEF(uint32_t start, uint32_t end) {
-	return (start << 16U) | (end - start + 1U);
+    return (start << 16U) | (end - start + 1U);
 }
 
 // Uncomment if you need the vector table in SRAM
@@ -45,7 +45,7 @@ inline constexpr uint32_t REG_BIT_DEF(uint32_t start, uint32_t end) {
 // This should match the offset expected by the bootloader.
 // If no bootloader exists, use 0x00000000
 #ifndef VECT_TAB_OFFSET
-	inline constexpr uintptr_t VECT_TAB_OFFSET = 0x00007000U;
+    inline constexpr uintptr_t VECT_TAB_OFFSET = 0x00007000U;
 #endif
 
 // DO NOT CHANGE THESE
@@ -53,7 +53,7 @@ inline constexpr uintptr_t NVIC_VECTTAB_SRAM = 0x20000000U;
 inline constexpr uintptr_t NVIC_VECTTAB_FLASH = 0x08000000U;
 
 #ifdef VECT_TAB_SRAM
-	inline constexpr uintptr_t VTOR_ADDRESS = NVIC_VECTTAB_SRAM | VECT_TAB_OFFSET;
+    inline constexpr uintptr_t VTOR_ADDRESS = NVIC_VECTTAB_SRAM | VECT_TAB_OFFSET;
 #else
-	inline constexpr uintptr_t VTOR_ADDRESS = NVIC_VECTTAB_FLASH | VECT_TAB_OFFSET;
+    inline constexpr uintptr_t VTOR_ADDRESS = NVIC_VECTTAB_FLASH | VECT_TAB_OFFSET;
 #endif

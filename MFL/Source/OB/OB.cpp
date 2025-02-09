@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x OB peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -74,13 +74,13 @@ FMC_Error_Type OB::ob_erase() {
     }
 
     if (state == FMC_Error_Type::READY) {
-        write_bits_ordered(*this, FMC_Regs::CTL0,
+        write_bits_sequence(*this, FMC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::OBER), true,
                    static_cast<uint32_t>(CTL0_Bits::START), true);
         // Wait until ready
         state = ob_ready_wait_bank0(timeout);
         if (state == FMC_Error_Type::READY) {
-            write_bits_ordered(*this, FMC_Regs::CTL0,
+            write_bits_sequence(*this, FMC_Regs::CTL0,
                        static_cast<uint32_t>(CTL0_Bits::OBER), false,
                        static_cast<uint32_t>(CTL0_Bits::OBPG), true);
             write_bit_range(*this, OB_Regs::SPC, static_cast<uint32_t>(SPC_Bits::SPC), value);
@@ -117,9 +117,8 @@ FMC_Error_Type OB::set_ob_write_protection(WP_Sector sector) {
     uint16_t wp_sector_value = 0U;
     uint32_t timeout = reinterpret_cast<uint32_t>(Timeout_Count);
     FMC_Error_Type state = ob_ready_wait_bank0(timeout);
-    uint32_t wp_sector = (1U << static_cast<uint32_t>(sector));
+    uint32_t wp_sector = ~(1U << static_cast<uint32_t>(sector));
 
-    wp_sector = ~wp_sector;
     if (state == FMC_Error_Type::READY) {
         write_bit(*this, FMC_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::OBPG), true);
         wp_sector_value = (wp_sector & 0x000000FFU);
@@ -192,13 +191,13 @@ FMC_Error_Type OB::set_ob_security_protection(OB_Security_Type type) {
     FMC_Error_Type state = ob_ready_wait_bank0(timeout);
 
     if (state == FMC_Error_Type::READY) {
-        write_bits_ordered(*this, FMC_Regs::CTL0,
+        write_bits_sequence(*this, FMC_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::OBER), true,
                    static_cast<uint32_t>(CTL0_Bits::START), true);
         // Wait until ready
         state = ob_ready_wait_bank0(timeout);
         if (state == FMC_Error_Type::READY) {
-            write_bits_ordered(*this, FMC_Regs::CTL0,
+            write_bits_sequence(*this, FMC_Regs::CTL0,
                        static_cast<uint32_t>(CTL0_Bits::OBER), false,
                        static_cast<uint32_t>(CTL0_Bits::OBPG), true);
             write_bit_range(*this, OB_Regs::SPC, static_cast<uint32_t>(SPC_Bits::SPC), static_cast<uint32_t>(type));

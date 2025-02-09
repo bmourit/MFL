@@ -1,7 +1,7 @@
 //
 // MFL Template versions of read_bit_range/write_bit_range(s)
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -37,7 +37,7 @@ inline constexpr uint32_t Set = 1;
  */
 template <typename RegType, typename Instance>
 inline bool read_bit(const Instance& instance, RegType reg, uint32_t bitno) {
-    return (*instance.reg_address(reg) & (1U << bitno)) !=0;
+    return (*instance.reg_address(reg) & (1U << bitno)) != 0;
 }
 
 /**
@@ -91,14 +91,14 @@ inline void write_bits(const Instance& instance, RegType reg, uint32_t bits, boo
  * @param value The value to write to the bit at the given position.
  * @param args The remaining bit numbers and values to write to the register.
  * 
- * Example: write_bits_ordered(instance, reg, 1, true, 3, false, 5, true);
+ * Example: write_bits_sequence(instance, reg, 1, true, 3, false, 5, true);
  *          writes true to bit 1, false to bit 3, and true to bit 5 in the given register.
  */
 template <typename RegType, typename Instance, typename... Args>
-inline void write_bits_ordered(const Instance& instance, RegType reg, uint32_t bitno, bool value, Args... args) {
+inline void write_bits_sequence(const Instance& instance, RegType reg, uint32_t bitno, bool value, Args... args) {
     write_bit(instance, reg, bitno, value);
     if constexpr (sizeof...(args) > 0U) {
-        write_bits_ordered(instance, reg, args...);
+        write_bits_sequence(instance, reg, args...);
     }
 }
 
@@ -115,20 +115,6 @@ inline void write_bits_ordered(const Instance& instance, RegType reg, uint32_t b
 template <typename RegType, typename Instance>
 inline void atomic_write_bit(const Instance& instance, RegType reg, uint32_t bitno, bool value) {
     *instance.reg_address(reg) = value ? (1U << bitno) : (0U << bitno);
-}
-
-/**
- * @brief Atomically writes a bit range to a register.
- * 
- * @tparam RegType The register type.
- * @tparam Instance The instance type containing the register.
- * @param instance The instance containing the register.
- * @param reg The register identifier.
- * @param bits The bit range to write to the register.
- */
-template <typename RegType, typename Instance>
-inline void atomic_write_bits(const Instance& instance, RegType reg, uint32_t bits) {
-    *instance.reg_address(reg) = bits;
 }
 
 /**

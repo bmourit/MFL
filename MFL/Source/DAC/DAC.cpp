@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x DAC peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -37,10 +37,10 @@ DAC::DAC() : is_clock_enabled_(false) {
 }
 
 /**
- * Resets the DAC peripheral by toggling the reset control.
- * This function enables the peripheral clock reset for the DAC,
- * then disables it, effectively resetting all registers to their
- * default values.
+ * @brief Resets the DAC peripheral by toggling its peripheral clock reset.
+ *
+ * This function enables the reset of the DAC peripheral by setting the
+ * reset register, then disables the reset to complete the operation.
  */
 void DAC::reset() {
     RCU_I.set_pclk_reset_enable(rcu::RCU_PCLK_Reset::PCLK_DACRST, true);
@@ -91,6 +91,17 @@ void DAC::disable(Internal_Device instance) {
     write_bit(*this, DAC_Regs::CTL, bits, false);
 }
 
+/**
+ * @brief Enables or disables the specified DAC internal device.
+ *
+ * This function sets or clears the enable bit in the DAC control register for the
+ * specified internal device. If the device is invalid, the function returns
+ * without making any changes.
+ *
+ * @param instance The internal DAC device to enable or disable. Must be a value
+ *                 from the Internal_Device enumeration.
+ * @param enable    Set to true to enable the device, false to disable it.
+ */
 void DAC::set_enable(Internal_Device instance, bool enable) {
     if (instance == Internal_Device::INVALID) {
         return;
@@ -428,7 +439,7 @@ void DAC::set_triangle_amplitude(Internal_Device instance, Triangle_Amplitude am
  * @param enable Set to true to enable the dual mode, false to disable it.
  */
 void DAC::set_dual_mode_enable(bool enable) {
-    write_bits_ordered(*this, DAC_Regs::CTL,
+    write_bits_sequence(*this, DAC_Regs::CTL,
                static_cast<uint32_t>(CTL_Bits::DEN0), enable,
                static_cast<uint32_t>(CTL_Bits::DEN1), enable);
 }
@@ -444,7 +455,7 @@ void DAC::set_dual_mode_enable(bool enable) {
  * @param enable Set to true to enable the dual software trigger, false to disable it.
  */
 void DAC::set_dual_software_trigger_enable(bool enable) {
-    write_bits_ordered(*this, DAC_Regs::SWT,
+    write_bits_sequence(*this, DAC_Regs::SWT,
                static_cast<uint32_t>(SWT_Bits::SWTR0), enable,
                static_cast<uint32_t>(SWT_Bits::SWTR1), enable);
 }
@@ -461,7 +472,7 @@ void DAC::set_dual_software_trigger_enable(bool enable) {
  * @param enable Set to true to enable the output buffer, false to disable it.
  */
 void DAC::set_dual_output_buffer_enable(bool enable) {
-    write_bits_ordered(*this, DAC_Regs::CTL,
+    write_bits_sequence(*this, DAC_Regs::CTL,
                static_cast<uint32_t>(CTL_Bits::DBOFF0), enable,
                static_cast<uint32_t>(CTL_Bits::DBOFF1), enable);
 }

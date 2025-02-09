@@ -1,7 +1,7 @@
 //
 // MFL gd32f30x USART peripheral register access in C++
 //
-// Copyright (C) 2024 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
+// Copyright (C) 2025 B. Mouritsen <bnmguy@gmail.com>. All rights reserved.
 //
 // This file is part of the Microcontroller Firmware Library (MFL).
 //
@@ -54,7 +54,7 @@ Result<USART, USART_Error_Type> USART::get_instance(USART_Base Base) {
                );
     case USART_Base::INVALID:
     default:
-        return RETURN_ERROR(USART, USART_Error_Type::INVALID_USART);
+        return RETURN_RESULT(USART, USART_Error_Type::INVALID_USART);
     }
 }
 
@@ -80,9 +80,11 @@ USART::USART(USART_Base Base) :
 }
 
 /**
- * Resets the USART peripheral by toggling the reset control.
- * This function enables the peripheral clock reset for the USART,
- * then disables it, effectively resetting all registers to their
+ * @brief Resets the USART peripheral by toggling its peripheral clock reset.
+ *
+ * This function enables the peripheral clock reset for the USART by setting
+ * the reset register, then disables the reset to complete the reset operation.
+ * This effectively resets all registers of the USART peripheral to their
  * default values.
  */
 void USART::reset() {
@@ -243,7 +245,7 @@ void USART::set_parity(Parity_Mode parity) {
  * @param word_length The word length for the USART peripheral
  */
 void USART::set_word_length(Word_Length word_length) {
-    write_bits_ordered(*this, USART_Regs::CTL0,
+    write_bits_sequence(*this, USART_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::WL), false,
                static_cast<uint32_t>(CTL0_Bits::WL), word_length == Word_Length::WL_9BITS);
 }
@@ -311,19 +313,19 @@ void USART::disable() {
 void USART::set_direction(Direction_Mode direction) {
     switch (direction) {
     case Direction_Mode::RX_MODE:
-        write_bits_ordered(*this, USART_Regs::CTL0,
+        write_bits_sequence(*this, USART_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::REN), false,
                    static_cast<uint32_t>(CTL0_Bits::TEN), false,
                    static_cast<uint32_t>(CTL0_Bits::REN), true);
         break;
     case Direction_Mode::TX_MODE:
-        write_bits_ordered(*this, USART_Regs::CTL0,
+        write_bits_sequence(*this, USART_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::REN), false,
                    static_cast<uint32_t>(CTL0_Bits::TEN), false,
                    static_cast<uint32_t>(CTL0_Bits::TEN), true);
         break;
     case Direction_Mode::RXTX_MODE:
-        write_bits_ordered(*this, USART_Regs::CTL0,
+        write_bits_sequence(*this, USART_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::REN), false,
                    static_cast<uint32_t>(CTL0_Bits::TEN), false,
                    static_cast<uint32_t>(CTL0_Bits::REN), true,
@@ -331,7 +333,7 @@ void USART::set_direction(Direction_Mode direction) {
         break;
     case Direction_Mode::RXTX_OFF:
     default:
-        write_bits_ordered(*this, USART_Regs::CTL0,
+        write_bits_sequence(*this, USART_Regs::CTL0,
                    static_cast<uint32_t>(CTL0_Bits::REN), false,
                    static_cast<uint32_t>(CTL0_Bits::TEN), false);
         break;
@@ -347,7 +349,7 @@ void USART::set_direction(Direction_Mode direction) {
  * @param msbf The MSB first mode to set, which can be either MSBF_MSB or MSBF_LSB
  */
 void USART::set_msb(MSBF_Mode msbf) {
-    write_bits_ordered(*this, USART_Regs::CTL3,
+    write_bits_sequence(*this, USART_Regs::CTL3,
                static_cast<uint32_t>(CTL3_Bits::MSBF), false,
                static_cast<uint32_t>(CTL3_Bits::MSBF), msbf == MSBF_Mode::MSBF_MSB);
 }
@@ -499,7 +501,7 @@ void USART::mute_mode_enable(bool enable) {
  *                    in mute mode.
  */
 void USART::set_mute_mode_wakeup(Wakeup_Mode wakeup_mode) {
-    write_bits_ordered(*this, USART_Regs::CTL0,
+    write_bits_sequence(*this, USART_Regs::CTL0,
                static_cast<uint32_t>(CTL0_Bits::WM), false,
                static_cast<uint32_t>(CTL0_Bits::WM), wakeup_mode == Wakeup_Mode::WM_ADDR);
 }
@@ -543,10 +545,7 @@ void USART::set_synchronous_clock_enable(bool enable) {
  * @param polarity The polarity of the synchronous clock.
  */
 void USART::synchronous_clock_configure(Pulse_Length length, Clock_Phase phase, Clock_Polarity polarity) {
-    write_bits_ordered(*this, USART_Regs::CTL1,
-               static_cast<uint32_t>(CTL1_Bits::CLEN), false,
-               static_cast<uint32_t>(CTL1_Bits::CPH), false,
-               static_cast<uint32_t>(CTL1_Bits::CPL), false,
+    write_bits_sequence(*this, USART_Regs::CTL1,
                static_cast<uint32_t>(CTL1_Bits::CPH), phase == Clock_Phase::SECOND_CLOCK,
                static_cast<uint32_t>(CTL1_Bits::CPL), polarity == Clock_Polarity::POLARITY_HIGH,
                static_cast<uint32_t>(CTL1_Bits::CLEN), length == Pulse_Length::EXT_PULSE_ENABLE);
@@ -562,9 +561,7 @@ void USART::synchronous_clock_configure(Pulse_Length length, Clock_Phase phase, 
  * @param enable Set to true to enable DMA, false to disable it.
  */
 void USART::receive_data_dma_enable(bool enable) {
-    write_bits_ordered(*this, USART_Regs::CTL2,
-               static_cast<uint32_t>(CTL2_Bits::DENR), false,
-               static_cast<uint32_t>(CTL2_Bits::DENR), enable);
+    write_bit(*this, USART_Regs::CTL2,static_cast<uint32_t>(CTL2_Bits::DENR), enable);
 }
 
 /**
@@ -577,9 +574,7 @@ void USART::receive_data_dma_enable(bool enable) {
  * @param enable Set to true to enable DMA, false to disable it.
  */
 void USART::send_data_dma_enable(bool enable) {
-    write_bits_ordered(*this, USART_Regs::CTL2,
-               static_cast<uint32_t>(CTL2_Bits::DENT), false,
-               static_cast<uint32_t>(CTL2_Bits::DENT), enable);
+    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::DENT), enable);
 }
 
 /**
@@ -606,9 +601,7 @@ void USART::set_lin_mode_enable(bool enable) {
  *               Break_Length::LENGTH_10B or Break_Length::LENGTH_11B.
  */
 void USART::set_lin_frame_break_length(Break_Length length) {
-    write_bits_ordered(*this, USART_Regs::CTL1,
-               static_cast<uint32_t>(CTL1_Bits::LBLEN), false,
-               static_cast<uint32_t>(CTL1_Bits::LBLEN), length == Break_Length::LENGTH_11B);
+    write_bit(*this, USART_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::LBLEN), length == Break_Length::LENGTH_11B);
 }
 
 /**
@@ -633,9 +626,7 @@ void USART::send_lin_frame_break() {
  * @param guard_time The guard time to be set, in the range of 0 to 255 (inclusive).
  */
 void USART::set_guard_time(uint8_t guard_time) {
-    write_bit_ranges(*this, USART_Regs::GP,
-               static_cast<uint32_t>(GP_Bits::GUAT), Clear,
-               static_cast<uint32_t>(GP_Bits::GUAT), static_cast<uint32_t>(guard_time));
+    write_bit_range(*this, USART_Regs::GP, static_cast<uint32_t>(GP_Bits::GUAT), static_cast<uint32_t>(guard_time));
 }
 
 /**
@@ -682,9 +673,7 @@ void USART::set_smartcard_nack_mode_enable(bool enable) {
  *                    (inclusive).
  */
 void USART::set_smartcard_auto_retry(uint8_t retry_count) {
-    write_bit_ranges(*this, USART_Regs::CTL3,
-               static_cast<uint32_t>(CTL3_Bits::SCRTNUM), Clear,
-               static_cast<uint32_t>(CTL3_Bits::SCRTNUM), static_cast<uint32_t>(retry_count));
+    write_bit_range(*this, USART_Regs::CTL3, static_cast<uint32_t>(CTL3_Bits::SCRTNUM), static_cast<uint32_t>(retry_count));
 }
 
 /**
@@ -699,9 +688,7 @@ void USART::set_smartcard_auto_retry(uint8_t retry_count) {
  * @param size The block size to be set, in the range of 0 to 255 (inclusive).
  */
 void USART::set_smartcard_block_size(uint8_t size) {
-    write_bit_ranges(*this, USART_Regs::RT,
-               static_cast<uint32_t>(RT_Bits::BL), Clear,
-               static_cast<uint32_t>(RT_Bits::BL), static_cast<uint32_t>(size));
+    write_bit_range(*this, USART_Regs::RT, static_cast<uint32_t>(RT_Bits::BL), static_cast<uint32_t>(size));
 }
 
 /**
@@ -729,9 +716,7 @@ void USART::set_irda_mode_enable(bool enable) {
  *                  (inclusive).
  */
 void USART::set_irda_low_power_prescaler(uint8_t prescaler) {
-    write_bit_ranges(*this, USART_Regs::GP,
-               static_cast<uint32_t>(GP_Bits::PSC), Clear,
-               static_cast<uint32_t>(GP_Bits::PSC), static_cast<uint32_t>(prescaler));
+    write_bit_range(*this, USART_Regs::GP, static_cast<uint32_t>(GP_Bits::PSC), static_cast<uint32_t>(prescaler));
 }
 
 /**
@@ -745,9 +730,7 @@ void USART::set_irda_low_power_prescaler(uint8_t prescaler) {
  * @param power The power mode to be set, either LOW or NORMAL.
  */
 void USART::set_irda_power_mode(IrDA_Power power) {
-    write_bits_ordered(*this, USART_Regs::CTL2,
-               static_cast<uint32_t>(CTL2_Bits::IRLP), false,
-               static_cast<uint32_t>(CTL2_Bits::IRLP), power == IrDA_Power::LOW);
+    write_bit(*this, USART_Regs::CTL2, static_cast<uint32_t>(CTL2_Bits::IRLP), power == IrDA_Power::LOW);
 }
 
 /**
