@@ -211,7 +211,7 @@ void RTC::clear_flag(Status_Flags flag) {
  * or disabling the specified interrupt type. It modifies the interrupt
  * enable register to reflect the desired configuration.
  *
- * @param type The interrupt type to enable or disable. Must be a value from 
+ * @param type The interrupt type to enable or disable. Must be a value from
  *             the Interrupt_Type enumeration.
  * @param enable Set to true to enable the interrupt, false to disable it.
  */

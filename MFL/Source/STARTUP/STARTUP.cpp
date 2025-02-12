@@ -76,7 +76,7 @@ void STARTUP::startup_init() {
     //  Since we need PLL off for this, we should make this a
     //  configurable setting for different user requirments.
     //  For now, if you need something different comment out the
-    //  default (HIGH) and uncomment one of the other choices below.
+    //  default (LOW) and uncomment one of the other choices below.
     //pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_LOW);
     //pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_MID);
     pmu::PMU::get_instance().set_ldo_output(pmu::Output_Voltage::LDO_VOLTAGE_HIGH);
