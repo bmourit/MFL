@@ -29,7 +29,10 @@ RTC& RTC::get_instance() {
     return instance;
 }
 
-RTC::RTC() : is_clock_enabled_(false) {
+RTC::RTC() :
+    bkp_(bkp::BKP::get_instance()),
+    is_clock_enabled_(false)
+{
     if (!is_clock_enabled_) {
         PMU_I.set_backup_write_enable(true);
         RCU_I.set_pclk_enable(rcu::RCU_PCLK::PCLK_RTC, true);

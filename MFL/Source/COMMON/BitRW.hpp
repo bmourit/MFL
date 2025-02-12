@@ -21,7 +21,7 @@
 
 #include <stdint.h>
 
-/// @brief Constants for bit operations.
+// Constants for bit operations
 inline constexpr uint32_t Clear = 0;
 inline constexpr uint32_t Set = 1;
 
