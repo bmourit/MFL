@@ -835,7 +835,7 @@ uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Ti
     // Set resolution
     write_bit_range(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::DRES), static_cast<uint32_t>(resolution));
 
-    // Basic 16bit oversampling
+    // Basic 16x oversampling
     write_bit_ranges(*this, ADC_Regs::OVSAMPCTL,
                      static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(Oversampling_Ratio::OVERSAMPLING_RATIO_MUL16),
                      static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), static_cast<uint32_t>(Oversampling_Shift::OVERSAMPLING_SHIFT_4BIT));
@@ -871,8 +871,6 @@ uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Ti
     clear_flag(Status_Flags::FLAG_EOC);
     // Cleanup
     cleanup_regular_conversion();
-    // Disable ADC after conversion for power saving
-    write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ADCON), false);
 
     return converted_data;
 }
