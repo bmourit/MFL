@@ -39,7 +39,10 @@ inline constexpr uint32_t REG_BIT_DEF(uint32_t start, uint32_t end) {
 // Uncomment if you need the vector table in SRAM
 //#define VECTOR_TABLE_SRAM
 
-//#define	DISABLE_CEE_ENHANCE
+// Enabling this causes extra signal noise which may have implicatiions for things like ADC/DAC precision
+// If you need to use this, use the appropriate CEE class methods directly.
+// NOTE: This define is now deprecated and CEE will never be set in the startup code.
+#define	DISABLE_CEE_ENHANCE
 
 // Set the oppropriate offset here.
 // This should match the offset expected by the bootloader.
