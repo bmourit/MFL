@@ -820,7 +820,7 @@ inline void ADC::cleanup_regular_conversion() {
  * @return The converted data
  */
 uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Time sample, ADC_Resolution resolution, bool calibrate) {
-    // Disable to avoid any accidental conversion
+    // Disable to avoid accidentally triggering conversion
     write_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ADCON), false);
     while (read_bit(*this, ADC_Regs::CTL1, static_cast<uint32_t>(CTL1_Bits::ADCON))) {
         // Wait for the ADC to be disabled
@@ -835,7 +835,7 @@ uint32_t ADC::start_regular_single_conversion(ADC_Channel channel, ADC_Sample_Ti
     // Set resolution
     write_bit_range(*this, ADC_Regs::OVSAMPCTL, static_cast<uint32_t>(OVSAMPCTL_Bits::DRES), static_cast<uint32_t>(resolution));
 
-    // Basic 16x oversampling
+    // Basic 16x hardware oversampling
     write_bit_ranges(*this, ADC_Regs::OVSAMPCTL,
                      static_cast<uint32_t>(OVSAMPCTL_Bits::OVSR), static_cast<uint32_t>(Oversampling_Ratio::OVERSAMPLING_RATIO_MUL16),
                      static_cast<uint32_t>(OVSAMPCTL_Bits::OVSS), static_cast<uint32_t>(Oversampling_Shift::OVERSAMPLING_SHIFT_4BIT));
@@ -888,7 +888,7 @@ inline void ADC::calibration_delay() {
     }
 
     volatile uint32_t wait_count = ((RCU_I.get_system_clock() /
-                                     (RCU_I.get_clock_frequency(rcu::Clock_Frequency::CK_APB2) / prescaler_))
+                                    (RCU_I.get_clock_frequency(rcu::Clock_Frequency::CK_APB2) / prescaler_))
                                     * Calibration_Delay_Cycles);
 
     while (wait_count != 0) {
@@ -910,30 +910,17 @@ inline uint32_t ADC::get_prescaler_value() {
     rcu::ADC_Prescaler adc_prescaler = RCU_I.get_adc_prescaler();
 
     switch (adc_prescaler) {
-        case rcu::ADC_Prescaler::CKAPB2_DIV2:
-        case rcu::ADC_Prescaler::CKAPB2_DIV2B:
-            return 2U;
-        case rcu::ADC_Prescaler::CKAPB2_DIV4:
-            return 4U;
-        case rcu::ADC_Prescaler::CKAPB2_DIV6:
-        case rcu::ADC_Prescaler::CKAHB_DIV6:
-            return 6U;
-        case rcu::ADC_Prescaler::CKAPB2_DIV8:
-        case rcu::ADC_Prescaler::CKAPB2_DIV8B:
-            return 8U;
-        case rcu::ADC_Prescaler::CKAPB2_DIV12:
-            return 12U;
-        case rcu::ADC_Prescaler::CKAPB2_DIV16:
-            return 16U;
-        case rcu::ADC_Prescaler::CKAHB_DIV5:
-            return 5U;
-        case rcu::ADC_Prescaler::CKAHB_DIV10:
-            return 10U;
-        case rcu::ADC_Prescaler::CKAHB_DIV20:
-            return 20U;
+        case rcu::ADC_Prescaler::CKAPB2_DIV2: case rcu::ADC_Prescaler::CKAPB2_DIV2B: return 2U;
+        case rcu::ADC_Prescaler::CKAPB2_DIV4: return 4U;
+        case rcu::ADC_Prescaler::CKAPB2_DIV6: case rcu::ADC_Prescaler::CKAHB_DIV6: return 6U;
+        case rcu::ADC_Prescaler::CKAPB2_DIV8: case rcu::ADC_Prescaler::CKAPB2_DIV8B: return 8U;
+        case rcu::ADC_Prescaler::CKAPB2_DIV12: return 12U;
+        case rcu::ADC_Prescaler::CKAPB2_DIV16: return 16U;
+        case rcu::ADC_Prescaler::CKAHB_DIV5: return 5U;
+        case rcu::ADC_Prescaler::CKAHB_DIV10: return 10U;
+        case rcu::ADC_Prescaler::CKAHB_DIV20: return 20U;
         case rcu::ADC_Prescaler::INVALID:
-        default:
-            return 0U;
+        default: return 0U;
     }
 }
 
