@@ -3,12 +3,10 @@
 This is a C++ microcontroller firmware library for the GD32F303RE ARM Cortex-M4 microcontroller.
 Written from scratch by yours truly using the vendor manuals and datasheets.
 
-It is currently a work in progress and some portions need more testing.
+It is a work in progress and some portions need more testing.
 The MFL project is LGPLv3 licensed.
 
-There are only a couple things missing:
-	CAN bus support
-	I2S support for SPI peripheral library
+There are only a couple things missing: CAN bus support and I2S support for SPI peripheral library.
 
 There is only one example right now, however, since this library was developed in tandum with a custom Arduino Core,
 you can refer to the Arduino Core for reference.
@@ -17,7 +15,7 @@ https://github.com/bmourit/ArduinoCore-MFL
 Also note, this library and the Arduino Core is being used, and is fully functional,
 in a fork of Marlin Firmware for Creality boards carrying this chip.
 The hope is to eventually get this upstreamed.
-https://github.com/bmourit/Marlin-MFL
+https://github.com/bmourit/Marlin_MFL
 
 
 # Library Size
