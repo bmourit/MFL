@@ -802,7 +802,7 @@ void RCU::update_system_clock() {
         case System_Clock_Source::SOURCE_IRC8M: SystemCoreClock = IRC8M_VALUE; break;
         case System_Clock_Source::SOURCE_HXTAL: SystemCoreClock = HXTAL_VALUE; break;
         case System_Clock_Source::SOURCE_PLL: SystemCoreClock = calculate_pll_frequency(); break;
-    case System_Clock_Source::SOURCE_INVALID: default: SystemCoreClock = IRC8M_VALUE; break;
+        case System_Clock_Source::SOURCE_INVALID: default: SystemCoreClock = IRC8M_VALUE; break;
     }
 
     uint32_t ahb_bit = read_bit_range(*this, RCU_Regs::CFG0, static_cast<uint32_t>(CFG0_Bits::AHBPSC));

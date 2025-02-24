@@ -5,14 +5,12 @@ _Min_Heap_Size = 0x200;      /* required amount of heap  */
 _Min_Stack_Size = 0x400;     /* required amount of stack */
 
 /* memory map */
-MEMORY
-{
+MEMORY {
   FLASH (rx) : ORIGIN = 0x08007000, LENGTH = 512K - 0x7000
   RAM (xrw) : ORIGIN = 0x20000000, LENGTH = 64K - 40
 }
 
-SECTIONS
-{
+SECTIONS {
   /* ISR vectors */
   /* The startup code into "FLASH" Rom type memory */
   .isr_vector : {

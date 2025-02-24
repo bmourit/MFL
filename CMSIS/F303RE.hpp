@@ -112,7 +112,7 @@ typedef enum IRQn {
 #define __Vendor_SysTickConfig    0U         // set to 1 if different SysTick config is used
 #define __NVIC_PRIO_BITS          4U         // GD32F303RE uses 4 bits for priority levels
 #define __VTOR_PRESENT            1U         // Set to 1 if VTOR is present
-#define __MPU_PRESENT             1U         // GD32F303RE provide MPU
+#define __MPU_PRESENT             1U         // GD32F303RE has MPU
 #define __FPU_PRESENT             1U         // Set to 1 if FPU is present
 #define __FPU_DP                  0U         // Set to 1 if FPU is double precision FPU (default is single precision FPU)
 
