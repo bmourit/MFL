@@ -84,7 +84,7 @@ void SPI::reset() {
  *
  * @param config The SPI configuration structure containing the desired settings.
  */
-void SPI::init(SPI_Config config) {
+void SPI::init(SPI_Config& config) {
     // Frame format
     write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::FF16), (config.frame_format == Frame_Format::FF_16BIT));
     // Polarity

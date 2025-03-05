@@ -35,7 +35,7 @@ public:
     static Result<SPI, SPI_Error_Type> get_instance(SPI_Base Base);
 
     // Initialize
-    void init(SPI_Config config = default_config);
+    void init(SPI_Config& config = default_config);
     // Reset
     void reset();
     // Enable or disable

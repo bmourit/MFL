@@ -36,7 +36,7 @@ class USART {
 public:
     static Result<USART, USART_Error_Type> get_instance(USART_Base Base);
 
-    void init(USART_Config config = default_config);
+    void init(USART_Config& config = default_config);
     void reset();
     void release();
 

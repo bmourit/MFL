@@ -116,7 +116,7 @@ void USART::reset() {
  *
  * @param config The configuration structure for the USART.
  */
-void USART::init(USART_Config config) {
+void USART::init(USART_Config& config) {
     // Some bits cannot be written unless USART is disabled
     write_bit(*this, USART_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::UEN), false);
 

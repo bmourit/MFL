@@ -122,7 +122,7 @@ DMA::DMA(DMA_Base Base, DMA_Channel Channel) :
  *
  * @param config The configuration for the DMA channel
  */
-void DMA::init(DMA_Config config) {
+void DMA::init(DMA_Config& config) {
     // Store the new cofig
     config_ = config;
 
