@@ -84,7 +84,7 @@ void SPI::reset() {
  *
  * @param config The SPI configuration structure containing the desired settings.
  */
-void SPI::init(SPI_Config& config) {
+void SPI::init(SPI_Config config) {
     // Frame format
     write_bit(*this, SPI_Regs::CTL0, static_cast<uint32_t>(CTL0_Bits::FF16), (config.frame_format == Frame_Format::FF_16BIT));
     // Polarity
@@ -444,8 +444,8 @@ bool SPI::get_flag(Status_Flags flag) {
  */
 bool SPI::get_interrupt_flag(Interrupt_Flags flag) {
     const auto& config = interrupt_flags_config[static_cast<size_t>(flag)];
-    bool stat_bit = read_bit_range(*this, config.stat_reg, config.stat_bit) != Clear;
-    bool ctl_bit = read_bit_range(*this, config.ctl_reg, config.ctl_bit) != Clear;
+    const bool stat_bit = read_bit(*this, config.stat_reg, static_cast<uint32_t>(config.stat_bit));
+    const bool ctl_bit = read_bit(*this, config.ctl_reg, static_cast<uint32_t>(config.ctl_bit));
     return (stat_bit && ctl_bit);
 }
 

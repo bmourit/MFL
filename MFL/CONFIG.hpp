@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 
-#include "F303RE.hpp"
+#include "mcu_common.hpp"
 
 /**
  * @brief Encodes register bit definitions.
@@ -39,9 +39,9 @@ inline constexpr uint32_t REG_BIT_DEF(uint32_t start, uint32_t end) {
 // Uncomment if you need the vector table in SRAM
 //#define VECTOR_TABLE_SRAM
 
-// Enabling this causes extra signal noise which may have implicatiions for things like ADC/DAC precision
-// If you need to use this, use the appropriate CEE class methods directly.
-// NOTE: This define is now deprecated and CEE will never be set in the startup code.
+// Enabling this bit could cause extra signal noise which may have implications for things like ADC/DAC precision
+// If you need to use this, use the appropriate class methods directly.
+// NOTE: This define is now deprecated and in the future, CEE will not be globally enabled in startup code.
 #define	DISABLE_CEE_ENHANCE
 
 // Set the oppropriate offset here.
@@ -51,7 +51,7 @@ inline constexpr uint32_t REG_BIT_DEF(uint32_t start, uint32_t end) {
 #ifndef VECT_TAB_OFFSET
     inline constexpr uintptr_t VECT_TABLE_OFFSET = 0x00007000U;
 #else
-    inline constexpr uintptr_t VECT_TABLE_OFFSET = VECT_TAB_OFFSET
+    inline constexpr uintptr_t VECT_TABLE_OFFSET = VECT_TAB_OFFSET;
 #endif
 
 // DO NOT CHANGE THESE

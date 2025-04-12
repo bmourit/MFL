@@ -17,6 +17,8 @@
 // If not, see <https://www.gnu.org/licenses/>.
 //
 
+#include <type_traits>
+
 #include "GPIO.hpp"
 #include "RCU.hpp"
 #include "AFIO.hpp"
@@ -91,11 +93,12 @@ void GPIO::reset() {
  * @param speed The desired output speed (e.g., SPEED_50MHZ, SPEED_MAX).
  */
 void GPIO::set_pin_mode(Pin_Number pin, Pin_Mode mode, Output_Speed speed) {
-    if ((pin == Pin_Number::INVALID) || (mode == Pin_Mode::INVALID)) return;
+    if (pin == Pin_Number::INVALID || mode == Pin_Mode::INVALID) return;
 
     const uint32_t shift = (static_cast<uint32_t>(pin) & 0x7U) << 2U;
     const GPIO_Regs reg = (static_cast<uint32_t>(pin) >= 8U) ? GPIO_Regs::CTL1 : GPIO_Regs::CTL0;
     uint32_t ctl = read_register<uint32_t>(*this, reg) & ~(0xFU << shift);
+    bool compensation = false;
 
     uint32_t cfg = 0U;
     if (mode <= Pin_Mode::INPUT_PULLDOWN) {
@@ -114,12 +117,14 @@ void GPIO::set_pin_mode(Pin_Number pin, Pin_Mode mode, Output_Speed speed) {
 
         cfg = (is_open_drain ? 0x4U : 0x0U) | (is_alt ? 0x8U : 0x0U);
 
-        if (speed == Output_Speed::SPEED_MAX) {
-            cfg |= 0x3U;
-            write_bit(*this, GPIO_Regs::SPD, static_cast<uint32_t>(pin), true);
-            AFIO_I.set_compensation(true);
-            while (!AFIO_I.get_compensation()) {
-                // Wait for ready
+        if constexpr (std::is_same_v<mcu::ChipSeries, mcu::F303R>) {
+            if (speed == Output_Speed::SPEED_MAX) {
+                cfg |= 0x3U;
+                compensation = true;
+            } else {
+                cfg |= (speed == Output_Speed::INVALID) ?
+                   static_cast<uint32_t>(Output_Speed::SPEED_50MHZ) :
+                   static_cast<uint32_t>(speed);
             }
         } else {
             cfg |= (speed == Output_Speed::INVALID) ?
@@ -129,6 +134,13 @@ void GPIO::set_pin_mode(Pin_Number pin, Pin_Mode mode, Output_Speed speed) {
     }
 
     write_register(*this, reg, ctl | (cfg << shift));
+
+    if (compensation) {
+        write_bit(*this, GPIO_Regs::SPD, static_cast<uint32_t>(pin), true);
+        AFIO_I.set_compensation(true);
+        while (!AFIO_I.get_compensation()) {
+        }
+    }
 }
 
 /**

@@ -82,7 +82,7 @@ void SDIO::reset() {
  *
  * @param config The configuration to use for the SDIO peripheral.
  */
-void SDIO::init(SDIO_Config& config) {
+void SDIO::init(SDIO_Config config) {
     config_ = config;
     const uint16_t divider = calculate_clock_divider(config_.desired_clock);
     const bool use_div8 = (divider >= 256U) ? true : false;

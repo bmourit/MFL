@@ -36,7 +36,7 @@ public:
     // Reset
     void reset();
     // Initialization
-    void init(SDIO_Config& config = default_config);
+    void init(SDIO_Config config = default_config);
     // Interface clock configure
     void interface_clock_configure(Clock_Edge edge, bool bypass, bool low_power, uint16_t divider);
     // Get clock divider

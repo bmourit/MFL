@@ -35,7 +35,7 @@ public:
     static Result<DMA, DMA_Error_Type> get_instance(DMA_Base Base, DMA_Channel Channel);
 
     // Init
-    void init(DMA_Config& config = default_config);
+    void init(DMA_Config config = default_config);
     // Reset
     void reset();
     // Circulation mode

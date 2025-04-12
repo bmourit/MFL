@@ -10,14 +10,20 @@ OBJCOPY = arm-none-eabi-objcopy
 # Target and output files
 TARGET = MFL
 OUTDIR = build
-LINKER_SCRIPT = Linker/F303RE.ld
+LINKER_SCRIPT = Linker/LINKER.ld
+
+# GD32F303RE/GD32F303RC
+MCU_CORE = cortex-m4
+
+# GD32F103RE/GD32F103RC
+#MCU_CORE = cortex-m3
 
 # C++ compiler flags
-CXXFLAGS = -std=gnu++23 -mcpu=cortex-m4 -mthumb -Os $(INCLUDES)
+CXXFLAGS = -std=gnu++23 -mcpu=$(MCU_CORE) -mthumb -Os $(INCLUDES)
 CXXFLAGS += --specs=nosys.specs -Wall -Wextra -ffunction-sections -fdata-sections -fno-exceptions -fno-use-cxa-atexit -fno-rtti -fno-threadsafe-statics -fno-use-cxa-atexit -nostdlib --specs=nano.specs
 
 # Linker flags
-LDFLAGS	= -T$(LINKER_SCRIPT) -mcpu=cortex-m4 -mthumb -Os
+LDFLAGS	= -T$(LINKER_SCRIPT) -mcpu=$(MCU_CORE) -mthumb -Os
 LDFLAGS += --specs=nosys.specs -Wl,--gc-sections -Wl,--check-sections -Wl,--entry=Reset_Handler -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align --specs=nano.specs
 LDFLAGS += -lstdc++ -lgcc -lm -lc
 

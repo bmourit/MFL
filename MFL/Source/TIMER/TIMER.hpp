@@ -35,7 +35,7 @@ public:
     static Result<TIMER, TIMER_Error_Type> get_instance(TIMER_Base Base);
 
     // Initialization
-    void init(TIMER_Config& config = default_config);
+    void init(TIMER_Config config = default_config);
     void reset();
     // Enable
     void enable();

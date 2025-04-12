@@ -112,7 +112,7 @@ void TIMER::reset() {
  *
  * @param config Configuration structure for the TIMER peripheral.
  */
-void TIMER::init(TIMER_Config& config) {
+void TIMER::init(TIMER_Config config) {
     // Configure counter direction, alignment, and clock division
     if (!is_basic_timer()) {
         write_bit(*this, TIMER_Regs::CTL0,
