@@ -12,7 +12,7 @@ There is only one example right now, however, since this library was developed i
 you can refer to the Arduino Core for reference.
 https://github.com/bmourit/ArduinoCore-MFL
 
-As mentioned, the Marlin HAL for this library and the its coresponding Arduino Core has now been upstreamed into Marlin Firmware.
+As mentioned, the Marlin HAL for this library and its coresponding Arduino Core has now been upstreamed into Marlin Firmware.
 [https://github.com/bmourit/Marlin_MFL](https://github.com/MarlinFirmware/Marlin)
 
 The MFL project is LGPLv3 licensed.
