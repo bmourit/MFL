@@ -3,27 +3,27 @@
 This is a C++ microcontroller firmware library for the GD32F303RE ARM Cortex-M4 microcontroller.
 Written from scratch by yours truly using the vendor manuals and datasheets.
 
-It is a work in progress and some portions need more testing.
-The MFL project is LGPLv3 licensed.
+Certain peripherals are still a work in progress, and some may require more testing.
+That being said, it is currently stable for use in Marlin Firmware and the peripherals used there.
 
-There are only a couple things missing: CAN bus support and I2S support for SPI peripheral library.
+The library does not yet support CAN bus nor the I2S portion of the SPI peripheral. They may be added in the future.
 
 There is only one example right now, however, since this library was developed in tandum with a custom Arduino Core,
 you can refer to the Arduino Core for reference.
 https://github.com/bmourit/ArduinoCore-MFL
 
-Also note, this library and the Arduino Core is being used, and is fully functional,
-in a fork of Marlin Firmware for Creality boards carrying this chip.
-The hope is to eventually get this upstreamed.
-https://github.com/bmourit/Marlin_MFL
+As mentioned, the Marlin HAL for this library and the its coresponding Arduino Core has now been upstreamed into Marlin Firmware.
+[https://github.com/bmourit/Marlin_MFL](https://github.com/MarlinFirmware/Marlin)
 
+The MFL project is LGPLv3 licensed.
 
 # Library Size
 
-This being intended for an MCU with limited SRAM and flash memory, it is important to keep the MFL library as small as possible and memory effecient. This library and Arduino Core are currently being used to build Marlin Firmware
-and the resulting binary size is slightly smaller than when built using the "compatible" STM32 HAL libraries.
+This is an MCU with limited SRAM (64KB) and flash (256/512KB) memory, so the MFL library has been written to produce small binary size be runtime memory effecient.
+Thanks to C++23 GCC compiler and some clever techniques, we can accomplish this without sacrificing any performance.
+For example, the GPIO peripheral can compile the code abstraction to allow direct IO with zero overhead.
 
-That being said, optimization work is still ongoing.
+Optimization work will always remain a high priority.
 
 # Compiling the examples
 
